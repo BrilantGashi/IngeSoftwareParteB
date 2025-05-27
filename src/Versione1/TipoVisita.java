@@ -6,8 +6,8 @@ public class TipoVisita {
 	private String titolo;
     private String descrizione;
     private Indirizzo puntoDiIncontro;
-    private data dataVisita;
-    private List<GiornoSettimana> giorniSettimana;
+    private Data dataVisita;
+    //private List<GiornoSettimana> giorniSettimana;
     private LocalTime oraInizio;
     private int durataVisita;
     private boolean biglietto;
@@ -28,9 +28,9 @@ public class TipoVisita {
 		this.sogliaMaxPartecipanti = sogliaMaxPartecipanti;
 	}
 
-	public Data getDataVisita() {
-		return dataVisita;
-	}
+	//public Data getDataVisita() {
+	//	return dataVisita;
+	//}
 
 	public LocalTime getOraInizio() {
 		return oraInizio;
