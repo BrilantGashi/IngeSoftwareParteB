@@ -1,8 +1,8 @@
 CONFIGURATORE;utente1;laiba
-CONFIGURATORE;utente2;password2
-CONFIGURATORE;utente3;pass3
-FRUITORE;utente3;pass3
-VOLONTARIO;utente3;pass3
+CONFIGURATORE;utente2;u2
+CONFIGURATORE;utente3;u3
+FRUITORE;utente3;u3
+VOLONTARIO;utente3;u3
 CONFIGURATORE;utente4;u4
-CONFIGURATORE;utente5;password5
-CONFIGURATORE;utente6;default
+CONFIGURATORE;utente5;u5
+CONFIGURATORE;utente6;u6

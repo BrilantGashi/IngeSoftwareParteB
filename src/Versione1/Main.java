@@ -10,6 +10,22 @@ public class Main {
 	private static String[] voci = {"Registra Configuratore"};
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException {
+		//---------------------------------
+		
+
+				System.out.println("Unibs Software Engineering");
+				boolean fineProgramma = false;
+				
+				do {
+					fineProgramma = Menu.menuPrincipale();
+				} while (!fineProgramma);
+				
+				System.out.println("Arrivederci!");
+	
+		
+		
+		/*
+		//---------------------------------
 		
 		int sceltaMenu;
 		
@@ -21,52 +37,33 @@ public class Main {
 			break;
 			
 		case 1:
-			accesso();
+			login();
 			break;
 		
 		
 		}
 		
-		
-		
-
+*/
 	}
 	
-	/*METODO TMP PER REINSERIMENTO PASS SE SBAGLIO E CONTROLLO CHE ESISTA USERNAME
+	/*
 	public static void login() throws FileNotFoundException, IOException {
 		String username;
 		String password;
 		String utenza = "";
 		GestioneFile g = new GestioneFile();
-		
-		System.out.println("Inserisci le credenziali che ti sono state fornite dall'amministrazione: ");
+
+		System.out.println("Inserisci lo username che ti e' stato fornito dall'amministrazione: ");
 		username = InputDati.leggiStringaNonVuota("Username: ");
-		password = InputDati.leggiStringaNonVuota("Password: ");
-		if (g.leggiSingolaCredenziale(username) == null) {
-			System.out.println("Username errato");
+		
+		while (g.leggiSingolaCredenziale(username) == null) {				
+			username = InputDati.leggiStringaNonVuota("Username inserito non esistente, riprovare: ");
+			
 		}
 		Credenziali credenziali = new Credenziali (username);
-	}
-	
-	*/
-	
-	
-	
-	
-	/**
-	 * Metodo per entrare nel portale
-	 * 
-	 */
-	public static void accesso() throws FileNotFoundException, IOException {
-		String username;
-		String password;
-		String utenza = "";
 		
-		System.out.println("Inserisci le credenziali che ti sono state fornite dall'amministrazione: ");
-		username = InputDati.leggiStringaNonVuota("Username: ");
 		password = InputDati.leggiStringaNonVuota("Password: ");
-		Credenziali credenziali = new Credenziali (username);
-		
+
 		/*
 		 	okCred restituisce: 
 		 	- -1 se credenziali sbagliate
@@ -75,33 +72,38 @@ public class Main {
 		 	
 		 	 questa info la devo mandare al metodo configuratore che, se è il primo accesso, deve fare determinate cose
 		 */
+	/*
 		int okCred = 0;
 		okCred = credenziali.controllaCredenziali(username, password);
 		
-		
-		if (okCred != -1) {
-			utenza = credenziali.getUtenza();
-			System.out.println("ok credenziali");
+		while (okCred == -1) {
+			password = InputDati.leggiStringaNonVuota("Password errata, riprovare: ");
+			okCred = credenziali.controllaCredenziali(username, password);
 		}
 		
+		
+		utenza = credenziali.getUtenza();
 		
 		switch (utenza) {
 		case "CONFIGURATORE":
 			configuratore(okCred);
 			break;
 			
-		default:
-			System.out.println("Credenziali errate");
+		default:						
 			break;			
-		}		
+		}
 	}
+	
+	
 	
 	public static void configuratore (int okCred) {
 		/*
 			cose che deve fare un configuratore nella V1:
+			- creazione corpo dati: prima chiedere in input tutti i dati, e alla fine scriverli sul file
+			- avviare calendarizzazione
 			
 		*/
-		
+		/*
 		if (okCred == 1) {	//cioè se è il primo accesso
 			//creazione corpo dati
 		}
@@ -112,6 +114,6 @@ public class Main {
 		
 	}
 	
-	
+	*/
 
 }

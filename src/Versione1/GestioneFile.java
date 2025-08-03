@@ -10,10 +10,25 @@ public class GestioneFile {
 	 
 	File file = new File("credenziali.txt");
 
+	/**
+	 * Costruttore vuoto
+	 */
 	public GestioneFile() {
-		
 	}
 	
+	/**
+	 * Cerca una riga nel file delle credenziali in base allo username indicato, per verificare l'esistenza
+	 * e di conseguenza la correttezza dello username
+	 *
+	 * Prerequisito: esiste un File file;   inizializzato
+	 *
+	 * @param username  username da cercare (colonna 2)
+	 * @return array di stringhe con i campi della riga trovata;
+	 *         null se lo username non è stato trovato
+	 * @throws IOException            problemi di I/O 
+	 * @throws FileNotFoundException  se il file non esiste
+	 */
+
 	public String[] leggiSingolaCredenziale(String username) throws FileNotFoundException, IOException {
 		String[] riga;
 		
