@@ -2,6 +2,7 @@ package Versione1;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -106,6 +107,35 @@ public class Menu{
 		
 		if (okCred == 1) {	//cioè se è il primo accesso
 			//creazione corpo dati
+			
+			System.out.println("Creazione Corpo Dati");
+			
+			//**************************AMBITO TERRITORIALE ***********************************
+			System.out.println("Creazione Ambito Territoriale");
+			
+			String provincia;
+			provincia = InputDati.leggiStringaNonVuota("Inserisci la provincia: ");
+			
+			ArrayList<String> cap = new ArrayList<String>();
+			int continua = 0;
+			do {
+				
+				 cap.add(InputDati.leggiStringaNonVuota("Inserisci almeno un cap: "));
+				 
+				 continua = InputDati.leggiIntero("Vuoi inserire un altro cap? 1 per inserire, 0 per uscire. ");
+			} while (continua != 0);
+			
+			AmbitoTerritoriale ambitoTerritoriale = new AmbitoTerritoriale(cap, provincia);
+			
+			
+			//**********************N MAX PARTECIPANTI PER FRUITORE ***********************************
+			/*fissare il numero massimo di persone che un fruitore può iscrivere a una iniziativa 
+			mediante una singola iscrizione (tale numero è valido per ogni visita)*/			
+			int nMax = 0;
+			
+			nMax = InputDati.leggiInteroPositivo("Inserisci il numero massimo di persone che un fruitore può iscrivere a una iniziativa mediante una singola iscrizione");
+			
+			//********************** LUOGHI ***********************************
 		}
 		
 		
