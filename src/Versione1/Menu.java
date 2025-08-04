@@ -10,7 +10,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import it.unibs.fp.mylib.*;
 
 public class Menu{
-	private static String[] voci = {"Registra Configuratore"};
+	private static String[] voci = {"Registra Configuratore", "Definisci Volontari", "Visualizza Volontari"};
+	private static ArrayList<Volontario> ListaVolontari = new ArrayList<Volontario>();
 	/*
 	private static final FileNameExtensionFilter filtroTXT = new FileNameExtensionFilter("File .txt","txt");
 	private static final FileNameExtensionFilter filtroDAT = new FileNameExtensionFilter("File .dat","dat");
@@ -42,6 +43,15 @@ public class Menu{
 				
 			case 1:
 				login();
+				break;
+				
+			case 2:
+				definizioneVolontari();
+				visualizzaVolontari();
+				break;
+				
+			case 3:
+				visualizzaVolontari();
 				break;
 			
 			
@@ -128,14 +138,19 @@ public class Menu{
 			AmbitoTerritoriale ambitoTerritoriale = new AmbitoTerritoriale(cap, provincia);
 			
 			
-			//**********************N MAX PARTECIPANTI PER FRUITORE ***********************************
+			//********************** N MAX PARTECIPANTI PER FRUITORE ***********************************
 			/*fissare il numero massimo di persone che un fruitore può iscrivere a una iniziativa 
 			mediante una singola iscrizione (tale numero è valido per ogni visita)*/			
-			int nMax = 0;
+			int nMaxPersone = 0;
 			
-			nMax = InputDati.leggiInteroPositivo("Inserisci il numero massimo di persone che un fruitore può iscrivere a una iniziativa mediante una singola iscrizione");
+			nMaxPersone = InputDati.leggiInteroPositivo("Inserisci il numero massimo di persone che un fruitore può iscrivere a una iniziativa mediante una singola iscrizione");
 			
 			//********************** LUOGHI ***********************************
+			
+			//prereuisiti: lista volontari
+			//1. definizione TipoVisita e poi inserite in ListaTipoVisita, da cui verranno pescate per essere mostrate e scelte dal config
+			//2. chiedere quanti luoghi vuole definire
+			//3. per ogni luogo, scegliere tipo visita e almeno un volontario
 		}
 		
 		
@@ -144,4 +159,27 @@ public class Menu{
 		
 	}
 
+	public static void definizioneVolontari(){
+		String nickname;
+		int continuare;
+		
+		do {
+		
+			nickname = InputDati.leggiStringaNonVuota("Inserisci il nickname del volontario: ");
+			Volontario volontario = new Volontario(nickname);
+			ListaVolontari.add(volontario);
+			
+			continuare = InputDati.leggiIntero("Vuoi inserire un altro volontario? 1 per inserire, 0 per uscire");
+						
+		} while (continuare != 0);	
+		System.out.println("Fine inserimento Volontari.");
+	}
+	
+	public static void visualizzaVolontari () {
+		System.out.println(ListaVolontari.toString());		
+		
+	}
+	
+	
+	
 }

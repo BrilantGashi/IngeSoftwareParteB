@@ -7,7 +7,7 @@ import java.util.*;
 
 public class Main {
 
-	private static String[] voci = {"Registra Configuratore"};
+	//private static String[] voci = {"Registra Configuratore"};
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException {
 		//---------------------------------
