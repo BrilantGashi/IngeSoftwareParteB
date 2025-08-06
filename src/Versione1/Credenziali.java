@@ -65,9 +65,6 @@ public class Credenziali {
 	
 	
 	
-	
-	
-	
 	public boolean verificaPrimoAccesso (String username, String password) throws FileNotFoundException, IOException {
 		
 		if (password.equalsIgnoreCase("default")) {
@@ -110,6 +107,9 @@ public class Credenziali {
 		
 		return 0;
 	}
+	
+	
+	
 	
 	
 	

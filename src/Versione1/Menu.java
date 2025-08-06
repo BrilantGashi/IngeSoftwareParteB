@@ -1,25 +1,18 @@
 package Versione1;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.*;
+import java.time.LocalTime;
+import java.util.*;
 
 import it.unibs.fp.mylib.*;
 
 public class Menu{
 	private static String[] voci = {"Registra Configuratore", "Definisci Volontari", "Visualizza Volontari"};
-	private static ArrayList<Volontario> ListaVolontari = new ArrayList<Volontario>();
-	/*
-	private static final FileNameExtensionFilter filtroTXT = new FileNameExtensionFilter("File .txt","txt");
-	private static final FileNameExtensionFilter filtroDAT = new FileNameExtensionFilter("File .dat","dat");
-	public static final String cartella = "Modelli"; //La cartella dove risiederanno i file modelli salvati. Magari cambiata
-	public static final String cartellaModelliOggetto = "ModelliDAT";
-	public static final String cartellaStatisticheModello = "Statistiche";
-	*/
+	private static ArrayList<String> listaVolontari = new ArrayList<String>();
+	private static ListaTipoVisita listaTipoVisita = new ListaTipoVisita();
 	
+	private static GestioneFile g = new GestioneFile();
+	
+	//private static final String LOG_FILENAME = "matriciopoli.log";
 	//////////////////////////////////
 	// MENU PRINCIPALE
 	//////////////////////////////////
@@ -46,8 +39,8 @@ public class Menu{
 				break;
 				
 			case 2:
-				definizioneVolontari();
-				visualizzaVolontari();
+				//definizioneVolontari();
+				//visualizzaVolontari();
 				break;
 				
 			case 3:
@@ -65,7 +58,7 @@ public class Menu{
 		String username;
 		String password;
 		String utenza = "";
-		GestioneFile g = new GestioneFile();
+		
 	
 		System.out.println("Inserisci lo username che ti e' stato fornito dall'amministrazione: ");
 		username = InputDati.leggiStringaNonVuota("Username: ");
@@ -107,7 +100,7 @@ public class Menu{
 		}
 	}
 	
-	public static void configuratore (int okCred) {
+	public static void configuratore (int okCred) throws FileNotFoundException, IOException {
 		/*
 			cose che deve fare un configuratore nella V1:
 			- creazione corpo dati: prima chiedere in input tutti i dati, e alla fine scriverli sul file
@@ -147,10 +140,21 @@ public class Menu{
 			
 			//********************** LUOGHI ***********************************
 			
-			//prereuisiti: lista volontari
+			//prerequisiti: lista volontari --FATTO**** -->metodo visualizzaVolontari
+			visualizzaVolontari();
+			
 			//1. definizione TipoVisita e poi inserite in ListaTipoVisita, da cui verranno pescate per essere mostrate e scelte dal config
+			
+			definizioneTipoVisita();
+			
+			
+			
+			
 			//2. chiedere quanti luoghi vuole definire
 			//3. per ogni luogo, scegliere tipo visita e almeno un volontario
+			
+			
+			
 		}
 		
 		
@@ -159,27 +163,34 @@ public class Menu{
 		
 	}
 
-	public static void definizioneVolontari(){
-		String nickname;
-		int continuare;
+	public static void visualizzaVolontari () throws FileNotFoundException, IOException {
 		
-		do {
+		listaVolontari = g.restituisciListaUtenza("VOLONTARIO");
 		
-			nickname = InputDati.leggiStringaNonVuota("Inserisci il nickname del volontario: ");
-			Volontario volontario = new Volontario(nickname);
-			ListaVolontari.add(volontario);
-			
-			continuare = InputDati.leggiIntero("Vuoi inserire un altro volontario? 1 per inserire, 0 per uscire");
-						
-		} while (continuare != 0);	
-		System.out.println("Fine inserimento Volontari.");
+		for (String nickname : listaVolontari) {
+			System.out.println(nickname);
+		}
 	}
 	
-	public static void visualizzaVolontari () {
-		System.out.println(ListaVolontari.toString());		
+	public static void definizioneTipoVisita() {
+		
+		//prima definisco il singolo tipo visita, e poi lo aggiungo alla lista listaTipoVisita 
+		
+		
+		String titolo = InputDati.leggiStringaNonVuota("Inserisci il titolo del tipo visita: ");
+		String descrizione = InputDati.leggiStringaNonVuota("Inserisci una breve descrizione del tipo visita: ");
+		
+		//private Indirizzo puntoDiIncontro;
+	    //private Data dataVisita;	    
+	    //private LocalTime oraInizio;
+	    int durataVisita = InputDati.leggiInteroPositivo("Inserisci in minuti la durata della visita: ");
+	    int biglietto = InputDati.leggiIntero("Inserisci 0 se NON serve il biglietto, 1 altrimenti.", 0, 1);
+	    int sogliaMinPartecipanti = InputDati.leggiInteroNonNegativo("Inserisci soglia MINIMA dei partecipanti: ");
+	    int sogliaMaxPartecipanti = InputDati.leggiInteroNonNegativo("Inserisci soglia MASSIMA dei partecipanti: ");
+		//private Periodo periodoProgrammabile;
+		
+		
 		
 	}
-	
-	
 	
 }

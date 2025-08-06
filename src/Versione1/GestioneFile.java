@@ -96,4 +96,23 @@ public class GestioneFile {
 	    return trovato;
 	}
 
+	
+	public ArrayList restituisciListaUtenza (String utenza) throws FileNotFoundException, IOException {
+		String[] riga;
+		ArrayList<String> lista = new ArrayList<String>();
+		
+		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+		    String line;
+		    while ((line = br.readLine()) != null) {
+		    	riga = line.split(";");
+		       
+		    	//1 perchè è il secondo paramatro della riga -- CONFIGURATORE;utente1;default
+		       if (riga[0].equalsIgnoreCase(utenza)) {
+		    	   lista.add(riga[1]);
+		       }
+		    }
+		}
+		
+		return lista;			
+	}
 }

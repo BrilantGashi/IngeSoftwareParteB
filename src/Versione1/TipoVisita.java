@@ -14,9 +14,12 @@ public class TipoVisita {
     private int sogliaMinPartecipanti;
     private int sogliaMaxPartecipanti;
     //private Set<Volontario> volontari;
+	private Periodo periodoProgrammabile;		//COMMENTO LAIBA: nella consegna c'è esplicitamente scritto che il tipo visita deve 
+												//contenere il periodo dell'anno durante il quale la visita è programmabile. In caso 
+												//contrario, sarebbe difficile distinguere il tipo visita "astratto" dalla visita effettiva programmata
     
     public TipoVisita(String titolo, String descrizione, Indirizzo puntoDiIncontro, LocalTime oraInizio,
-			int durataVisita, boolean biglietto, int sogliaMinPartecipanti, int sogliaMaxPartecipanti) {
+			int durataVisita, boolean biglietto, int sogliaMinPartecipanti, int sogliaMaxPartecipanti, Periodo periodoProgrammabile) {
 		super();
 		this.titolo = titolo;
 		this.descrizione = descrizione;
@@ -26,6 +29,9 @@ public class TipoVisita {
 		this.biglietto = biglietto;
 		this.sogliaMinPartecipanti = sogliaMinPartecipanti;
 		this.sogliaMaxPartecipanti = sogliaMaxPartecipanti;
+		this.periodoProgrammabile = periodoProgrammabile;
+		
+
 	}
 
 	//public Data getDataVisita() {
