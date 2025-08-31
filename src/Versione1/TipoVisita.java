@@ -45,6 +45,15 @@ public class TipoVisita {
 	public int getDurataVisita() {
 		return durataVisita;
 	}
+
+	@Override
+	public String toString() {
+		return "TipoVisita [titolo=" + titolo + ", descrizione=" + descrizione + ", puntoDiIncontro=" + puntoDiIncontro
+				+ ", dataVisita=" + dataVisita.toString() +", oraInizio=" + oraInizio + ", durataVisita=" + durataVisita
+				+ ", biglietto=" + biglietto + ", sogliaMinPartecipanti=" + sogliaMinPartecipanti
+				+ ", sogliaMaxPartecipanti=" + sogliaMaxPartecipanti + ", periodoProgrammabile=" + periodoProgrammabile.toString()
+				+ "]";
+	}
     
     
     

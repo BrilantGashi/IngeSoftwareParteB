@@ -9,5 +9,13 @@ public class Periodo {
 		this.dataInizio = dataInizio;
 		this.dataFine = dataFine;
 	}
+
+	@Override
+	public String toString() {
+		return "Periodo valido: " + dataInizio.toString() + " a " + dataFine.toString();
+	}
+
+	
+	
 	
 }

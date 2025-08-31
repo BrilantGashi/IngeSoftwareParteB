@@ -9,6 +9,7 @@ public class Menu{
 	private static String[] voci = {"Registra Configuratore", "Definisci Volontari", "Visualizza Volontari"};
 	private static ArrayList<String> listaVolontari = new ArrayList<String>();
 	private static ListaTipoVisita listaTipoVisita = new ListaTipoVisita();
+	private static ListaLuogo listaLuogo = new ListaLuogo();
 	
 	private static GestioneFile g = new GestioneFile();
 	
@@ -109,7 +110,7 @@ public class Menu{
 		*/
 		
 		if (okCred == 1) {	//cioè se è il primo accesso
-			//creazione corpo dati
+			//a. creazione corpo dati -- TUTTO QUESTO DOVRA' POI ESSERE MESSO IN CLASSE CONFIGURATORE (o un altro metodo in classe Menu, da pensare)
 			
 			System.out.println("Creazione Corpo Dati");
 			
@@ -146,19 +147,19 @@ public class Menu{
 			//1. definizione TipoVisita e poi inserite in ListaTipoVisita, da cui verranno pescate per essere mostrate e scelte dal config
 			
 			definizioneTipoVisita();
-			
-			
-			
-			
+						
 			//2. chiedere quanti luoghi vuole definire
+			
+			int luoghi = InputDati.leggiInteroNonNegativo("Quanti luoghi vuoi definire?");
+			
 			//3. per ogni luogo, scegliere tipo visita e almeno un volontario
 			
-			
-			
+			for (int i = 0; i < luoghi; i++) {
+				//definizione luogo a cui si andra' ad associare un tipo visita e almeno un volontario
+				System.out.println("Creazione luogo n. " + i+1 + ": ");				
+				definizioneLuogo();							
+			}		
 		}
-		
-		
-		
 		
 		
 	}
@@ -180,17 +181,76 @@ public class Menu{
 		String titolo = InputDati.leggiStringaNonVuota("Inserisci il titolo del tipo visita: ");
 		String descrizione = InputDati.leggiStringaNonVuota("Inserisci una breve descrizione del tipo visita: ");
 		
-		//private Indirizzo puntoDiIncontro;
-	    //private Data dataVisita;	    
-	    //private LocalTime oraInizio;
+		
+		Indirizzo puntoDiIncontro = ObjIndirizzo();;
+	    Data dataVisita = ObjData("Inserisci il giorno della visita: ", "Inserisci il mese della visita: ");	    
+	    LocalTime oraInizio = ObjOraFLT();
 	    int durataVisita = InputDati.leggiInteroPositivo("Inserisci in minuti la durata della visita: ");
-	    int biglietto = InputDati.leggiIntero("Inserisci 0 se NON serve il biglietto, 1 altrimenti.", 0, 1);
+	    //int biglietto = InputDati.leggiIntero("Inserisci 0 se NON serve il biglietto, 1 altrimenti.", 0, 1);
+	    boolean biglietto = InputDati.yesOrNo("Inserisci N se NON serve il biglietto, S altrimenti.");
 	    int sogliaMinPartecipanti = InputDati.leggiInteroNonNegativo("Inserisci soglia MINIMA dei partecipanti: ");
 	    int sogliaMaxPartecipanti = InputDati.leggiInteroNonNegativo("Inserisci soglia MASSIMA dei partecipanti: ");
-		//private Periodo periodoProgrammabile;
+		Periodo periodoProgrammabile = ObjPeriodo();	
+		
+		TipoVisita tipoVisita = new TipoVisita(titolo, descrizione,  puntoDiIncontro, oraInizio,
+				durataVisita, biglietto, sogliaMinPartecipanti, sogliaMaxPartecipanti, periodoProgrammabile);
+		
+		System.out.println(tipoVisita.toString());
 		
 		
+		
+		//listaTipoVisita.add(tipoVisita);
 		
 	}
 	
+	public static Indirizzo ObjIndirizzo () {
+		
+		TipoStrada tipoStrada =  TipoStrada.scegliDaNome();
+		String nomeStrada = InputDati.leggiStringaNonVuota("Inserisci il nome della Strada: ");
+		String numeroCivico = InputDati.leggiStringaNonVuota("Inserisci il numero civico: ");		
+		String cap = InputDati.leggiStringaNonVuota("Inserisci il cap: ");
+		String comune = InputDati.leggiStringaNonVuota("Inserisci il Comune: ");		
+		String provincia = InputDati.leggiStringaNonVuota("Inserisci Provincia: ");
+		
+		Indirizzo indirizzo = new Indirizzo (tipoStrada, nomeStrada, numeroCivico, cap, comune, provincia);
+		return indirizzo;
+	}
+	
+	public static Data ObjData (String descrizioneGiorno, String descrizioneMese) {
+		int giorno = InputDati.leggiInteroPositivo(descrizioneGiorno);
+		int mese = InputDati.leggiInteroPositivo(descrizioneMese);
+		
+		Data data = new Data(giorno, mese);
+		
+		return data;
+		
+	}
+	
+	public static LocalTime ObjOraFLT () { //obj Ora Formato LocalTime
+		int ora = InputDati.leggiIntero("Inserisci ora inizio: ", 0, 23);
+		int minuti = InputDati.leggiIntero("Inserisci minuti inizio: ", 0, 59);
+		LocalTime orario = LocalTime.of(ora, minuti);
+		
+		return orario;
+	}
+
+	public static Periodo ObjPeriodo () {
+		Data dataInizio = ObjData("Inserisci il giorno di inizio del periodo: ", "Inserisci il mese di inizio del periodo: ");
+		Data dataFine = ObjData("Inserisci il giorno di fine del periodo: ", "Inserisci il mese di fine del periodo: ");
+		
+		Periodo periodo = new Periodo (dataInizio, dataFine);
+		
+		return periodo;
+		
+	}
+
+	public static void definizioneLuogo () {
+		String nomeLuogo = InputDati.leggiStringaNonVuota("Inserisci il nome del luogo: ");
+		String descrizione = InputDati.leggiStringa("Inserisci una descrizione del luogo: ");
+		Indirizzo indirizzo = ObjIndirizzo();
+		
+		//ogni LUOGO dovrebbe contenere al suo interno una LISTA DI TIPI LUOGO (pg. 4, "A ciascun luogo è associato almeno un tipo di visita")
+		//far scegliere il tippo visita in base al nome (quindi bisogna fare controlli affinchè il nome sia univoo)
+		
+	}
 }

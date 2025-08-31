@@ -3,7 +3,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class ListaTipoVisita {
-	private ArrayList<TipoVisita> tipi ;
+	private ArrayList<TipoVisita> tipi;
 
 	public ListaTipoVisita() {
 		this.tipi = new ArrayList <TipoVisita>();
@@ -23,5 +23,9 @@ public class ListaTipoVisita {
         tipi.add(nuova);
         return true;
     }*/
+	
+	public void add(TipoVisita tipoVisita) {
+		tipi.add(tipoVisita);
+	}
     
 }

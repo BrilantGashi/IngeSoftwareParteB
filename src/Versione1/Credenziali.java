@@ -69,7 +69,11 @@ public class Credenziali {
 		
 		if (password.equalsIgnoreCase("default")) {
 			String nuovaPass = InputDati.leggiStringaNonVuota("Inserisci la nuova password: ");
-			setPassword(nuovaPass);
+			
+			//************************************************************************************
+			//*************** MOMENTANEAMENTE BLOCCATO MA E' FUNZIONANTE, BLOCCATO SOLO PER COMODITA'*********
+			//************************************************************************************
+			//setPassword(nuovaPass);
 			//DA FARE: aggionare anche su file --> lo faccio in setPassword
 			
 			return true;

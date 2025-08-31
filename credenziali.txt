@@ -1,4 +1,4 @@
-CONFIGURATORE;utente1;laiba
+CONFIGURATORE;utente1;default
 CONFIGURATORE;utente2;u2
 CONFIGURATORE;utente3;u3
 FRUITORE;utente3;u3

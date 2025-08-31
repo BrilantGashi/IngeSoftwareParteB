@@ -16,5 +16,11 @@ public class Data {
 	public int getMese() {
 		return mese;
 	}
+
+	@Override
+	public String toString() {
+		return giorno + "/" + mese;
+	}
+	
 	
 }
