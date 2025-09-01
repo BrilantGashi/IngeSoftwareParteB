@@ -115,4 +115,45 @@ public class GestioneFile {
 		
 		return lista;			
 	}
-}
+	
+	
+    public void leggiUtentiDaFile(List<Configuratore> configuratori,
+	                              List<Volontario> volontari
+	                              /*List<Fruitore> fruitori*/) throws IOException {
+
+	        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+	            String line;
+
+	            while ((line = br.readLine()) != null) {
+	                String[] campi = line.split(";");
+	                if (campi.length < 3) continue;
+
+	                String ruolo = campi[0].trim().toUpperCase();
+	                String username = campi[1].trim();
+	                String password = campi[2].trim();
+
+	                Credenziali cred = new Credenziali(username);
+	                
+	                switch (ruolo) {
+	                    case "CONFIGURATORE":
+	                        configuratori.add(new Configuratore(cred));
+	                        break;
+	                    case "VOLONTARIO":
+	                        volontari.add(new Volontario(cred));
+	                        break;
+	                    case "FRUITORE":
+	                        //fruitori.add(new Fruitore(username, password));
+	                        break;
+	                    default:
+	                        System.out.println("Ruolo sconosciuto: " + ruolo);
+	                }
+	            }
+	        }
+	    }
+	}
+
+	
+	
+	
+	
+

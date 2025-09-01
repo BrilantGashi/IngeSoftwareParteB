@@ -20,10 +20,7 @@ public class Credenziali {
 		String[] credenziali = g.leggiSingolaCredenziale(username);
 		this.utenza = credenziali[0];
 		this.username = credenziali[1];
-		this.password = credenziali[2];
-		
-		
-		
+		this.password = credenziali[2];		
 	}
 	
 	public Credenziali(){	

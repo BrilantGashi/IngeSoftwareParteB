@@ -27,5 +27,33 @@ public class ListaTipoVisita {
 	public void add(TipoVisita tipoVisita) {
 		tipi.add(tipoVisita);
 	}
+
+	@Override
+	public String toString() {
+		return "ListaTipoVisita [tipi=" + tipi.toString() + "]";
+	}
+	
+	
+	public String toStringAsList () {
+		String returnString = "";
+		for (int i = 0; i < tipi.size(); i++) {
+			returnString = returnString + (i+1) + ". "+ tipi.get(i).toString() + "\n"; 
+		}
+		return returnString;
+	}
+
+	public ArrayList<TipoVisita> getTipi() {
+		return tipi;
+	}
+
+	public void setTipi(ArrayList<TipoVisita> tipi) {
+		this.tipi = tipi;
+	}
+	
+	
+	public TipoVisita getTipo(int i) {
+		return tipi.get(i);
+	}
+	
     
 }

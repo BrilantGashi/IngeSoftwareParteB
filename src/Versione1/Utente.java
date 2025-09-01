@@ -20,6 +20,12 @@ public class Utente {
 	public void setCredenziali(Credenziali credenziali) {
 		this.credenziali = credenziali;
 	}
+
+	public String toStringUsername() {
+		// TODO Auto-generated method stub
+		
+		return credenziali.getUsername();
+	}
 	
 	//devo popolare credenziali leggendo dal file
 

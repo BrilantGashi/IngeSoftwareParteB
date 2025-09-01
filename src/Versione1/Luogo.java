@@ -14,7 +14,7 @@ public class Luogo {
 		
 	}
 
-	public String toString() {
+/*	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("Luogo: \n");
 		sb.append(String.format("Nome: %s\n", nomeLuogo));
@@ -22,8 +22,10 @@ public class Luogo {
 		sb.append(String.format("Indirizzo: %s\n", indirizzo.toString()));
 		
 		
+		
+		
 		return sb.toString();
-	}
+	}*/
 	
 
 	
@@ -51,6 +53,12 @@ public class Luogo {
 
 	public void setListaTipoVisita(ListaTipoVisita listaTipoVisita) {
 		this.listaTipoVisita = listaTipoVisita;
+	}
+
+	@Override
+	public String toString() {
+		return "Luogo [nomeLuogo=" + nomeLuogo + ", descrizione=" + descrizione + ", indirizzo=" + indirizzo
+				+ ", listaTipoVisita=" + listaTipoVisita.toString() + "]";
 	}
 	
 	

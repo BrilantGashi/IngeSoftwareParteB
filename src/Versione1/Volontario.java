@@ -22,7 +22,7 @@ public class Volontario extends Utente{
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
 	}
-	
+
 	
 	
 

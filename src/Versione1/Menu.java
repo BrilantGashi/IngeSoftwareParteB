@@ -7,9 +7,10 @@ import it.unibs.fp.mylib.*;
 
 public class Menu{
 	private static String[] voci = {"Registra Configuratore", "Definisci Volontari", "Visualizza Volontari"};
-	private static ArrayList<String> listaVolontari = new ArrayList<String>();
+	private static ArrayList<Configuratore> listaConfiguratore = new ArrayList<Configuratore>();
+	private static ArrayList<Volontario> listaVolontari = new ArrayList<Volontario>();
 	private static ListaTipoVisita listaTipoVisita = new ListaTipoVisita();
-	private static ListaLuogo listaLuogo = new ListaLuogo();
+	//private static ListaLuogo listaLuogo = new ListaLuogo();
 	
 	private static GestioneFile g = new GestioneFile();
 	
@@ -26,6 +27,7 @@ public class Menu{
 	public static boolean menuPrincipale() throws FileNotFoundException, IOException{
 		
 		int sceltaMenu;
+		g.leggiUtentiDaFile(listaConfiguratore, listaVolontari);
 				
 			MyMenu menu = new MyMenu("Menu", voci);
 			sceltaMenu = menu.scegli();
@@ -60,6 +62,7 @@ public class Menu{
 		String password;
 		String utenza = "";
 		
+		//***************************POSSIBILE FARLO MEGLIO, CONTROLLANDO SOLO ARRAYLIST CONFIGU********************
 	
 		System.out.println("Inserisci lo username che ti e' stato fornito dall'amministrazione: ");
 		username = InputDati.leggiStringaNonVuota("Username: ");
@@ -146,7 +149,12 @@ public class Menu{
 			
 			//1. definizione TipoVisita e poi inserite in ListaTipoVisita, da cui verranno pescate per essere mostrate e scelte dal config
 			
-			definizioneTipoVisita();
+			boolean continuoTipoVisita;
+			do {
+				definizioneTipoVisita();
+				continuoTipoVisita = InputDati.yesOrNo("Vuoi inserire un altro Tipo Visita?");
+			} while (continuoTipoVisita);
+			
 						
 			//2. chiedere quanti luoghi vuole definire
 			
@@ -158,18 +166,26 @@ public class Menu{
 				//definizione luogo a cui si andra' ad associare un tipo visita e almeno un volontario
 				System.out.println("Creazione luogo n. " + i+1 + ": ");				
 				definizioneLuogo();							
-			}		
+			}
+			
+			
+			
+			
 		}
 		
 		
 	}
 
-	public static void visualizzaVolontari () throws FileNotFoundException, IOException {
+	public static void visualizzaVolontari (){
 		
-		listaVolontari = g.restituisciListaUtenza("VOLONTARIO");
-		
-		for (String nickname : listaVolontari) {
+		//listaVolontari = g.restituisciListaUtenza("VOLONTARIO");
+		//int i = 0;
+		/*for (String nickname : listaVolontari)) {
 			System.out.println(nickname);
+		}*/
+		
+		for (int i = 0; i < listaVolontari.size(); i++) {
+			System.out.println((i+1) + ". "+ listaVolontari.get(i).getCredenziali().getUsername());
 		}
 	}
 	
@@ -192,14 +208,23 @@ public class Menu{
 	    int sogliaMaxPartecipanti = InputDati.leggiInteroNonNegativo("Inserisci soglia MASSIMA dei partecipanti: ");
 		Periodo periodoProgrammabile = ObjPeriodo();	
 		
-		TipoVisita tipoVisita = new TipoVisita(titolo, descrizione,  puntoDiIncontro, oraInizio,
-				durataVisita, biglietto, sogliaMinPartecipanti, sogliaMaxPartecipanti, periodoProgrammabile);
+		boolean continuaVolontario = false;
+		int sceltaVolontario;
+		ArrayList<Volontario> volontariToAdd = new ArrayList<>();
+		
+		do {			
+			visualizzaVolontari();
+			sceltaVolontario = InputDati.leggiInteroNonNegativo("Inserisci il numero del volontario da associare al tipo visita: ");
+			volontariToAdd.add(listaVolontari.get(sceltaVolontario - 1));
+			
+		} while(continuaVolontario);
+		
+		TipoVisita tipoVisita = new TipoVisita(titolo, descrizione,  puntoDiIncontro, dataVisita, oraInizio,
+				durataVisita, biglietto, sogliaMinPartecipanti, sogliaMaxPartecipanti, periodoProgrammabile, volontariToAdd);
 		
 		System.out.println(tipoVisita.toString());
 		
-		
-		
-		//listaTipoVisita.add(tipoVisita);
+		listaTipoVisita.add(tipoVisita);
 		
 	}
 	
@@ -249,8 +274,30 @@ public class Menu{
 		String descrizione = InputDati.leggiStringa("Inserisci una descrizione del luogo: ");
 		Indirizzo indirizzo = ObjIndirizzo();
 		
-		//ogni LUOGO dovrebbe contenere al suo interno una LISTA DI TIPI LUOGO (pg. 4, "A ciascun luogo è associato almeno un tipo di visita")
-		//far scegliere il tippo visita in base al nome (quindi bisogna fare controlli affinchè il nome sia univoo)
+		//ogni LUOGO dovrebbe contenere al suo interno una LISTA DI TIPI VISITA (pg. 4, "A ciascun luogo è associato almeno un tipo di visita")
+			
 		
+		//mostrare tutti i tipi visita
+		//chiedere quale associare al luogo
+		//chiedere se ne vogliono associare un altro
+					
+		boolean continuaTipo = false;
+		int sceltaTipo;
+		ArrayList<TipoVisita> tipiToAdd = new ArrayList<>();
+		ListaTipoVisita listaTipoVisitaToAdd = new ListaTipoVisita();
+		
+		do {
+			System.out.println(listaTipoVisita.toStringAsList());
+			
+			sceltaTipo = InputDati.leggiInteroNonNegativo("Inserisci il numero del Tipo Visita che vuoi associare a questo Luogo: ");
+			listaTipoVisitaToAdd.add(listaTipoVisita.getTipo(sceltaTipo - 1));
+			
+			continuaTipo = InputDati.yesOrNo("Vuoi associare un altro Tipo Visita a questo luogo? ");
+						
+		} while (continuaTipo);
+		
+		Luogo luogo = new Luogo(nomeLuogo, descrizione, indirizzo, listaTipoVisitaToAdd);
+				
+		System.out.println(luogo.toString());
 	}
 }
