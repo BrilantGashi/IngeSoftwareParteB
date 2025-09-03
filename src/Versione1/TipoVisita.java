@@ -33,10 +33,9 @@ public class TipoVisita {
 		this.sogliaMaxPartecipanti = sogliaMaxPartecipanti;
 		this.periodoProgrammabile = periodoProgrammabile;
 		this.volontari = volontari;
-		
-
 	}
 
+    public TipoVisita() {}
 	//public Data getDataVisita() {
 	//	return dataVisita;
 	//}
@@ -56,6 +55,86 @@ public class TipoVisita {
 				+ ", biglietto=" + biglietto + ", sogliaMinPartecipanti=" + sogliaMinPartecipanti
 				+ ", sogliaMaxPartecipanti=" + sogliaMaxPartecipanti + ", periodoProgrammabile=" + periodoProgrammabile.toString()
 				+ ", volontari=" + volontari.toString() + "]";
+	}
+
+	public String getTitolo() {
+		return titolo;
+	}
+
+	public void setTitolo(String titolo) {
+		this.titolo = titolo;
+	}
+
+	public String getDescrizione() {
+		return descrizione;
+	}
+
+	public void setDescrizione(String descrizione) {
+		this.descrizione = descrizione;
+	}
+
+	public Indirizzo getPuntoDiIncontro() {
+		return puntoDiIncontro;
+	}
+
+	public void setPuntoDiIncontro(Indirizzo puntoDiIncontro) {
+		this.puntoDiIncontro = puntoDiIncontro;
+	}
+
+	public Data getDataVisita() {
+		return dataVisita;
+	}
+
+	public void setDataVisita(Data dataVisita) {
+		this.dataVisita = dataVisita;
+	}
+
+	public boolean isBiglietto() {
+		return biglietto;
+	}
+
+	public void setBiglietto(boolean biglietto) {
+		this.biglietto = biglietto;
+	}
+
+	public int getSogliaMinPartecipanti() {
+		return sogliaMinPartecipanti;
+	}
+
+	public void setSogliaMinPartecipanti(int sogliaMinPartecipanti) {
+		this.sogliaMinPartecipanti = sogliaMinPartecipanti;
+	}
+
+	public int getSogliaMaxPartecipanti() {
+		return sogliaMaxPartecipanti;
+	}
+
+	public void setSogliaMaxPartecipanti(int sogliaMaxPartecipanti) {
+		this.sogliaMaxPartecipanti = sogliaMaxPartecipanti;
+	}
+
+	public ArrayList<Volontario> getVolontari() {
+		return volontari;
+	}
+
+	public void setVolontari(ArrayList<Volontario> volontari) {
+		this.volontari = volontari;
+	}
+
+	public Periodo getPeriodoProgrammabile() {
+		return periodoProgrammabile;
+	}
+
+	public void setPeriodoProgrammabile(Periodo periodoProgrammabile) {
+		this.periodoProgrammabile = periodoProgrammabile;
+	}
+
+	public void setOraInizio(LocalTime oraInizio) {
+		this.oraInizio = oraInizio;
+	}
+
+	public void setDurataVisita(int durataVisita) {
+		this.durataVisita = durataVisita;
 	}
     
     

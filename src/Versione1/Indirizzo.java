@@ -18,6 +18,8 @@ public class Indirizzo {
 		this.provincia = provincia;
 	}
 	
+	public Indirizzo() {}
+	
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append(String.format("Indirizzo: "));

@@ -13,6 +13,8 @@ public class Luogo {
 		this.listaTipoVisita = listaTipoVisita; 
 		
 	}
+	
+	public Luogo() {}
 
 /*	public String toString() {
 		StringBuffer sb = new StringBuffer();
@@ -59,6 +61,14 @@ public class Luogo {
 	public String toString() {
 		return "Luogo [nomeLuogo=" + nomeLuogo + ", descrizione=" + descrizione + ", indirizzo=" + indirizzo
 				+ ", listaTipoVisita=" + listaTipoVisita.toString() + "]";
+	}
+
+	public ListaTipoVisita getListaTipoVisita() {
+		return listaTipoVisita;
+	}
+
+	public void setIndirizzo(Indirizzo indirizzo) {
+		this.indirizzo = indirizzo;
 	}
 	
 	

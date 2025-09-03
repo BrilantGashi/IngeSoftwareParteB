@@ -7,7 +7,7 @@ public class ListaLuogo {
 
 	public ListaLuogo() {
 		super();
-		this.listaLuoghi = listaLuoghi;
+		this.listaLuoghi = new ArrayList<>();
 	}
 
 	public ArrayList<Luogo> getListaLuoghi() {
@@ -16,6 +16,10 @@ public class ListaLuogo {
 
 	public void setListaLuoghi(ArrayList<Luogo> listaLuoghi) {
 		this.listaLuoghi = listaLuoghi;
+	}
+	
+	public void add(Luogo luogo) {
+		listaLuoghi.add(luogo);
 	}
 
 }

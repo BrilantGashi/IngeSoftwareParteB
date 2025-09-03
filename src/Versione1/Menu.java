@@ -6,11 +6,11 @@ import java.util.*;
 import it.unibs.fp.mylib.*;
 
 public class Menu{
-	private static String[] voci = {"Registra Configuratore", "Definisci Volontari", "Visualizza Volontari"};
+	private static String[] voci = {"Registra Configuratore", "Test scrivi su xml", "Visualizza Volontari"};
 	private static ArrayList<Configuratore> listaConfiguratore = new ArrayList<Configuratore>();
 	private static ArrayList<Volontario> listaVolontari = new ArrayList<Volontario>();
 	private static ListaTipoVisita listaTipoVisita = new ListaTipoVisita();
-	//private static ListaLuogo listaLuogo = new ListaLuogo();
+	private static ListaLuogo listaLuogo = new ListaLuogo();
 	
 	private static GestioneFile g = new GestioneFile();
 	
@@ -44,6 +44,8 @@ public class Menu{
 			case 2:
 				//definizioneVolontari();
 				//visualizzaVolontari();
+				//g.saveToXML("CorpoDati");
+				testWriteXML();
 				break;
 				
 			case 3:
@@ -113,31 +115,32 @@ public class Menu{
 		*/
 		
 		if (okCred == 1) {	//cioè se è il primo accesso
-			//a. creazione corpo dati -- TUTTO QUESTO DOVRA' POI ESSERE MESSO IN CLASSE CONFIGURATORE (o un altro metodo in classe Menu, da pensare)
-			
+			//a. creazione corpo dati			
 			System.out.println("Creazione Corpo Dati");
 			
 			//**************************AMBITO TERRITORIALE ***********************************
+			System.out.println("------------------------------");
 			System.out.println("Creazione Ambito Territoriale");
+			System.out.println("------------------------------");
 			
 			String provincia;
 			provincia = InputDati.leggiStringaNonVuota("Inserisci la provincia: ");
 			
 			ArrayList<String> cap = new ArrayList<String>();
-			int continua = 0;
+			boolean continua;
 			do {
 				
 				 cap.add(InputDati.leggiStringaNonVuota("Inserisci almeno un cap: "));
 				 
-				 continua = InputDati.leggiIntero("Vuoi inserire un altro cap? 1 per inserire, 0 per uscire. ");
-			} while (continua != 0);
+				 continua = InputDati.yesOrNo("Vuoi inserire un altro cap? S per inserire, N per uscire. ");
+			} while (continua);
 			
 			AmbitoTerritoriale ambitoTerritoriale = new AmbitoTerritoriale(cap, provincia);
 			
 			
 			//********************** N MAX PARTECIPANTI PER FRUITORE ***********************************
 			/*fissare il numero massimo di persone che un fruitore può iscrivere a una iniziativa 
-			mediante una singola iscrizione (tale numero è valido per ogni visita)*/			
+			mediante una singola iscrizione (tale numero è valido per ogni visita)*/								
 			int nMaxPersone = 0;
 			
 			nMaxPersone = InputDati.leggiInteroPositivo("Inserisci il numero massimo di persone che un fruitore può iscrivere a una iniziativa mediante una singola iscrizione");
@@ -145,7 +148,7 @@ public class Menu{
 			//********************** LUOGHI ***********************************
 			
 			//prerequisiti: lista volontari --FATTO**** -->metodo visualizzaVolontari
-			visualizzaVolontari();
+			//visualizzaVolontari();
 			
 			//1. definizione TipoVisita e poi inserite in ListaTipoVisita, da cui verranno pescate per essere mostrate e scelte dal config
 			
@@ -168,7 +171,15 @@ public class Menu{
 				definizioneLuogo();							
 			}
 			
-			
+			try {
+				g.scriviCorpoDati(ambitoTerritoriale, listaLuogo);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			/*mbitoTerritoriale ambito,
+            ListaLuogo listaLuoghi) throws Exception {*/
+
 			
 			
 		}
@@ -216,7 +227,7 @@ public class Menu{
 			visualizzaVolontari();
 			sceltaVolontario = InputDati.leggiInteroNonNegativo("Inserisci il numero del volontario da associare al tipo visita: ");
 			volontariToAdd.add(listaVolontari.get(sceltaVolontario - 1));
-			
+			continuaVolontario = InputDati.yesOrNo("Vuoi associare un altro Volontario a questo Tipo Visita? ");
 		} while(continuaVolontario);
 		
 		TipoVisita tipoVisita = new TipoVisita(titolo, descrizione,  puntoDiIncontro, dataVisita, oraInizio,
@@ -299,5 +310,71 @@ public class Menu{
 		Luogo luogo = new Luogo(nomeLuogo, descrizione, indirizzo, listaTipoVisitaToAdd);
 				
 		System.out.println(luogo.toString());
+		
+		listaLuogo.add(luogo);
 	}
+	
+	
+	public static void testWriteXML() {
+		try {
+			
+			//ambito territoriale
+			ArrayList<String> cap = new ArrayList<String>();
+			cap.add("25121");
+			cap.add("25122");
+			AmbitoTerritoriale amb = new AmbitoTerritoriale(cap, "BS");
+			
+			//luogo
+			String nomeLuogo = "Castello di Brescia";
+			String descrizione = "Descrizione Luogo";
+			
+			
+			TipoStrada tipoStrada =  TipoStrada.Via;
+			String nomeStrada = "del Castello";
+			String numeroCivico = "1";		
+			String capLuogo = "25030";
+			String comune = "Brescia";		
+			String provincia = "Brescia";
+			
+			Indirizzo indirizzo = new Indirizzo (tipoStrada, nomeStrada, numeroCivico, capLuogo, comune, provincia);
+	  
+	        /*// Indirizzo e Luogo (separati dall'ambito)
+	        Indirizzo ind = new Indirizzo();
+	        ind.setTipoStrada(TipoStrada.Viale);
+	        ind.setNomeStrada("delle Grazie");
+	        ind.setNumeroCivico("1");
+	        ind.setCap("25122");
+	        ind.setComune("Brescia");
+	        ind.setProvincia("BS");
+	
+	        TipoVisita tv = new TipoVisita();
+	        tv.setTitolo("Visita al Castello");
+	        tv.setDescrizione("Percorso storico");
+	        tv.setPuntoDiIncontro("Ingresso");
+	        tv.setDataVisita("2025-09-10");
+	        tv.setOraInizio("10:00");
+	        tv.setDurataVisita(120);
+	        tv.setBiglietto(8.0);
+	        tv.setSogliaMinPartecipanti(5);
+	        tv.setSogliaMaxPartecipanti(25);
+	        tv.setPeriodoProgrammabile("Settembre-Ottobre");
+	        tv.setVolontariToAdd(Arrays.asList("MarioRossi","AnnaBianchi"));
+	
+	        Luogo luogo = new Luogo();
+	        luogo.setNomeLuogo("Castello di Brescia");
+	        luogo.setDescrizione("Complesso medievale");
+	        luogo.setIndirizzo(ind);
+	        luogo.setListaTipoVisitaToAdd(Arrays.asList(tv));
+	
+	        // Collezioni separate
+	        List<AmbitoTerritoriale> ambiti = Arrays.asList(amb);
+	        List<Luogo> luoghi = Arrays.asList(luogo);
+	*/
+	        // Scrivi XML
+	        g.scriviCorpoDati(amb, null);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
 }

@@ -55,5 +55,5 @@ public class ListaTipoVisita {
 		return tipi.get(i);
 	}
 	
-    
+	
 }

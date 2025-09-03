@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<DatiSistema>
+  <AmbitoTerritoriale provincia="bs">
+    <CAPs>
+      <CAP>25030</CAP>
+      <CAP>25068</CAP>
+    </CAPs>
+  </AmbitoTerritoriale>
+  <Luoghi>
+    <Luogo nome="castello di brescia">
+      <TipiVisita>
+        <TipoVisita>
+          <Titolo>visita al castello di bs</Titolo>
+          <Descrizione>descrizione tipo visita castello di bs</Descrizione>
+          <DurataVisita>120</DurataVisita>
+          <SogliaMinPartecipanti>1</SogliaMinPartecipanti>
+          <SogliaMaxPartecipanti>10</SogliaMaxPartecipanti>
+          <Volontari>
+            <Volontario/>
+          </Volontari>
+        </TipoVisita>
+        <TipoVisita>
+          <Titolo>visita al castello di bs</Titolo>
+          <Descrizione>descrizione tipo visita castello di bs</Descrizione>
+          <DurataVisita>120</DurataVisita>
+          <SogliaMinPartecipanti>1</SogliaMinPartecipanti>
+          <SogliaMaxPartecipanti>10</SogliaMaxPartecipanti>
+          <Volontari>
+            <Volontario/>
+          </Volontari>
+        </TipoVisita>
+      </TipiVisita>
+    </Luogo>
+  </Luoghi>
+</DatiSistema>
