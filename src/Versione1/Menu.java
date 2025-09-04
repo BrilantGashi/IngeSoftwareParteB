@@ -140,7 +140,11 @@ public class Menu{
 			
 			//********************** N MAX PARTECIPANTI PER FRUITORE ***********************************
 			/*fissare il numero massimo di persone che un fruitore può iscrivere a una iniziativa 
-			mediante una singola iscrizione (tale numero è valido per ogni visita)*/								
+			mediante una singola iscrizione (tale numero è valido per ogni visita)*/
+			//**************************AMBITO TERRITORIALE ***********************************
+			System.out.println("------------------------------");
+			System.out.println("NUM MAX PARTECIPANTI PER FRUITORE");
+			System.out.println("------------------------------");
 			int nMaxPersone = 0;
 			
 			nMaxPersone = InputDati.leggiInteroPositivo("Inserisci il numero massimo di persone che un fruitore può iscrivere a una iniziativa mediante una singola iscrizione");
@@ -152,13 +156,21 @@ public class Menu{
 			
 			//1. definizione TipoVisita e poi inserite in ListaTipoVisita, da cui verranno pescate per essere mostrate e scelte dal config
 			
+			System.out.println("------------------------------");
+			System.out.println("DEFINIZIONE TIPI VISITA");
+			System.out.println("------------------------------");
+			
 			boolean continuoTipoVisita;
 			do {
+				System.out.println();
 				definizioneTipoVisita();
 				continuoTipoVisita = InputDati.yesOrNo("Vuoi inserire un altro Tipo Visita?");
 			} while (continuoTipoVisita);
 			
-						
+
+			System.out.println("------------------------------");
+			System.out.println("DEFINZIONE LUOGHI");
+			System.out.println("------------------------------");
 			//2. chiedere quanti luoghi vuole definire
 			
 			int luoghi = InputDati.leggiInteroNonNegativo("Quanti luoghi vuoi definire?");
@@ -167,7 +179,9 @@ public class Menu{
 			
 			for (int i = 0; i < luoghi; i++) {
 				//definizione luogo a cui si andra' ad associare un tipo visita e almeno un volontario
-				System.out.println("Creazione luogo n. " + i+1 + ": ");				
+				System.out.println();
+				System.out.println("Creazione luogo n. " + (i+1) + ": ");
+				System.out.println();
 				definizioneLuogo();							
 			}
 			
@@ -294,7 +308,7 @@ public class Menu{
 					
 		boolean continuaTipo = false;
 		int sceltaTipo;
-		ArrayList<TipoVisita> tipiToAdd = new ArrayList<>();
+		//ArrayList<TipoVisita> tipiToAdd = new ArrayList<>();
 		ListaTipoVisita listaTipoVisitaToAdd = new ListaTipoVisita();
 		
 		do {

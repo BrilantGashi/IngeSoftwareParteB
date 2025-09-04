@@ -6,7 +6,7 @@ public class Volontario extends Utente{
 	
 	public Volontario(Credenziali credenziali) {
 		super(credenziali);
-		//this.nickname = nickname;
+		this.nickname = credenziali.getUsername();
 		// TODO Auto-generated constructor stub
 	}
 
@@ -21,6 +21,11 @@ public class Volontario extends Utente{
 
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
+	}
+
+	@Override
+	public String toString() {
+		return "Volontario [nickname=" + credenziali.getUsername() + "]";
 	}
 
 	

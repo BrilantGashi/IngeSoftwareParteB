@@ -15,6 +15,22 @@ public class Periodo {
 		return "Periodo valido: " + dataInizio.toString() + " a " + dataFine.toString();
 	}
 
+	public Data getDataInizio() {
+		return dataInizio;
+	}
+
+	public void setDataInizio(Data dataInizio) {
+		this.dataInizio = dataInizio;
+	}
+
+	public Data getDataFine() {
+		return dataFine;
+	}
+
+	public void setDataFine(Data dataFine) {
+		this.dataFine = dataFine;
+	}
+
 	
 	
 	

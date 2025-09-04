@@ -8,6 +8,7 @@ import javax.xml.transform.dom.*;
 import javax.xml.transform.stream.*;
 import org.xml.sax.*;
 import org.w3c.dom.*;
+import java.time.LocalTime;
 
 
 public class GestioneFile {
@@ -276,7 +277,9 @@ public class GestioneFile {
 	            luogoElem.appendChild(tipiVisitaElem);
 	            
 	            for (int j = 0; j < listaLuoghi.getListaLuoghi().get(i).getListaTipoVisita().getTipi().size(); j++){
-	            	tipiVisitaElem.appendChild(serializeTipoVisita(doc, listaLuoghi.getListaLuoghi().get(i).getListaTipoVisita().getTipi().get(i)));
+	            	
+	            	
+	            	tipiVisitaElem.appendChild(serializeTipoVisita(doc, listaLuoghi.getListaLuoghi().get(i).getListaTipoVisita().getTipo(j)));
 	            
 	            
 	            /*for (TipoVisita tv : listaLuoghi.getListaLuoghi().get(i).getListaTipoVisita()) {
@@ -349,13 +352,21 @@ public class GestioneFile {
        appendChildWithText(doc, tipoVisitaElem, "Titolo", nvl(tv.getTitolo()));
         appendChildWithText(doc, tipoVisitaElem, "Descrizione", nvl(tv.getDescrizione()));
         //appendChildWithText(doc, tipoVisitaElem, "PuntoDiIncontro", nvl(tv.getPuntoDiIncontro()));
+        tipoVisitaElem.appendChild(serializeIndirizzo(doc, tv.getPuntoDiIncontro()));
+
         //appendChildWithText(doc, tipoVisitaElem, "DataVisita", nvl(tv.getDataVisita()));
+        tipoVisitaElem.appendChild(serializeData(doc, tv.getDataVisita(), "DataVisita"));
+
         //appendChildWithText(doc, tipoVisitaElem, "OraInizio", nvl(tv.getOraInizio()));
+        tipoVisitaElem.appendChild(serializeOra(doc, tv.getOraInizio(), "OraInizio"));
+
         appendChildWithText(doc, tipoVisitaElem, "DurataVisita", String.valueOf(tv.getDurataVisita()));
-        //appendChildWithText(doc, tipoVisitaElem, "Biglietto", String.valueOf(tv.getBiglietto()));
+        appendChildWithText(doc, tipoVisitaElem, "Biglietto", String.valueOf(tv.isBiglietto()));
         appendChildWithText(doc, tipoVisitaElem, "SogliaMinPartecipanti", String.valueOf(tv.getSogliaMinPartecipanti()));
         appendChildWithText(doc, tipoVisitaElem, "SogliaMaxPartecipanti", String.valueOf(tv.getSogliaMaxPartecipanti()));
         //appendChildWithText(doc, tipoVisitaElem, "PeriodoProgrammabile", nvl(tv.getPeriodoProgrammabile()));
+        tipoVisitaElem.appendChild(serializePeriodo(doc, tv.getPeriodoProgrammabile()));
+
 
         // Volontari
         Element volontariElem = doc.createElement("Volontari");
@@ -380,10 +391,85 @@ public class GestioneFile {
 
     private static String nvl(String s) { return s == null ? "" : s; }
 
+    private static Element serializeIndirizzo(Document doc, Indirizzo indirizzo) {
+        Element indirizzoElem = doc.createElement("Indirizzo");
+
+        if (indirizzo != null) {
+            // TipoStrada (enum -> usiamo toString)
+            if (indirizzo.getTipoStrada() != null) {
+                appendChildWithText(doc, indirizzoElem, "TipoStrada", indirizzo.getTipoStrada().toString());
+            }
+
+            // NomeStrada
+            appendChildWithText(doc, indirizzoElem, "NomeStrada", nvl(indirizzo.getNomeStrada()));
+
+            // NumeroCivico
+            appendChildWithText(doc, indirizzoElem, "NumeroCivico", nvl(indirizzo.getNumeroCivico()));
+
+            // CAP
+            appendChildWithText(doc, indirizzoElem, "CAP", nvl(indirizzo.getCap()));
+
+            // Comune
+            appendChildWithText(doc, indirizzoElem, "Comune", nvl(indirizzo.getComune()));
+
+            // Provincia
+            appendChildWithText(doc, indirizzoElem, "Provincia", nvl(indirizzo.getProvincia()));
+        }
+
+        return indirizzoElem;
+    }
+
+    /*private static Element serializeData(Document doc, Data data) {
+        Element dataElem = doc.createElement("DataVisita");
+
+        if (data != null) {
+            appendChildWithText(doc, dataElem, "Giorno", String.valueOf(data.getGiorno()));
+            appendChildWithText(doc, dataElem, "Mese", String.valueOf(data.getMese()));
+        }
+
+        return dataElem;
+    }*/
+    
+    private static Element serializeData(Document doc, Data data, String tagName) {
+        Element dataElem = doc.createElement(tagName);
+
+        if (data != null) {
+            appendChildWithText(doc, dataElem, "Giorno", String.valueOf(data.getGiorno()));
+            appendChildWithText(doc, dataElem, "Mese", String.valueOf(data.getMese()));
+        }
+
+        return dataElem;
+    }
+
 
     
-    
-    
+    private static Element serializeOra(Document doc, LocalTime ora, String tagName) {
+        Element oraElem = doc.createElement(tagName); // es. "OraInizio" o "OraFine"
+
+        if (ora != null) {
+            appendChildWithText(doc, oraElem, "Ore", String.valueOf(ora.getHour()));
+            appendChildWithText(doc, oraElem, "Minuti", String.valueOf(ora.getMinute()));
+            appendChildWithText(doc, oraElem, "Secondi", String.valueOf(ora.getSecond()));
+        }
+
+        return oraElem;
+    }
+
+    private static Element serializePeriodo(Document doc, Periodo periodo) {
+        Element periodoElem = doc.createElement("PeriodoProgrammabile");
+
+        if (periodo != null) {
+            if (periodo.getDataInizio() != null) {
+                periodoElem.appendChild(serializeData(doc, periodo.getDataInizio(), "DataInizio"));
+            }
+            if (periodo.getDataFine() != null) {
+                periodoElem.appendChild(serializeData(doc, periodo.getDataFine(), "DataFine"));
+            }
+        }
+
+        return periodoElem;
+    }
+
     
     
     

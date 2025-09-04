@@ -2,31 +2,130 @@
 <DatiSistema>
   <AmbitoTerritoriale provincia="bs">
     <CAPs>
+      <CAP>bs</CAP>
       <CAP>25030</CAP>
-      <CAP>25068</CAP>
     </CAPs>
   </AmbitoTerritoriale>
   <Luoghi>
-    <Luogo nome="castello di brescia">
+    <Luogo nome="l1">
       <TipiVisita>
         <TipoVisita>
-          <Titolo>visita al castello di bs</Titolo>
-          <Descrizione>descrizione tipo visita castello di bs</Descrizione>
-          <DurataVisita>120</DurataVisita>
+          <Titolo>tv1</Titolo>
+          <Descrizione>dtv1</Descrizione>
+          <Indirizzo>
+            <TipoStrada>Via</TipoStrada>
+            <NomeStrada>della strada</NomeStrada>
+            <NumeroCivico>1</NumeroCivico>
+            <CAP>25030</CAP>
+            <Comune>bs</Comune>
+            <Provincia>s</Provincia>
+          </Indirizzo>
+          <DataVisita>
+            <Giorno>5</Giorno>
+            <Mese>5</Mese>
+          </DataVisita>
+          <OraInizio>
+            <Ore>10</Ore>
+            <Minuti>0</Minuti>
+            <Secondi>0</Secondi>
+          </OraInizio>
+          <DurataVisita>20</DurataVisita>
+          <Biglietto>true</Biglietto>
           <SogliaMinPartecipanti>1</SogliaMinPartecipanti>
           <SogliaMaxPartecipanti>10</SogliaMaxPartecipanti>
+          <PeriodoProgrammabile>
+            <DataInizio>
+              <Giorno>1</Giorno>
+              <Mese>1</Mese>
+            </DataInizio>
+            <DataFine>
+              <Giorno>31</Giorno>
+              <Mese>123</Mese>
+            </DataFine>
+          </PeriodoProgrammabile>
           <Volontari>
-            <Volontario/>
+            <Volontario>utente3</Volontario>
+          </Volontari>
+        </TipoVisita>
+      </TipiVisita>
+    </Luogo>
+    <Luogo nome="dcs">
+      <TipiVisita>
+        <TipoVisita>
+          <Titolo>tv1</Titolo>
+          <Descrizione>dtv1</Descrizione>
+          <Indirizzo>
+            <TipoStrada>Via</TipoStrada>
+            <NomeStrada>della strada</NomeStrada>
+            <NumeroCivico>1</NumeroCivico>
+            <CAP>25030</CAP>
+            <Comune>bs</Comune>
+            <Provincia>s</Provincia>
+          </Indirizzo>
+          <DataVisita>
+            <Giorno>5</Giorno>
+            <Mese>5</Mese>
+          </DataVisita>
+          <OraInizio>
+            <Ore>10</Ore>
+            <Minuti>0</Minuti>
+            <Secondi>0</Secondi>
+          </OraInizio>
+          <DurataVisita>20</DurataVisita>
+          <Biglietto>true</Biglietto>
+          <SogliaMinPartecipanti>1</SogliaMinPartecipanti>
+          <SogliaMaxPartecipanti>10</SogliaMaxPartecipanti>
+          <PeriodoProgrammabile>
+            <DataInizio>
+              <Giorno>1</Giorno>
+              <Mese>1</Mese>
+            </DataInizio>
+            <DataFine>
+              <Giorno>31</Giorno>
+              <Mese>123</Mese>
+            </DataFine>
+          </PeriodoProgrammabile>
+          <Volontari>
+            <Volontario>utente3</Volontario>
           </Volontari>
         </TipoVisita>
         <TipoVisita>
-          <Titolo>visita al castello di bs</Titolo>
-          <Descrizione>descrizione tipo visita castello di bs</Descrizione>
-          <DurataVisita>120</DurataVisita>
+          <Titolo>tv2</Titolo>
+          <Descrizione>dtv2à</Descrizione>
+          <Indirizzo>
+            <TipoStrada>Via</TipoStrada>
+            <NomeStrada>s</NomeStrada>
+            <NumeroCivico>5</NumeroCivico>
+            <CAP>2</CAP>
+            <Comune>d</Comune>
+            <Provincia>s</Provincia>
+          </Indirizzo>
+          <DataVisita>
+            <Giorno>1</Giorno>
+            <Mese>1</Mese>
+          </DataVisita>
+          <OraInizio>
+            <Ore>1</Ore>
+            <Minuti>1</Minuti>
+            <Secondi>0</Secondi>
+          </OraInizio>
+          <DurataVisita>1</DurataVisita>
+          <Biglietto>false</Biglietto>
           <SogliaMinPartecipanti>1</SogliaMinPartecipanti>
           <SogliaMaxPartecipanti>10</SogliaMaxPartecipanti>
+          <PeriodoProgrammabile>
+            <DataInizio>
+              <Giorno>1</Giorno>
+              <Mese>1</Mese>
+            </DataInizio>
+            <DataFine>
+              <Giorno>31</Giorno>
+              <Mese>12</Mese>
+            </DataFine>
+          </PeriodoProgrammabile>
           <Volontari>
-            <Volontario/>
+            <Volontario>v1</Volontario>
+            <Volontario>v2</Volontario>
           </Volontari>
         </TipoVisita>
       </TipiVisita>
