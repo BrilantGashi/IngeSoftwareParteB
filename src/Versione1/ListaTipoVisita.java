@@ -30,7 +30,14 @@ public class ListaTipoVisita {
 
 	@Override
 	public String toString() {
-		return "ListaTipoVisita [tipi=" + tipi.toString() + "]";
+		
+		String toString = "";
+		
+		for (int i = 0; i < tipi.size(); i++) {
+			toString = toString + tipi.get(i).toString() + "\n";
+		}
+		
+		return toString;
 	}
 	
 	

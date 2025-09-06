@@ -176,67 +176,9 @@ public class GestioneFile {
 	//-----------------------------------GESTIONE FILE XML--------------------------------------------
 	//*************************************************************************************************
 	
-    /*public void saveToXML(String xml) {
-        Document dom;
-        Element e = null;
-
-        // instance of a DocumentBuilderFactory
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        try {
-            // use factory to get an instance of document builder
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            // create instance of DOM
-            dom = db.newDocument();
-
-            // create the root element
-            Element rootEle = dom.createElement("roles");
-
-            // create data elements and place them under root
-            e = dom.createElement("role1");
-            e.appendChild(dom.createTextNode(role1));
-            rootEle.appendChild(e);
-
-            e = dom.createElement("role2");
-            e.appendChild(dom.createTextNode(role2));
-            rootEle.appendChild(e);
-
-            e = dom.createElement("role3");
-            e.appendChild(dom.createTextNode(role3));
-            rootEle.appendChild(e);
-
-            e = dom.createElement("role4");
-            e.appendChild(dom.createTextNode(role4));
-            rootEle.appendChild(e);
-
-            dom.appendChild(rootEle);
-
-            try {
-                Transformer tr = TransformerFactory.newInstance().newTransformer();
-                tr.setOutputProperty(OutputKeys.INDENT, "yes");
-                tr.setOutputProperty(OutputKeys.METHOD, "xml");
-                tr.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-                tr.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "roles.dtd");
-                tr.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-                // send DOM to file
-                tr.transform(new DOMSource(dom), 
-                                     new StreamResult(new FileOutputStream(xml)));
-
-            } catch (TransformerException te) {
-                System.out.println(te.getMessage());
-            } catch (IOException ioe) {
-                System.out.println(ioe.getMessage());
-            }
-        } catch (ParserConfigurationException pce) {
-            System.out.println("UsersXML: Error trying to instantiate DocumentBuilder " + pce);
-        }
-    }
-    */
-
+    //---------------------------------- SCRITTURA -----------------------------------------------------
     
-
-
-    public void scriviCorpoDati(AmbitoTerritoriale ambito,
+    public void scriviCorpoDati(int nMaxPersone, AmbitoTerritoriale ambito,
                                        ListaLuogo listaLuoghi) throws Exception {
 
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -249,7 +191,14 @@ public class GestioneFile {
 	        // Radice
 	        Element root = doc.createElement("DatiSistema");
 	        doc.appendChild(root);
-	
+	        
+	        /* SOPPRESSO PERCHè è un dato del sistema, non dell'applicazione in sè
+	        //N Max per fruitore
+	        Element nMaxFruitore = doc.createElement("NMaxFruitore");
+	        doc.appendChild(nMaxFruitore);
+	        nMaxFruitore.setAttribute("num", String.valueOf(nMaxPersone));
+	         */
+	        
 	        // Ambito Territoriale
 	        Element ambitoElem = doc.createElement("AmbitoTerritoriale");
 	        root.appendChild(ambitoElem);
@@ -277,37 +226,13 @@ public class GestioneFile {
 	            luogoElem.appendChild(tipiVisitaElem);
 	            
 	            for (int j = 0; j < listaLuoghi.getListaLuoghi().get(i).getListaTipoVisita().getTipi().size(); j++){
-	            	
-	            	
+	            		            	
 	            	tipiVisitaElem.appendChild(serializeTipoVisita(doc, listaLuoghi.getListaLuoghi().get(i).getListaTipoVisita().getTipo(j)));
-	            
-	            
-	            /*for (TipoVisita tv : listaLuoghi.getListaLuoghi().get(i).getListaTipoVisita()) {
-	                tipiVisitaElem.appendChild(serializeTipoVisita(doc, tv));
-	            }*/
+	            	            
 	            }
 	        	
 	        }
 	        
-	        
-	       /*for (Luogo l : listaLuoghi) {
-	            Element luogoElem = doc.createElement("Luogo");
-	            luogoElem.setAttribute("nome", l.getNomeLuogo());
-	            luoghiElem.appendChild(luogoElem);
-	
-	            //appendChildWithText(doc, luogoElem, "Descrizione", nvl(l.getDescrizione()));
-	
-	            // Indirizzo (oggetto annidato)
-	            //luogoElem.appendChild(serializeIndirizzo(doc, l.getIndirizzo()));
-	
-	            // Tipi di visita
-	            Element tipiVisitaElem = doc.createElement("TipiVisita");
-	            luogoElem.appendChild(tipiVisitaElem);
-	
-	            for (TipoVisita tv : l.getListaTipoVisitaToAdd()) {
-	                tipiVisitaElem.appendChild(serializeTipoVisita(doc, tv));
-	            }
-	        }*/
 	        try {
 	        // Scrittura su file (sovrascrive se esiste)
 		        TransformerFactory tf = TransformerFactory.newInstance();
@@ -328,24 +253,6 @@ public class GestioneFile {
 	    }
     } 
     
-
-    // ---- Helpers di serializzazione ----
-/*
-    private static Element serializeIndirizzo(Document doc, Indirizzo ind) {
-        Element indirizzoElem = doc.createElement("Indirizzo");
-
-        appendChildWithText(doc, indirizzoElem, "TipoStrada",
-                ind.getTipoStrada() != null ? ind.getTipoStrada().name() : "");
-
-        appendChildWithText(doc, indirizzoElem, "NomeStrada", nvl(ind.getNomeStrada()));
-        appendChildWithText(doc, indirizzoElem, "NumeroCivico", nvl(ind.getNumeroCivico()));
-        appendChildWithText(doc, indirizzoElem, "CAP", nvl(ind.getCap()));
-        appendChildWithText(doc, indirizzoElem, "Comune", nvl(ind.getComune()));
-        appendChildWithText(doc, indirizzoElem, "Provincia", nvl(ind.getProvincia()));
-
-        return indirizzoElem;
-    }
-*/
     private static Element serializeTipoVisita(Document doc, TipoVisita tv) {
         Element tipoVisitaElem = doc.createElement("TipoVisita");
 
@@ -419,17 +326,6 @@ public class GestioneFile {
         return indirizzoElem;
     }
 
-    /*private static Element serializeData(Document doc, Data data) {
-        Element dataElem = doc.createElement("DataVisita");
-
-        if (data != null) {
-            appendChildWithText(doc, dataElem, "Giorno", String.valueOf(data.getGiorno()));
-            appendChildWithText(doc, dataElem, "Mese", String.valueOf(data.getMese()));
-        }
-
-        return dataElem;
-    }*/
-    
     private static Element serializeData(Document doc, Data data, String tagName) {
         Element dataElem = doc.createElement(tagName);
 
@@ -441,8 +337,6 @@ public class GestioneFile {
         return dataElem;
     }
 
-
-    
     private static Element serializeOra(Document doc, LocalTime ora, String tagName) {
         Element oraElem = doc.createElement(tagName); // es. "OraInizio" o "OraFine"
 
@@ -470,7 +364,146 @@ public class GestioneFile {
         return periodoElem;
     }
 
+    //---------------------------------- LETTURA -----------------------------------------------------
     
+    //ATTENZIONE: QUI SVILUPPO DI MERDA PERCHE' APPLICHEREMO FACADE PER LA PARTE B
+    
+
+    public static List<AmbitoTerritoriale> leggiAmbiti(String path) throws Exception {
+        List<AmbitoTerritoriale> ambiti = new ArrayList<>();
+
+        Document doc = apriDocumento(path);
+        NodeList ambitoNodes = doc.getElementsByTagName("AmbitoTerritoriale");
+
+        for (int i = 0; i < ambitoNodes.getLength(); i++) {
+            Element ambitoElem = (Element) ambitoNodes.item(i);
+
+            AmbitoTerritoriale amb = new AmbitoTerritoriale();
+            amb.setProvincia(ambitoElem.getAttribute("provincia"));
+
+            NodeList caps = ambitoElem.getElementsByTagName("CAP");
+            for (int j = 0; j < caps.getLength(); j++) {
+                amb.getCap().add(caps.item(j).getTextContent());
+            }
+
+            ambiti.add(amb);
+        }
+        return ambiti;
+    }
+
+    public static List<Luogo> leggiLuoghi(String path) throws Exception {
+        List<Luogo> luoghi = new ArrayList<>();
+
+        Document doc = apriDocumento(path);
+        NodeList luoghiNodes = doc.getElementsByTagName("Luogo");
+
+        for (int i = 0; i < luoghiNodes.getLength(); i++) {
+            Element luogoElem = (Element) luoghiNodes.item(i);
+
+            Luogo luogo = new Luogo();
+            luogo.setNomeLuogo(luogoElem.getAttribute("nome"));
+
+            // TipiVisita
+            NodeList tipoVisitaNodes = luogoElem.getElementsByTagName("TipoVisita");
+            for (int j = 0; j < tipoVisitaNodes.getLength(); j++) {
+                Element tipoVisitaElem = (Element) tipoVisitaNodes.item(j);
+                TipoVisita tv = parseTipoVisita(tipoVisitaElem);
+                luogo.getListaTipoVisita().add(tv);
+            }
+
+            luoghi.add(luogo);
+        }
+
+        return luoghi;
+    }
+
+    private static TipoVisita parseTipoVisita(Element elem) {
+        TipoVisita tv = new TipoVisita();
+
+        tv.setTitolo(getText(elem, "Titolo"));
+        tv.setDescrizione(getText(elem, "Descrizione"));
+
+        // Indirizzo
+        Element indirizzoElem = (Element) elem.getElementsByTagName("Indirizzo").item(0);
+        tv.setPuntoDiIncontro(parseIndirizzo(indirizzoElem));
+
+        // DataVisita
+        Element dataElem = (Element) elem.getElementsByTagName("DataVisita").item(0);
+        tv.setDataVisita(parseData(dataElem));
+
+        // OraInizio
+        Element oraElem = (Element) elem.getElementsByTagName("OraInizio").item(0);
+        int ore = Integer.parseInt(getText(oraElem, "Ore"));
+        int min = Integer.parseInt(getText(oraElem, "Minuti"));
+        int sec = Integer.parseInt(getText(oraElem, "Secondi"));
+        tv.setOraInizio(LocalTime.of(ore, min, sec));
+
+        // altri campi
+        tv.setDurataVisita(Integer.parseInt(getText(elem, "DurataVisita")));
+        tv.setBiglietto(Boolean.parseBoolean(getText(elem, "Biglietto")));
+        tv.setSogliaMinPartecipanti(Integer.parseInt(getText(elem, "SogliaMinPartecipanti")));
+        tv.setSogliaMaxPartecipanti(Integer.parseInt(getText(elem, "SogliaMaxPartecipanti")));
+
+        // PeriodoProgrammabile
+        Element periodoElem = (Element) elem.getElementsByTagName("PeriodoProgrammabile").item(0);
+        if (periodoElem != null) {
+            Periodo p = new Periodo();
+            p.setDataInizio(parseData((Element) periodoElem.getElementsByTagName("DataInizio").item(0)));
+            p.setDataFine(parseData((Element) periodoElem.getElementsByTagName("DataFine").item(0)));
+            tv.setPeriodoProgrammabile(p);
+        }
+
+        // Volontari LAIBA: RITORNARCI SU perchè creazione Volontari dipende da Credenziali
+        //idealmente, bisogna fare un metodo che, letto il nickname da file, ricerca e associa il volontario correto da credenziali
+        NodeList volontariNodes = elem.getElementsByTagName("Volontario");
+        for (int i = 0; i < volontariNodes.getLength(); i++) {
+            //tv.getVolontari().add(volontariNodes.item(i).getTextContent());
+        	//tv.setVolontari(volontariNodes.item(i).getTextContent());
+        }
+
+        return tv;
+    }
+
+    private static Indirizzo parseIndirizzo(Element elem) {
+        if (elem == null) return null;
+
+        Indirizzo ind = new Indirizzo();
+        //ind.setTipoStrada(getText(elem, "TipoStrada"));
+        ind.setTipoStrada(TipoStrada.valueOf(getText(elem, "TipoStrada")));
+        ind.setNomeStrada(getText(elem, "NomeStrada"));
+        ind.setNumeroCivico(getText(elem, "NumeroCivico"));
+        ind.setCap(getText(elem, "CAP"));
+        ind.setComune(getText(elem, "Comune"));
+        ind.setProvincia(getText(elem, "Provincia"));
+        return ind;
+    }
+
+    private static Data parseData(Element elem) {
+        if (elem == null) return null;
+
+        Data d = new Data();
+        d.setGiorno(Integer.parseInt(getText(elem, "Giorno")));
+        d.setMese(Integer.parseInt(getText(elem, "Mese")));
+        return d;
+    }
+
+    private static String getText(Element parent, String tag) {
+        NodeList nodes = parent.getElementsByTagName(tag);
+        if (nodes.getLength() > 0) {
+            return nodes.item(0).getTextContent();
+        }
+        return "";
+    }
+
+    private static Document apriDocumento(String path) throws Exception {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        return db.parse(new File(path));
+        //return db.parse(FileXML);
+        
+    }
+    
+
     
     
 	}

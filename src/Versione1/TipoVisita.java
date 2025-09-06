@@ -50,11 +50,32 @@ public class TipoVisita {
 
 	@Override
 	public String toString() {
-		return "TipoVisita [titolo=" + titolo + ", descrizione=" + descrizione + ", puntoDiIncontro=" + puntoDiIncontro
+		/*return "TipoVisita [titolo=" + titolo + ", descrizione=" + descrizione + ", puntoDiIncontro=" + puntoDiIncontro
 				+ ", dataVisita=" + dataVisita.toString() +", oraInizio=" + oraInizio + ", durataVisita=" + durataVisita
 				+ ", biglietto=" + biglietto + ", sogliaMinPartecipanti=" + sogliaMinPartecipanti
 				+ ", sogliaMaxPartecipanti=" + sogliaMaxPartecipanti + ", periodoProgrammabile=" + periodoProgrammabile.toString()
-				+ ", volontari=" + volontari.toString() + "]";
+				+ ", volontari=" + volontari.toString() + "]";*/
+		
+		String toString = "TipoVisita:\n" +
+		           "  Titolo                = " + titolo + "\n" +
+		           "  Descrizione           = " + descrizione + "\n" +
+		           "  Punto di Incontro     = " + puntoDiIncontro + "\n" +
+		           "  Data Visita           = " + dataVisita.toString() + "\n" +
+		           "  Ora Inizio            = " + oraInizio + "\n" +
+		           "  Durata Visita         = " + durataVisita + "\n" +
+		           "  Biglietto             = " + biglietto + "\n" +
+		           "  Soglia Min Partecip.  = " + sogliaMinPartecipanti + "\n" +
+		           "  Soglia Max Partecip.  = " + sogliaMaxPartecipanti + "\n" +
+		           "  Periodo Programmabile = " + periodoProgrammabile.toString() + "\n" +
+		           "  Volontari:             ";
+		
+		
+		for (int i = 0; i < volontari.size(); i++) {
+			toString = toString + volontari.get(i).getNickname() +"\n";
+		}
+
+	    return toString;
+
 	}
 
 	public String getTitolo() {
@@ -136,6 +157,8 @@ public class TipoVisita {
 	public void setDurataVisita(int durataVisita) {
 		this.durataVisita = durataVisita;
 	}
+	
+	
     
     
     

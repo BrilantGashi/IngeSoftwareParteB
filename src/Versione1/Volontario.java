@@ -25,7 +25,7 @@ public class Volontario extends Utente{
 
 	@Override
 	public String toString() {
-		return "Volontario [nickname=" + credenziali.getUsername() + "]";
+		return "Volontario " + credenziali.getUsername();
 	}
 
 	

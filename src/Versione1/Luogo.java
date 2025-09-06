@@ -59,8 +59,16 @@ public class Luogo {
 
 	@Override
 	public String toString() {
-		return "Luogo [nomeLuogo=" + nomeLuogo + ", descrizione=" + descrizione + ", indirizzo=" + indirizzo
-				+ ", listaTipoVisita=" + listaTipoVisita.toString() + "]";
+		/*return "Luogo [nomeLuogo=" + nomeLuogo + ", descrizione=" + descrizione + ", indirizzo=" + indirizzo
+				+ ", listaTipoVisita=" + listaTipoVisita.toString() + "]";*/
+	
+	    return "Luogo:\n" +
+	           "  Nome        = " + nomeLuogo + "\n" +
+	           "  Descrizione = " + descrizione + "\n" +
+	           "  Indirizzo   = " + indirizzo.toString() + "\n" +
+	           "  Tipi Visita = " + listaTipoVisita.toString();
+	
+
 	}
 
 	public ListaTipoVisita getListaTipoVisita() {

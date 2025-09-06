@@ -9,6 +9,9 @@ public class Periodo {
 		this.dataInizio = dataInizio;
 		this.dataFine = dataFine;
 	}
+	
+	//LAIBA: implementato questo metodo per leggere con facilità da file XML
+	public Periodo() {}
 
 	@Override
 	public String toString() {

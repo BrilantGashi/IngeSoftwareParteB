@@ -22,4 +22,25 @@ public class ListaLuogo {
 		listaLuoghi.add(luogo);
 	}
 
+	@Override
+	public String toString() {
+		
+		String toString = "";
+		
+		for (int i = 0; i < listaLuoghi.size(); i++) {
+			
+			
+			//private ListaTipoVisita listaTipoVisita;	
+			
+			toString = listaLuoghi.get(i).toString(); 
+			
+			
+			
+		}
+		
+		return toString;
+	}
+	
+	
+
 }

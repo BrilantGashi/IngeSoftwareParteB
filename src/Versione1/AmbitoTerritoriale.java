@@ -12,6 +12,9 @@ public class AmbitoTerritoriale {
 		this.provincia = provincia;
 	}
 	
+	//LAIBA: implementato questo metodo per leggere con facilità da file XML
+	public AmbitoTerritoriale() {}
+	
 	/*public boolean contieneCap (String capConfronto) {
 		return cap.contains(capConfronto);
 	}*/

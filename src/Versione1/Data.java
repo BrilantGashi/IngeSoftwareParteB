@@ -8,7 +8,9 @@ public class Data {
 		this.giorno = giorno;
 		this.mese = mese;
 	}
-
+	//LAIBA: implementato questo metodo per leggere con facilità da file XML
+	public Data() {}
+	
 	public int getGiorno() {
 		return giorno;
 	}
@@ -20,6 +22,12 @@ public class Data {
 	@Override
 	public String toString() {
 		return giorno + "/" + mese;
+	}
+	public void setGiorno(int giorno) {
+		this.giorno = giorno;
+	}
+	public void setMese(int mese) {
+		this.mese = mese;
 	}
 	
 	
