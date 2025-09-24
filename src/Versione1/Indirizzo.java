@@ -4,11 +4,11 @@ public class Indirizzo {
 	private TipoStrada tipoStrada;
 	private String nomeStrada;
 	private String numeroCivico;
-	private String cap;
+	private int cap;
 	private String comune;
 	private String provincia;
 	
-	public Indirizzo(TipoStrada tipoStrada, String nomeStrada, String numeroCivico, String cap, String comune,
+	public Indirizzo(TipoStrada tipoStrada, String nomeStrada, String numeroCivico, int cap, String comune,
 			String provincia) {
 		this.tipoStrada = tipoStrada;
 		this.nomeStrada = nomeStrada;
@@ -57,11 +57,11 @@ public class Indirizzo {
 		this.numeroCivico = numeroCivico;
 	}
 
-	public String getCap() {
+	public Integer getCap() {
 		return cap;
 	}
 
-	public void setCap(String cap) {
+	public void setCap(int cap) {
 		this.cap = cap;
 	}
 

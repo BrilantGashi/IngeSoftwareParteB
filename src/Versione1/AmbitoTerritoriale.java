@@ -1,18 +1,19 @@
 package Versione1;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class AmbitoTerritoriale {
 	
-	private ArrayList<String> cap; 
+	private ArrayList<Integer> cap; 
 	private String provincia;
 	
-	public AmbitoTerritoriale(ArrayList<String> cap, String provincia) {
+	public AmbitoTerritoriale(ArrayList<Integer> cap, String provincia) {
 		this.cap = cap;
 		this.provincia = provincia;
 	}
 	
-	//LAIBA: implementato questo metodo per leggere con facilità da file XML
+	//LAIBA: implementato questo metodo per leggere con facilitï¿½ da file XML
 	public AmbitoTerritoriale() {}
 	
 	/*public boolean contieneCap (String capConfronto) {
@@ -26,19 +27,19 @@ public class AmbitoTerritoriale {
 	
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
-		sb.append(String.format("L'ambito territoriale prescelto è la provincia di: %s", provincia));
+		sb.append(String.format("L'ambito territoriale prescelto ï¿½ la provincia di: %s", provincia));
 		return sb.toString();
 	}
 	
 	
 	//getters & setters
 	
-	public ArrayList<String> getCap() {
+	public ArrayList<Integer> getCap() {
 		return cap;
 	}
 
-	public void setCap(ArrayList<String> cap) {
-		this.cap = cap;
+	public void setCap(ArrayList<Integer> capList) {
+		this.cap = capList;
 	}
 
 	public String getProvincia() {

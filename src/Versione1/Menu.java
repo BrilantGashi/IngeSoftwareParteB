@@ -12,6 +12,8 @@ public class Menu{
 	private static ListaTipoVisita listaTipoVisita = new ListaTipoVisita();
 	private static ListaLuogo listaLuogo = new ListaLuogo();
 	private static int nMaxPersone = 0;
+	private static ArrayList<Integer> capAmbito = new ArrayList<Integer>();  //modifico capAmbito in Integer perch√® semplifica le cose e non possiamo verificare se si tratta di una parola o un numero con string
+
 	
 	private static GestioneFile g = new GestioneFile();
 	
@@ -78,10 +80,10 @@ public class Menu{
 		/*
 		 	okCred restituisce: 
 		 	- -1 se credenziali sbagliate
-		 	- 0 se non Ë il primo accesso
-		 	- 1 se Ë il primo accesso
+		 	- 0 se non ÔøΩ il primo accesso
+		 	- 1 se ÔøΩ il primo accesso
 		 	
-		 	 questa info la devo mandare al metodo configuratore che, se Ë il primo accesso, deve fare determinate cose
+		 	 questa info la devo mandare al metodo configuratore che, se ÔøΩ il primo accesso, deve fare determinate cose
 		 */
 		int okCred = 0;
 		okCred = credenziali.controllaCredenziali(username, password);
@@ -118,54 +120,52 @@ public class Menu{
 		
 		int sceltaMenuConfig;
 		System.out.println("NON VANNO TUTTI, CONTROLLARE PRIMA DI PROCEDERE");
-		String[] vociConfig = {"Creazione Corpo Dati", "Avvio Calendario", "Modifica num max per fruitore", "Visualizza Luoghi", "Visualizza Tipo Visita", "Visualizza Stato Visita"};
+		String[] vociConfig = {"Torna al Menu Principale","Creazione Corpo Dati", "Avvio Calendario", "Modifica num max per fruitore", "Visualizza Luoghi", "Visualizza Tipo Visita", "Visualizza Stato Visita"};
 		//g.leggiUtentiDaFile(listaConfiguratore, listaVolontari);
 				
 		MyMenu menu = new MyMenu("Menu", vociConfig);
-		sceltaMenuConfig = menu.scegli();
-		
-		switch (sceltaMenuConfig) {
-		case 0:
-			//IMPLEMENTARE DOPO
-			/*
-			boolean indietro = InputDati.yesOrNo("Vuoi veramente tornare indietro?");
-			if (indietro) {
-				menuPrincipale();
+		sceltaMenuConfig=1;
+		do {
+			switch (sceltaMenuConfig) {
+			case 0:
+				boolean indietro = InputDati.yesOrNo("Vuoi veramente tornare indietro?");
+				if (indietro) {
+					menuPrincipale();
+				}
+				break;
+				
+			case 1:
+				if (okCred == 1) {
+					creazioneCorpoDati();
+				} else {
+					System.out.println("Corpo Dati gi√† definito.");
+					//e devo leggere i dati da file
+					leggiCorpoDati();
+				}
+				break;
+				
+			case 2:				
+				//avvio calendario
+				System.out.println("sei nel case 2");
+				break;
+				
+			case 3:			
+				System.out.println("sei nel case 3");
+				modificaNumFruitore();			
+				break;
+				
+			case 4:
+				//visualizza elenco luoghi
+				System.out.println("sei nel case 4");
+				//non va perchÔøΩ non inizializzo con info file
+				//devo vedere se NON E' il primo accesso, in tale caso fare inizzializzazione
+				System.out.println(listaLuogo.toString());
+				
+				break;	
 			}
-			*/
-			
-			
-		case 1:
-			if (okCred == 1) {
-				creazioneCorpoDati();
-			} else {
-				System.out.println("Corpo Dati gi‡ definito.");
-				//e devo leggere i dati da file
-				leggiCorpoDati();
-			}
-			break;
-			
-		case 2:				
-			//avvio calendario
-			System.out.println("sei nel case 2");
-			break;
-			
-		case 3:			
-			System.out.println("sei nel case 3");
-			modificaNumFruitore();			
-			break;
-			
-		case 4:
-			//visualizza elenco luoghi
-			System.out.println("sei nel case 4");
-			//non va perchË non inizializzo con info file
-			//devo vedere se NON E' il primo accesso, in tale caso fare inizzializzazione
-			System.out.println(listaLuogo.toString());
-			
-			break;
+			sceltaMenuConfig = menu.scegli();
+		} while (sceltaMenuConfig!=0);
 		
-		
-		}
 		
 		
 		
@@ -173,7 +173,7 @@ public class Menu{
 	}
 	
 	public static void modificaNumFruitore() {
-		nMaxPersone = InputDati.leggiInteroPositivo("Inserisci il numero massimo di persone che un fruitore puÚ iscrivere a una iniziativa mediante una singola iscrizione: ");
+		nMaxPersone = InputDati.leggiInteroPositivo("Inserisci il numero massimo di persone che un fruitore puÔøΩ iscrivere a una iniziativa mediante una singola iscrizione: ");
 	}
 	
 	public static void creazioneCorpoDati () {
@@ -188,21 +188,20 @@ public class Menu{
 		String provincia;
 		provincia = InputDati.leggiStringaNonVuota("Inserisci la provincia: ");
 		
-		ArrayList<String> cap = new ArrayList<String>();
 		boolean continua;
 		do {
 			
-			 cap.add(InputDati.leggiStringaNonVuota("Inserisci almeno un cap: "));
+			 capAmbito.add(InputDati.leggiIntero("Inserisci almeno un cap: ",1,99999));
 			 
 			 continua = InputDati.yesOrNo("Vuoi inserire un altro cap? S per inserire, N per uscire. ");
 		} while (continua);
 		
-		AmbitoTerritoriale ambitoTerritoriale = new AmbitoTerritoriale(cap, provincia);
+		AmbitoTerritoriale ambitoTerritoriale = new AmbitoTerritoriale(capAmbito, provincia);
 		
 		
 		//********************** N MAX PARTECIPANTI PER FRUITORE ***********************************
-		/*fissare il numero massimo di persone che un fruitore puÚ iscrivere a una iniziativa 
-		mediante una singola iscrizione (tale numero Ë valido per ogni visita)*/
+		/*fissare il numero massimo di persone che un fruitore puÔøΩ iscrivere a una iniziativa 
+		mediante una singola iscrizione (tale numero ÔøΩ valido per ogni visita)*/
 		//**************************AMBITO TERRITORIALE ***********************************
 		System.out.println("------------------------------");
 		System.out.println("NUM MAX PARTECIPANTI PER FRUITORE");
@@ -309,18 +308,35 @@ public class Menu{
 		
 	}
 	
-	public static Indirizzo ObjIndirizzo () {
-		
-		TipoStrada tipoStrada =  TipoStrada.scegliDaNome();
-		String nomeStrada = InputDati.leggiStringaNonVuota("Inserisci il nome della Strada: ");
-		String numeroCivico = InputDati.leggiStringaNonVuota("Inserisci il numero civico: ");		
-		String cap = InputDati.leggiStringaNonVuota("Inserisci il cap: ");
-		String comune = InputDati.leggiStringaNonVuota("Inserisci il Comune: ");		
-		String provincia = InputDati.leggiStringaNonVuota("Inserisci Provincia: ");
-		
-		Indirizzo indirizzo = new Indirizzo (tipoStrada, nomeStrada, numeroCivico, cap, comune, provincia);
-		return indirizzo;
+	public static Indirizzo ObjIndirizzo() {
+
+	    TipoStrada tipoStrada = TipoStrada.scegliDaNome();
+	    String nomeStrada = InputDati.leggiStringaNonVuota("Inserisci il nome della Strada: ");
+	    String numeroCivico = InputDati.leggiStringaNonVuota("Inserisci il numero civico: ");
+
+	    System.out.println("Seleziona un CAP valido:");
+	    for (int i = 0; i < capAmbito.size(); i++) {
+	        System.out.println((i + 1) + ". " + capAmbito.get(i));
+	    }
+
+	    // Leggi scelta numerica dell'utente
+	    int scelta;
+	    do {
+	        scelta = InputDati.leggiIntero("Inserisci il numero corrispondente al CAP: ");
+	        if (scelta < 1 || scelta > capAmbito.size()) {
+	            System.out.println("‚ùå Errore: scelta non valida, riprova.");
+	        }
+	    } while (scelta < 1 || scelta > capAmbito.size());
+
+	    Integer cap = capAmbito.get(scelta - 1);
+	    
+	    String comune = InputDati.leggiStringaNonVuota("Inserisci il Comune: ");
+	    String provincia = InputDati.leggiStringaNonVuota("Inserisci Provincia: ");
+	    
+	    Indirizzo indirizzo = new Indirizzo(tipoStrada, nomeStrada, numeroCivico, cap, comune, provincia);
+	    return indirizzo;
 	}
+
 	
 	public static Data ObjData (String descrizioneGiorno, String descrizioneMese) {
 		int giorno = InputDati.leggiInteroPositivo(descrizioneGiorno);
@@ -355,7 +371,7 @@ public class Menu{
 		String descrizione = InputDati.leggiStringa("Inserisci una descrizione del luogo: ");
 		Indirizzo indirizzo = ObjIndirizzo();
 		
-		//ogni LUOGO dovrebbe contenere al suo interno una LISTA DI TIPI VISITA (pg. 4, "A ciascun luogo Ë associato almeno un tipo di visita")
+		//ogni LUOGO dovrebbe contenere al suo interno una LISTA DI TIPI VISITA (pg. 4, "A ciascun luogo ÔøΩ associato almeno un tipo di visita")
 			
 		
 		//mostrare tutti i tipi visita
@@ -368,14 +384,30 @@ public class Menu{
 		ListaTipoVisita listaTipoVisitaToAdd = new ListaTipoVisita();
 		
 		do {
-			System.out.println(listaTipoVisita.toStringAsList());
-			
-			sceltaTipo = InputDati.leggiInteroNonNegativo("Inserisci il numero del Tipo Visita che vuoi associare a questo Luogo: ");
-			listaTipoVisitaToAdd.add(listaTipoVisita.getTipo(sceltaTipo - 1));
-			
-			continuaTipo = InputDati.yesOrNo("Vuoi associare un altro Tipo Visita a questo luogo? ");
-						
+		    System.out.println(listaTipoVisita.toStringAsList());
+		    
+		    sceltaTipo = InputDati.leggiInteroNonNegativo("Inserisci il numero del Tipo Visita che vuoi associare a questo Luogo: ");
+		    TipoVisita visitaSelezionata = listaTipoVisita.getTipo(sceltaTipo - 1);
+
+		    boolean conflitto = false;
+		    for (TipoVisita v : listaTipoVisitaToAdd.getTipi()) {
+		        if (v.siSovrappongono(visitaSelezionata)) {
+		            conflitto = true;
+		            break;
+		        }
+		    }
+
+		    if (conflitto) {
+		        System.out.println("Attenzione: questa visita si sovrappone ad un'altra gi√† programmata per lo stesso giorno.");
+		    } else {
+		        listaTipoVisitaToAdd.add(visitaSelezionata);
+		        System.out.println("Visita aggiunta correttamente.");
+		    }
+		    
+		    continuaTipo = InputDati.yesOrNo("Vuoi associare un altro Tipo Visita a questo luogo? ");
+
 		} while (continuaTipo);
+	
 		
 		Luogo luogo = new Luogo(nomeLuogo, descrizione, indirizzo, listaTipoVisitaToAdd);
 				
@@ -392,5 +424,15 @@ public class Menu{
 	    //System.out.println("Luoghi: " + luoghi);
 	}
 	
+	 public static String getCapAmbito() {
+		 String result = "";
+		    for (int i = 0; i < capAmbito.size(); i++) {
+		        result += capAmbito.get(i);
+		        if (i < capAmbito.size() - 1) {
+		            result += ", ";
+		        }
+		    }
+		    return result;
+	    }
 	
 }

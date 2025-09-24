@@ -43,7 +43,7 @@ public class GestioneFile {
 	 *
 	 * @param username  username da cercare (colonna 2)
 	 * @return array di stringhe con i campi della riga trovata;
-	 *         null se lo username non è stato trovato
+	 *         null se lo username non ï¿½ stato trovato
 	 * @throws IOException            problemi di I/O 
 	 * @throws FileNotFoundException  se il file non esiste
 	 */
@@ -56,7 +56,7 @@ public class GestioneFile {
 		    while ((line = br.readLine()) != null) {
 		    	riga = line.split(";");
 		       
-		    	//1 perchè è il secondo paramatro della riga -- CONFIGURATORE;utente1;default
+		    	//1 perchï¿½ ï¿½ il secondo paramatro della riga -- CONFIGURATORE;utente1;default
 		       if (riga[1].equalsIgnoreCase(username)) {
 		    	   return riga;		    	   
 		       }
@@ -67,21 +67,21 @@ public class GestioneFile {
 	}
 	
 	/**
-	 * Cambia la password dell’utente indicato senza alterare altre righe o campi.
+	 * Cambia la password dellï¿½utente indicato senza alterare altre righe o campi.
 	 *
 	 * Prerequisito: esiste un campo   private final File file;   inizializzato
 	 *
 	 * @param username   username da cercare (colonna 2)
-	 * @param nuovaPass  nuova password (in chiaro o già hashata) da salvare
-	 * @return true  se la password è stata aggiornata;
-	 *         false se lo username non è stato trovato
-	 * @throws IOException            problemi di I/O (permessi, disco pieno…)
+	 * @param nuovaPass  nuova password (in chiaro o giï¿½ hashata) da salvare
+	 * @return true  se la password ï¿½ stata aggiornata;
+	 *         false se lo username non ï¿½ stato trovato
+	 * @throws IOException            problemi di I/O (permessi, disco pienoï¿½)
 	 * @throws FileNotFoundException  se il file non esiste
 	 */
 	public boolean aggiornaPasswordSuFile(String username, String nuovaPass)
 	        throws FileNotFoundException, IOException {
 
-	    // *** usa il campo "file" già presente ***
+	    // *** usa il campo "file" giï¿½ presente ***
 	    File tmp = new File(file.getAbsolutePath() + ".tmp");
 	    boolean trovato = false;
 
@@ -104,7 +104,7 @@ public class GestioneFile {
 	    }
 
 	    if (trovato) {
-	        // sostituisce l’originale con il temporaneo
+	        // sostituisce lï¿½originale con il temporaneo
 	        if (!file.delete() || !tmp.renameTo(file)) {
 	            throw new IOException("Impossibile sostituire il file credenziali");
 	        }
@@ -125,7 +125,7 @@ public class GestioneFile {
 		    while ((line = br.readLine()) != null) {
 		    	riga = line.split(";");
 		       
-		    	//1 perchè è il secondo paramatro della riga -- CONFIGURATORE;utente1;default
+		    	//1 perchï¿½ ï¿½ il secondo paramatro della riga -- CONFIGURATORE;utente1;default
 		       if (riga[0].equalsIgnoreCase(utenza)) {
 		    	   lista.add(riga[1]);
 		       }
@@ -192,7 +192,7 @@ public class GestioneFile {
 	        Element root = doc.createElement("DatiSistema");
 	        doc.appendChild(root);
 	        
-	        /* SOPPRESSO PERCHè è un dato del sistema, non dell'applicazione in sè
+	        /* SOPPRESSO PERCHï¿½ ï¿½ un dato del sistema, non dell'applicazione in sï¿½
 	        //N Max per fruitore
 	        Element nMaxFruitore = doc.createElement("NMaxFruitore");
 	        doc.appendChild(nMaxFruitore);
@@ -207,8 +207,8 @@ public class GestioneFile {
 	        root.appendChild(ambitoElem);
 	        // CAP dell'ambito
             Element capsElem = doc.createElement("CAPs");
-            for (String c : ambito.getCap()) {
-               appendChildWithText(doc, capsElem, "CAP", c);
+            for (Integer c : ambito.getCap()) {
+               appendChildWithText(doc, capsElem, "CAP", c.toString());
             }
             ambitoElem.appendChild(capsElem);
 	        
@@ -221,6 +221,9 @@ public class GestioneFile {
 	            luogoElem.setAttribute("nome", listaLuoghi.getListaLuoghi().get(i).getNomeLuogo());
 	            luoghiElem.appendChild(luogoElem);
 	            
+	            Element descrizioneElem = doc.createElement("Descrizione");
+	            descrizioneElem.setTextContent(listaLuoghi.getListaLuoghi().get(i).getDescrizione());
+	            luogoElem.appendChild(descrizioneElem);
 	            // Tipi di visita
 	            Element tipiVisitaElem = doc.createElement("TipiVisita");
 	            luogoElem.appendChild(tipiVisitaElem);
@@ -314,7 +317,7 @@ public class GestioneFile {
             appendChildWithText(doc, indirizzoElem, "NumeroCivico", nvl(indirizzo.getNumeroCivico()));
 
             // CAP
-            appendChildWithText(doc, indirizzoElem, "CAP", nvl(indirizzo.getCap()));
+            appendChildWithText(doc, indirizzoElem, "CAP", nvl(indirizzo.getCap().toString()));
 
             // Comune
             appendChildWithText(doc, indirizzoElem, "Comune", nvl(indirizzo.getComune()));
@@ -382,8 +385,17 @@ public class GestioneFile {
             amb.setProvincia(ambitoElem.getAttribute("provincia"));
 
             NodeList caps = ambitoElem.getElementsByTagName("CAP");
+            ArrayList<Integer> capList = new ArrayList<>();
             for (int j = 0; j < caps.getLength(); j++) {
-                amb.getCap().add(caps.item(j).getTextContent());
+            	 Element capElem = (Element) caps.item(j);
+                 String capText = capElem.getTextContent().trim();
+                 try {
+                     int capValue = Integer.parseInt(capText);
+                     capList.add(capValue);
+                 } catch (NumberFormatException e) {
+                     System.out.println("âš ï¸ CAP non valido nel file XML: " + capText);
+                 }
+                 amb.setCap(capList); 
             }
 
             ambiti.add(amb);
@@ -401,8 +413,8 @@ public class GestioneFile {
             Element luogoElem = (Element) luoghiNodes.item(i);
 
             Luogo luogo = new Luogo();
-            luogo.setNomeLuogo(luogoElem.getAttribute("nome"));
-
+            luogo.setNomeLuogo(luogoElem.getAttribute("Nome"));
+            luogo.setNomeLuogo(luogoElem.getAttribute("Descrizione"));
             // TipiVisita
             NodeList tipoVisitaNodes = luogoElem.getElementsByTagName("TipoVisita");
             for (int j = 0; j < tipoVisitaNodes.getLength(); j++) {
@@ -453,7 +465,7 @@ public class GestioneFile {
             tv.setPeriodoProgrammabile(p);
         }
 
-        // Volontari LAIBA: RITORNARCI SU perchè creazione Volontari dipende da Credenziali
+        // Volontari LAIBA: RITORNARCI SU perchï¿½ creazione Volontari dipende da Credenziali
         //idealmente, bisogna fare un metodo che, letto il nickname da file, ricerca e associa il volontario correto da credenziali
         NodeList volontariNodes = elem.getElementsByTagName("Volontario");
         for (int i = 0; i < volontariNodes.getLength(); i++) {
@@ -472,7 +484,14 @@ public class GestioneFile {
         ind.setTipoStrada(TipoStrada.valueOf(getText(elem, "TipoStrada")));
         ind.setNomeStrada(getText(elem, "NomeStrada"));
         ind.setNumeroCivico(getText(elem, "NumeroCivico"));
-        ind.setCap(getText(elem, "CAP"));
+        String capText = getText(elem, "CAP").trim();
+        try {
+            int capValue = Integer.parseInt(capText);
+            ind.setCap(capValue);
+        } catch (NumberFormatException e) {
+            System.out.println("CAP non valido: " + capText);
+            ind.setCap(0); // valore di default in caso di errore
+        }
         ind.setComune(getText(elem, "Comune"));
         ind.setProvincia(getText(elem, "Provincia"));
         return ind;

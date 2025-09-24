@@ -1,49 +1,52 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <DatiSistema>
-  <AmbitoTerritoriale provincia="s">
+  <AmbitoTerritoriale provincia="brescia">
     <CAPs>
-      <CAP>s</CAP>
+      <CAP>232</CAP>
+      <CAP>24131</CAP>
+      <CAP>23131</CAP>
     </CAPs>
   </AmbitoTerritoriale>
   <Luoghi>
-    <Luogo nome="x">
+    <Luogo nome="luogo">
+      <Descrizione>desc</Descrizione>
       <TipiVisita>
         <TipoVisita>
-          <Titolo>s</Titolo>
-          <Descrizione>s</Descrizione>
+          <Titolo>tipo1</Titolo>
+          <Descrizione>descrizione</Descrizione>
           <Indirizzo>
             <TipoStrada>Via</TipoStrada>
-            <NomeStrada>cs</NomeStrada>
-            <NumeroCivico>d</NumeroCivico>
-            <CAP>ds</CAP>
-            <Comune>d</Comune>
-            <Provincia>d</Provincia>
+            <NomeStrada>bri</NomeStrada>
+            <NumeroCivico>1</NumeroCivico>
+            <CAP>24131</CAP>
+            <Comune>comune</Comune>
+            <Provincia>brescia</Provincia>
           </Indirizzo>
           <DataVisita>
-            <Giorno>1</Giorno>
-            <Mese>5</Mese>
+            <Giorno>5</Giorno>
+            <Mese>1</Mese>
           </DataVisita>
           <OraInizio>
-            <Ore>1</Ore>
-            <Minuti>1</Minuti>
+            <Ore>10</Ore>
+            <Minuti>30</Minuti>
             <Secondi>0</Secondi>
           </OraInizio>
-          <DurataVisita>1</DurataVisita>
+          <DurataVisita>120</DurataVisita>
           <Biglietto>false</Biglietto>
           <SogliaMinPartecipanti>1</SogliaMinPartecipanti>
-          <SogliaMaxPartecipanti>1</SogliaMaxPartecipanti>
+          <SogliaMaxPartecipanti>10</SogliaMaxPartecipanti>
           <PeriodoProgrammabile>
             <DataInizio>
               <Giorno>1</Giorno>
               <Mese>1</Mese>
             </DataInizio>
             <DataFine>
-              <Giorno>2</Giorno>
-              <Mese>2</Mese>
+              <Giorno>31</Giorno>
+              <Mese>12</Mese>
             </DataFine>
           </PeriodoProgrammabile>
           <Volontari>
-            <Volontario>utente3</Volontario>
+            <Volontario>v1</Volontario>
           </Volontari>
         </TipoVisita>
       </TipiVisita>

@@ -15,8 +15,8 @@ public class TipoVisita {
     private int sogliaMinPartecipanti;
     private int sogliaMaxPartecipanti;
     private ArrayList<Volontario> volontari;
-	private Periodo periodoProgrammabile;		//COMMENTO LAIBA: nella consegna c'è esplicitamente scritto che il tipo visita deve 
-												//contenere il periodo dell'anno durante il quale la visita è programmabile. In caso 
+	private Periodo periodoProgrammabile;		//COMMENTO LAIBA: nella consegna c'ï¿½ esplicitamente scritto che il tipo visita deve 
+												//contenere il periodo dell'anno durante il quale la visita ï¿½ programmabile. In caso 
 												//contrario, sarebbe difficile distinguere il tipo visita "astratto" dalla visita effettiva programmata
     
     public TipoVisita(String titolo, String descrizione, Indirizzo puntoDiIncontro, Data dataVisita, LocalTime oraInizio,
@@ -158,7 +158,15 @@ public class TipoVisita {
 		this.durataVisita = durataVisita;
 	}
 	
-	
+	public boolean siSovrappongono(TipoVisita altraVisita) {
+        if (altraVisita == null) return false;
+
+        LocalTime fineQuesta = this.oraInizio.plusMinutes(this.durataVisita);
+        LocalTime fineAltra = altraVisita.oraInizio.plusMinutes(altraVisita.durataVisita);
+
+        // Controllo sovrapposizione
+        return this.oraInizio.isBefore(fineAltra) && altraVisita.oraInizio.isBefore(fineQuesta);
+    }
     
     
     

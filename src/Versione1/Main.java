@@ -67,10 +67,10 @@ public class Main {
 		/*
 		 	okCred restituisce: 
 		 	- -1 se credenziali sbagliate
-		 	- 0 se non è il primo accesso
-		 	- 1 se è il primo accesso
+		 	- 0 se non ï¿½ il primo accesso
+		 	- 1 se ï¿½ il primo accesso
 		 	
-		 	 questa info la devo mandare al metodo configuratore che, se è il primo accesso, deve fare determinate cose
+		 	 questa info la devo mandare al metodo configuratore che, se ï¿½ il primo accesso, deve fare determinate cose
 		 */
 	/*
 		int okCred = 0;
@@ -104,7 +104,7 @@ public class Main {
 			
 		*/
 		/*
-		if (okCred == 1) {	//cioè se è il primo accesso
+		if (okCred == 1) {	//cioï¿½ se ï¿½ il primo accesso
 			//creazione corpo dati
 		}
 		
