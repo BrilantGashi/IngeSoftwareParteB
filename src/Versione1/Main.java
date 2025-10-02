@@ -9,7 +9,7 @@ public class Main {
 
 	//private static String[] voci = {"Registra Configuratore"};
 	
-	public static void main(String[] args) throws FileNotFoundException, IOException {
+	public static void main(String[] args) throws Exception {
 		//---------------------------------
 		
 

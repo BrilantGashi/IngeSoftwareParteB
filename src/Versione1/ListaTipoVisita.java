@@ -29,27 +29,7 @@ public class ListaTipoVisita {
 	public void add(TipoVisita tipoVisita) {
 		tipi.add(tipoVisita);
 	}
-
-	@Override
-	public String toString() {
-		
-		String toString = "";
-		
-		for (int i = 0; i < tipi.size(); i++) {
-			toString = toString + tipi.get(i).toString() + "\n";
-		}
-		
-		return toString;
-	}
 	
-	
-	public String toStringAsList () {
-		String returnString = "";
-		for (int i = 0; i < tipi.size(); i++) {
-			returnString = returnString + (i+1) + ". "+ tipi.get(i).toString() + "\n"; 
-		}
-		return returnString;
-	}
 
 	public ArrayList<TipoVisita> getTipi() {
 		return tipi;
@@ -64,5 +44,71 @@ public class ListaTipoVisita {
 		return tipi.get(i);
 	}
 	
-	
+	@Override
+	public String toString() {
+	    if (tipi == null || tipi.isEmpty()) {
+	        return "Nessun tipo di visita disponibile.";
+	    }
+
+	    StringBuilder sb = new StringBuilder();
+	    sb.append("===== ELENCO TIPI DI VISITA =====\n");
+
+	    int i = 1;
+	    for (TipoVisita tv : tipi) {
+	        sb.append(i++).append(") ").append(tv.getTitolo() != null ? tv.getTitolo() : "Senza titolo").append("\n");
+
+	        sb.append("   Descrizione: ")
+	          .append(tv.getDescrizione() != null ? tv.getDescrizione() : "N/D")
+	          .append("\n");
+
+	        sb.append("   Data visita: ")
+	          .append(tv.getDataVisita() != null ? tv.getDataVisita().toString() : "N/D")
+	          .append("\n");
+
+	        sb.append("   Ora inizio: ")
+	          .append(tv.getOraInizio() != null ? tv.getOraInizio().toString() : "N/D")
+	          .append("\n");
+
+	        sb.append("   Durata (minuti): ").append(tv.getDurataVisita()).append("\n");
+
+	        sb.append("   Biglietto richiesto: ").append(tv.isBiglietto() ? "Sì" : "No").append("\n");
+
+	        sb.append("   Partecipanti: min=")
+	          .append(tv.getSogliaMinPartecipanti())
+	          .append(", max=")
+	          .append(tv.getSogliaMaxPartecipanti())
+	          .append("\n");
+
+	        // Punto di incontro (uso toString() di Indirizzo se implementato)
+	        if (tv.getPuntoDiIncontro() != null) {
+	            sb.append("   Punto di incontro: ").append(tv.getPuntoDiIncontro().toString()).append("\n");
+	        }
+
+	        // Periodo programmabile
+	        if (tv.getPeriodoProgrammabile() != null) {
+	            sb.append("   Periodo: ").append(tv.getPeriodoProgrammabile().toString()).append("\n");
+	        }
+
+	        // Volontari (solo se presenti)
+	        if (tv.getListaVolontari() != null && !tv.getListaVolontari().getVolontari().isEmpty()) {
+	            sb.append("   Volontari:\n");
+	            // qui potresti usare tv.getVolontari().stampaVolontari() se vuoi stampare direttamente
+	            for (Volontario v : tv.getListaVolontari().getVolontari()) {
+	                sb.append("      - ").append(v.getNickname()).append("\n");
+	            }
+	        }
+
+	        sb.append("-----------------------------------\n");
+	    }
+
+	    return sb.toString();
+	}
+
+	public String toStringAsList () {
+		String returnString = "";
+		for (int i = 0; i < tipi.size(); i++) {
+			returnString = returnString + (i+1) + ". "+ tipi.get(i).toString() + "\n"; 
+		}
+		return returnString;
+	}
 }

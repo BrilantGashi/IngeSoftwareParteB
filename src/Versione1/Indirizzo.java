@@ -20,13 +20,7 @@ public class Indirizzo {
 	
 	public Indirizzo() {}
 	
-	public String toString() {
-		StringBuffer sb = new StringBuffer();
-		sb.append(String.format("Indirizzo: "));
-		sb.append(String.format("%s %s %s, %s %s (%s)", tipoStrada, nomeStrada, numeroCivico, cap, comune, provincia));
-		
-		return sb.toString();
-	}
+	
 	
 	
 	
@@ -81,5 +75,39 @@ public class Indirizzo {
 		this.provincia = provincia;
 	}
 	
+	public void stampaIndirizzo() {
+	    System.out.println("Tipo strada: " + tipoStrada);
+	    System.out.println("Nome strada: " + nomeStrada);
+	    System.out.println("Numero civico: " + numeroCivico);
+	    System.out.println("CAP: " + cap);
+	    System.out.println("Comune: " + comune);
+	    System.out.println("Provincia: " + provincia);
+	}
 	
+	@Override
+	public String toString() {
+	    StringBuilder sb = new StringBuilder();
+
+	    if (tipoStrada != null) {
+	        sb.append(tipoStrada.toString()).append(" ");
+	    }
+	    if (nomeStrada != null) {
+	        sb.append(nomeStrada).append(" ");
+	    }
+	    if (numeroCivico != null) {
+	        sb.append(numeroCivico).append(", ");
+	    }
+
+	    sb.append(cap).append(" ");
+
+	    if (comune != null) {
+	        sb.append(comune).append(" ");
+	    }
+	    if (provincia != null) {
+	        sb.append("(").append(provincia).append(")");
+	    }
+
+	    return sb.toString().trim();
+	}
+
 }

@@ -8,15 +8,14 @@ import it.unibs.fp.mylib.*;
 public class Menu{
 	private static String[] voci = {"Login"};
 	private static ArrayList<Configuratore> listaConfiguratore = new ArrayList<Configuratore>();
-	private static ArrayList<Volontario> listaVolontari = new ArrayList<Volontario>();
+	private static ListaVolontari listaVolontari = new ListaVolontari();
 	private static ListaTipoVisita listaTipoVisita = new ListaTipoVisita();
-	private static ListaLuogo listaLuogo = new ListaLuogo();
+	private static AmbitoTerritoriale ambito = new AmbitoTerritoriale();
+	private static ListaLuogo listaLuoghi = new ListaLuogo();
 	private static int nMaxPersone = 0;
 	private static ArrayList<Integer> capAmbito = new ArrayList<Integer>();  //modifico capAmbito in Integer perchè semplifica le cose e non possiamo verificare se si tratta di una parola o un numero con string
-
-	
 	private static GestioneFile g = new GestioneFile();
-	
+
 	//private static final String LOG_FILENAME = "matriciopoli.log";
 	//////////////////////////////////
 	// MENU PRINCIPALE
@@ -24,10 +23,9 @@ public class Menu{
 	/**
 	 * Metodo per il menu principale dell'applicazione.
 	 * @return True se e' stata selezionata l'uscita, altrimenti False.
-	 * @throws IOException 
-	 * @throws FileNotFoundException 
+	 * @throws Exception 
 	 */
-	public static boolean menuPrincipale() throws FileNotFoundException, IOException{
+	public static boolean menuPrincipale() throws Exception{
 		
 		int sceltaMenu;
 		g.leggiUtentiDaFile(listaConfiguratore, listaVolontari);
@@ -59,7 +57,7 @@ public class Menu{
 		
 	}
 	
-	public static void login() throws FileNotFoundException, IOException {
+	public static void login() throws Exception {
 		String username;
 		String password;
 		String utenza = "";
@@ -106,7 +104,7 @@ public class Menu{
 		}
 	}
 	
-	public static void configuratore (int okCred) throws FileNotFoundException, IOException {
+	public static void configuratore (int okCred) throws Exception {
 		/*
 			cose che deve fare un configuratore nella V1:
 			- creazione corpo dati: prima chiedere in input tutti i dati, e alla fine scriverli sul file
@@ -120,7 +118,7 @@ public class Menu{
 		
 		int sceltaMenuConfig;
 		System.out.println("NON VANNO TUTTI, CONTROLLARE PRIMA DI PROCEDERE");
-		String[] vociConfig = {"Torna al Menu Principale","Creazione Corpo Dati", "Avvio Calendario", "Modifica num max per fruitore", "Visualizza Luoghi", "Visualizza Tipo Visita", "Visualizza Stato Visita"};
+		String[] vociConfig = {"0 - Torna al Menu Principale","1 - Creazione Corpo Dati", "2 - Avvio Calendario", "3 - Modifica num max per fruitore","4 - Visualizza volontari" ,"5 - Visualizza Luoghi", "6 - Visualizza l’elenco dei tipi di visita associati a ciascun luogo", "7 - Visualizza Stato Visite"};
 		//g.leggiUtentiDaFile(listaConfiguratore, listaVolontari);
 				
 		MyMenu menu = new MyMenu("Menu", vociConfig);
@@ -137,6 +135,8 @@ public class Menu{
 			case 1:
 				if (okCred == 1) {
 					creazioneCorpoDati();
+					okCred = 0;
+					
 				} else {
 					System.out.println("Corpo Dati già definito.");
 					//e devo leggere i dati da file
@@ -146,22 +146,27 @@ public class Menu{
 				
 			case 2:				
 				//avvio calendario
-				System.out.println("sei nel case 2");
+				System.out.println("Avvio del Calendario in corso...");
 				break;
 				
 			case 3:			
-				System.out.println("sei nel case 3");
 				modificaNumFruitore();			
 				break;
-				
+			
 			case 4:
-				//visualizza elenco luoghi
-				System.out.println("sei nel case 4");
-				//non va perch� non inizializzo con info file
-				//devo vedere se NON E' il primo accesso, in tale caso fare inizzializzazione
-				System.out.println(listaLuogo.toString());
+				listaVolontari.stampaVolontariConVisite(listaTipoVisita.getTipi());
+				break;
 				
+			case 5:
+				listaLuoghi.stampaLuoghiSenzaTipoVisita();
 				break;	
+			
+			case 6:
+				listaLuoghi.stampaLuoghiConTipoVisita();
+				
+			case 7:
+				break;
+				
 			}
 			sceltaMenuConfig = menu.scegli();
 		} while (sceltaMenuConfig!=0);
@@ -173,13 +178,12 @@ public class Menu{
 	}
 	
 	public static void modificaNumFruitore() {
-		nMaxPersone = InputDati.leggiInteroPositivo("Inserisci il numero massimo di persone che un fruitore pu� iscrivere a una iniziativa mediante una singola iscrizione: ");
+		nMaxPersone = InputDati.leggiInteroPositivo("Inserisci il numero massimo di persone che un fruitore puo' iscrivere a una iniziativa mediante una singola iscrizione: ");
 	}
 	
+	
 	public static void creazioneCorpoDati () {
-		//a. creazione corpo dati			
 		System.out.println("Creazione Corpo Dati");
-		
 		//**************************AMBITO TERRITORIALE ***********************************
 		System.out.println("------------------------------");
 		System.out.println("Creazione Ambito Territoriale");
@@ -245,7 +249,7 @@ public class Menu{
 		}
 		
 		try {
-			g.scriviCorpoDati(nMaxPersone, ambitoTerritoriale, listaLuogo);
+			g.scriviCorpoDati(nMaxPersone, ambitoTerritoriale, listaLuoghi);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -264,8 +268,8 @@ public class Menu{
 			System.out.println(nickname);
 		}*/
 		
-		for (int i = 0; i < listaVolontari.size(); i++) {
-			System.out.println((i+1) + ". "+ listaVolontari.get(i).getCredenziali().getUsername());
+		for (int i = 0; i < listaVolontari.getVolontari().size(); i++) {
+			System.out.println((i+1) + ". "+ listaVolontari.getVolontari().get(i).getCredenziali().getUsername());
 		}
 	}
 	
@@ -290,12 +294,12 @@ public class Menu{
 		
 		boolean continuaVolontario = false;
 		int sceltaVolontario;
-		ArrayList<Volontario> volontariToAdd = new ArrayList<>();
+		ListaVolontari volontariToAdd = new ListaVolontari();
 		
 		do {			
 			visualizzaVolontari();
 			sceltaVolontario = InputDati.leggiInteroNonNegativo("Inserisci il numero del volontario da associare al tipo visita: ");
-			volontariToAdd.add(listaVolontari.get(sceltaVolontario - 1));
+			volontariToAdd.aggiungiVolontario(listaVolontari.getVolontario(sceltaVolontario - 1));
 			continuaVolontario = InputDati.yesOrNo("Vuoi associare un altro Volontario a questo Tipo Visita? ");
 		} while(continuaVolontario);
 		
@@ -413,13 +417,14 @@ public class Menu{
 				
 		System.out.println(luogo.toString());
 		
-		listaLuogo.add(luogo);
+		listaLuoghi.add(luogo);
 	}
 	
-	public static void leggiCorpoDati() {
-		//List<AmbitoTerritoriale> ambiti = g.leggiAmbiti();
-	    //List<Luogo> luoghi = g.leggiLuoghi();
-	
+	public static void leggiCorpoDati() throws Exception {
+		ambito = g.leggiAmbiti();
+		listaLuoghi.setListaLuoghi(g.leggiLuoghi());
+		ambito.stampaAmbito();
+		listaLuoghi.toString();
 	    //System.out.println("Ambiti: " + ambiti);
 	    //System.out.println("Luoghi: " + luoghi);
 	}

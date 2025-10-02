@@ -41,13 +41,30 @@ public class AmbitoTerritoriale {
 	public void setCap(ArrayList<Integer> capList) {
 		this.cap = capList;
 	}
-
+	
+	public void addCap(int capInput) {
+		this.cap.add(capInput);
+	}
+	
 	public String getProvincia() {
 		return provincia;
 	}
 
 	public void setProvincia(String provincia) {
 		this.provincia = provincia;
+	}
+	
+	public void stampaAmbito() {
+	    System.out.println("Provincia: " + provincia);
+	    if (cap != null && !cap.isEmpty()) {
+	        System.out.print("CAP: ");
+	        for (Integer c : cap) {
+	            System.out.print(c + " ");
+	        }
+	        System.out.println();
+	    } else {
+	        System.out.println("Nessun CAP disponibile");
+	    }
 	}
 	
 	

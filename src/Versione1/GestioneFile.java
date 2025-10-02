@@ -137,7 +137,7 @@ public class GestioneFile {
 	
 	
     public void leggiUtentiDaFile(List<Configuratore> configuratori,
-	                              List<Volontario> volontari
+	                              ListaVolontari volontari
 	                              /*List<Fruitore> fruitori*/) throws IOException {
 
 	        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
@@ -158,7 +158,7 @@ public class GestioneFile {
 	                        configuratori.add(new Configuratore(cred));
 	                        break;
 	                    case "VOLONTARIO":
-	                        volontari.add(new Volontario(cred));
+	                        volontari.aggiungiVolontario(new Volontario(cred));
 	                        break;
 	                    case "FRUITORE":
 	                        //fruitori.add(new Fruitore(username, password));
@@ -204,7 +204,7 @@ public class GestioneFile {
 	        root.appendChild(ambitoElem);
 	        ambitoElem.setAttribute("provincia", ambito.getProvincia());
 	        //ambitoElem.appendChild(ambitoElem);
-	        root.appendChild(ambitoElem);
+	        //root.appendChild(ambitoElem);
 	        // CAP dell'ambito
             Element capsElem = doc.createElement("CAPs");
             for (Integer c : ambito.getCap()) {
@@ -256,7 +256,7 @@ public class GestioneFile {
 	    }
     } 
     
-    private static Element serializeTipoVisita(Document doc, TipoVisita tv) {
+    private  Element serializeTipoVisita(Document doc, TipoVisita tv) {
         Element tipoVisitaElem = doc.createElement("TipoVisita");
 
        appendChildWithText(doc, tipoVisitaElem, "Titolo", nvl(tv.getTitolo()));
@@ -280,9 +280,9 @@ public class GestioneFile {
 
         // Volontari
         Element volontariElem = doc.createElement("Volontari");
-        if (tv.getVolontari() != null) {
-        	for (int i = 0; i < tv.getVolontari().size(); i++) {
-        		appendChildWithText(doc, volontariElem, "Volontario", tv.getVolontari().get(i).getNickname());
+        if (tv.getListaVolontari() != null) {
+        	for (int i = 0; i < tv.getListaVolontari().getVolontari().size(); i++) {
+        		appendChildWithText(doc, volontariElem, "Volontario", tv.getListaVolontari().getVolontari().get(i).getNickname());
         	}
             /*for (String v : tv.getVolontari()) {
                 appendChildWithText(doc, volontariElem, "Volontario", v);
@@ -293,15 +293,15 @@ public class GestioneFile {
         return tipoVisitaElem;
     }
 
-    private static void appendChildWithText(Document doc, Element parent, String tag, String text) {
+    private  void appendChildWithText(Document doc, Element parent, String tag, String text) {
         Element e = doc.createElement(tag);
         e.appendChild(doc.createTextNode(text != null ? text : ""));
         parent.appendChild(e);
     }
 
-    private static String nvl(String s) { return s == null ? "" : s; }
+    private  String nvl(String s) { return s == null ? "" : s; }
 
-    private static Element serializeIndirizzo(Document doc, Indirizzo indirizzo) {
+    private  Element serializeIndirizzo(Document doc, Indirizzo indirizzo) {
         Element indirizzoElem = doc.createElement("Indirizzo");
 
         if (indirizzo != null) {
@@ -329,7 +329,7 @@ public class GestioneFile {
         return indirizzoElem;
     }
 
-    private static Element serializeData(Document doc, Data data, String tagName) {
+    private  Element serializeData(Document doc, Data data, String tagName) {
         Element dataElem = doc.createElement(tagName);
 
         if (data != null) {
@@ -340,7 +340,7 @@ public class GestioneFile {
         return dataElem;
     }
 
-    private static Element serializeOra(Document doc, LocalTime ora, String tagName) {
+    private  Element serializeOra(Document doc, LocalTime ora, String tagName) {
         Element oraElem = doc.createElement(tagName); // es. "OraInizio" o "OraFine"
 
         if (ora != null) {
@@ -352,7 +352,7 @@ public class GestioneFile {
         return oraElem;
     }
 
-    private static Element serializePeriodo(Document doc, Periodo periodo) {
+    private  Element serializePeriodo(Document doc, Periodo periodo) {
         Element periodoElem = doc.createElement("PeriodoProgrammabile");
 
         if (periodo != null) {
@@ -372,41 +372,34 @@ public class GestioneFile {
     //ATTENZIONE: QUI SVILUPPO DI MERDA PERCHE' APPLICHEREMO FACADE PER LA PARTE B
     
 
-    public static List<AmbitoTerritoriale> leggiAmbiti(String path) throws Exception {
-        List<AmbitoTerritoriale> ambiti = new ArrayList<>();
-
-        Document doc = apriDocumento(path);
+    public AmbitoTerritoriale leggiAmbiti() throws Exception {
+        Document doc = apriDocumento("CorpoDati.xml");
         NodeList ambitoNodes = doc.getElementsByTagName("AmbitoTerritoriale");
 
-        for (int i = 0; i < ambitoNodes.getLength(); i++) {
-            Element ambitoElem = (Element) ambitoNodes.item(i);
+        Element ambitoElem = (Element) ambitoNodes.item(0);
 
-            AmbitoTerritoriale amb = new AmbitoTerritoriale();
-            amb.setProvincia(ambitoElem.getAttribute("provincia"));
+        AmbitoTerritoriale ambito = new AmbitoTerritoriale();
+        ambito.setProvincia(ambitoElem.getAttribute("provincia"));
 
-            NodeList caps = ambitoElem.getElementsByTagName("CAP");
-            ArrayList<Integer> capList = new ArrayList<>();
-            for (int j = 0; j < caps.getLength(); j++) {
-            	 Element capElem = (Element) caps.item(j);
-                 String capText = capElem.getTextContent().trim();
-                 try {
-                     int capValue = Integer.parseInt(capText);
-                     capList.add(capValue);
-                 } catch (NumberFormatException e) {
-                     System.out.println("⚠️ CAP non valido nel file XML: " + capText);
-                 }
-                 amb.setCap(capList); 
+        NodeList caps = ambitoElem.getElementsByTagName("CAP");
+        ArrayList<Integer> capList = new ArrayList<>();
+
+        for (int j = 0; j < caps.getLength(); j++) {
+            String capText = caps.item(j).getTextContent().trim();
+            try {
+                capList.add(Integer.parseInt(capText));
+            } catch (NumberFormatException e) {
+                System.out.println("⚠️ CAP non valido nel file XML: " + capText);
             }
-
-            ambiti.add(amb);
         }
-        return ambiti;
+
+        ambito.setCap(capList);
+        return ambito;
     }
 
-    public static List<Luogo> leggiLuoghi(String path) throws Exception {
-        List<Luogo> luoghi = new ArrayList<>();
-
-        Document doc = apriDocumento(path);
+    public ArrayList<Luogo> leggiLuoghi() throws Exception {
+        ArrayList<Luogo> luoghi = new ArrayList<>();
+        Document doc = apriDocumento("CorpoDati.xml");
         NodeList luoghiNodes = doc.getElementsByTagName("Luogo");
 
         for (int i = 0; i < luoghiNodes.getLength(); i++) {
@@ -414,7 +407,7 @@ public class GestioneFile {
 
             Luogo luogo = new Luogo();
             luogo.setNomeLuogo(luogoElem.getAttribute("Nome"));
-            luogo.setNomeLuogo(luogoElem.getAttribute("Descrizione"));
+            luogo.setDescrizione(luogoElem.getAttribute("Descrizione"));
             // TipiVisita
             NodeList tipoVisitaNodes = luogoElem.getElementsByTagName("TipoVisita");
             for (int j = 0; j < tipoVisitaNodes.getLength(); j++) {
@@ -429,7 +422,7 @@ public class GestioneFile {
         return luoghi;
     }
 
-    private static TipoVisita parseTipoVisita(Element elem) {
+    private TipoVisita parseTipoVisita(Element elem) {
         TipoVisita tv = new TipoVisita();
 
         tv.setTitolo(getText(elem, "Titolo"));
@@ -476,7 +469,7 @@ public class GestioneFile {
         return tv;
     }
 
-    private static Indirizzo parseIndirizzo(Element elem) {
+    private  Indirizzo parseIndirizzo(Element elem) {
         if (elem == null) return null;
 
         Indirizzo ind = new Indirizzo();
@@ -497,7 +490,7 @@ public class GestioneFile {
         return ind;
     }
 
-    private static Data parseData(Element elem) {
+    private  Data parseData(Element elem) {
         if (elem == null) return null;
 
         Data d = new Data();
@@ -506,7 +499,7 @@ public class GestioneFile {
         return d;
     }
 
-    private static String getText(Element parent, String tag) {
+    private  String getText(Element parent, String tag) {
         NodeList nodes = parent.getElementsByTagName(tag);
         if (nodes.getLength() > 0) {
             return nodes.item(0).getTextContent();
@@ -514,7 +507,7 @@ public class GestioneFile {
         return "";
     }
 
-    private static Document apriDocumento(String path) throws Exception {
+    private  Document apriDocumento(String path) throws Exception {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = dbf.newDocumentBuilder();
         return db.parse(new File(path));

@@ -4,7 +4,7 @@ public class Luogo {
 	private String nomeLuogo;
 	private String descrizione;
 	private Indirizzo indirizzo;
-	private ListaTipoVisita listaTipoVisita;		//LAIBA: aggiunto perchè (pg. 4, "A ciascun luogo è associato almeno un tipo di visita")
+	private ListaTipoVisita listaTipoVisita;		//LAIBA: aggiunto perchï¿½ (pg. 4, "A ciascun luogo ï¿½ associato almeno un tipo di visita")
 	
 	public Luogo(String nomeLuogo, String descrizione, Indirizzo indirizzo, ListaTipoVisita listaTipoVisita) {
 		this.nomeLuogo = nomeLuogo;
@@ -16,19 +16,6 @@ public class Luogo {
 	
 	public Luogo() {}
 
-/*	public String toString() {
-		StringBuffer sb = new StringBuffer();
-		sb.append("Luogo: \n");
-		sb.append(String.format("Nome: %s\n", nomeLuogo));
-		sb.append(String.format("Descrizione: %s\n", descrizione));
-		sb.append(String.format("Indirizzo: %s\n", indirizzo.toString()));
-		
-		
-		
-		
-		return sb.toString();
-	}*/
-	
 
 	
 	//getters & setters
@@ -57,20 +44,6 @@ public class Luogo {
 		this.listaTipoVisita = listaTipoVisita;
 	}
 
-	@Override
-	public String toString() {
-		/*return "Luogo [nomeLuogo=" + nomeLuogo + ", descrizione=" + descrizione + ", indirizzo=" + indirizzo
-				+ ", listaTipoVisita=" + listaTipoVisita.toString() + "]";*/
-	
-	    return "Luogo:\n" +
-	           "  Nome        = " + nomeLuogo + "\n" +
-	           "  Descrizione = " + descrizione + "\n" +
-	           "  Indirizzo   = " + indirizzo.toString() + "\n" +
-	           "  Tipi Visita = " + listaTipoVisita.toString();
-	
-
-	}
-
 	public ListaTipoVisita getListaTipoVisita() {
 		return listaTipoVisita;
 	}
@@ -79,6 +52,30 @@ public class Luogo {
 		this.indirizzo = indirizzo;
 	}
 	
-	
+	@Override
+	public String toString() {
+	    StringBuilder sb = new StringBuilder();
+
+	    sb.append("===== LUOGO =====\n");
+	    sb.append("Nome: ").append(nomeLuogo != null ? nomeLuogo : "N/D").append("\n");
+	    sb.append("Descrizione: ").append(descrizione != null ? descrizione : "N/D").append("\n");
+
+	    if (indirizzo != null) {
+	        sb.append("Indirizzo: ").append(indirizzo.toString()).append("\n");
+	    } else {
+	        sb.append("Indirizzo: non disponibile\n");
+	    }
+
+	    if (listaTipoVisita != null && listaTipoVisita.getTipi() != null && !listaTipoVisita.getTipi().isEmpty()) {
+	        sb.append(listaTipoVisita.toString()).append("\n");
+	    } else {
+	        sb.append("Nessun tipo di visita disponibile.\n");
+	    }
+
+	    sb.append("=================\n");
+
+	    return sb.toString();
+	}
+
 	
 }

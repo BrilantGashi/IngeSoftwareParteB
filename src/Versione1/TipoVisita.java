@@ -14,13 +14,13 @@ public class TipoVisita {
     private boolean biglietto;
     private int sogliaMinPartecipanti;
     private int sogliaMaxPartecipanti;
-    private ArrayList<Volontario> volontari;
+    private ListaVolontari volontari;
 	private Periodo periodoProgrammabile;		//COMMENTO LAIBA: nella consegna c'� esplicitamente scritto che il tipo visita deve 
 												//contenere il periodo dell'anno durante il quale la visita � programmabile. In caso 
 												//contrario, sarebbe difficile distinguere il tipo visita "astratto" dalla visita effettiva programmata
     
     public TipoVisita(String titolo, String descrizione, Indirizzo puntoDiIncontro, Data dataVisita, LocalTime oraInizio,
-			int durataVisita, boolean biglietto, int sogliaMinPartecipanti, int sogliaMaxPartecipanti, Periodo periodoProgrammabile, ArrayList<Volontario> volontari) {
+			int durataVisita, boolean biglietto, int sogliaMinPartecipanti, int sogliaMaxPartecipanti, Periodo periodoProgrammabile, ListaVolontari volontari) {
 		super();
 		this.titolo = titolo;
 		this.descrizione = descrizione;
@@ -48,35 +48,6 @@ public class TipoVisita {
 		return durataVisita;
 	}
 
-	@Override
-	public String toString() {
-		/*return "TipoVisita [titolo=" + titolo + ", descrizione=" + descrizione + ", puntoDiIncontro=" + puntoDiIncontro
-				+ ", dataVisita=" + dataVisita.toString() +", oraInizio=" + oraInizio + ", durataVisita=" + durataVisita
-				+ ", biglietto=" + biglietto + ", sogliaMinPartecipanti=" + sogliaMinPartecipanti
-				+ ", sogliaMaxPartecipanti=" + sogliaMaxPartecipanti + ", periodoProgrammabile=" + periodoProgrammabile.toString()
-				+ ", volontari=" + volontari.toString() + "]";*/
-		
-		String toString = "TipoVisita:\n" +
-		           "  Titolo                = " + titolo + "\n" +
-		           "  Descrizione           = " + descrizione + "\n" +
-		           "  Punto di Incontro     = " + puntoDiIncontro + "\n" +
-		           "  Data Visita           = " + dataVisita.toString() + "\n" +
-		           "  Ora Inizio            = " + oraInizio + "\n" +
-		           "  Durata Visita         = " + durataVisita + "\n" +
-		           "  Biglietto             = " + biglietto + "\n" +
-		           "  Soglia Min Partecip.  = " + sogliaMinPartecipanti + "\n" +
-		           "  Soglia Max Partecip.  = " + sogliaMaxPartecipanti + "\n" +
-		           "  Periodo Programmabile = " + periodoProgrammabile.toString() + "\n" +
-		           "  Volontari:             ";
-		
-		
-		for (int i = 0; i < volontari.size(); i++) {
-			toString = toString + volontari.get(i).getNickname() +"\n";
-		}
-
-	    return toString;
-
-	}
 
 	public String getTitolo() {
 		return titolo;
@@ -134,11 +105,11 @@ public class TipoVisita {
 		this.sogliaMaxPartecipanti = sogliaMaxPartecipanti;
 	}
 
-	public ArrayList<Volontario> getVolontari() {
+	public ListaVolontari getListaVolontari() {
 		return volontari;
 	}
 
-	public void setVolontari(ArrayList<Volontario> volontari) {
+	public void setListaVolontari(ListaVolontari volontari) {
 		this.volontari = volontari;
 	}
 
@@ -168,6 +139,46 @@ public class TipoVisita {
         return this.oraInizio.isBefore(fineAltra) && altraVisita.oraInizio.isBefore(fineQuesta);
     }
     
+	@Override
+	public String toString() {
+	    StringBuilder sb = new StringBuilder();
+
+	    sb.append("===== TIPO VISITA =====\n");
+	    sb.append("Titolo: ").append(titolo != null ? titolo : "N/D").append("\n");
+	    sb.append("Descrizione: ").append(descrizione != null ? descrizione : "N/D").append("\n");
+
+	    sb.append("Data visita: ").append(dataVisita != null ? dataVisita.toString() : "N/D").append("\n");
+	    sb.append("Ora inizio: ").append(oraInizio != null ? oraInizio.toString() : "N/D").append("\n");
+	    sb.append("Durata (minuti): ").append(durataVisita).append("\n");
+
+	    sb.append("Biglietto richiesto: ").append(biglietto ? "Sì" : "No").append("\n");
+	    sb.append("Partecipanti: min=").append(sogliaMinPartecipanti)
+	      .append(", max=").append(sogliaMaxPartecipanti).append("\n");
+
+	    if (puntoDiIncontro != null) {
+	        sb.append("Punto di incontro: ").append(puntoDiIncontro.toString()).append("\n");
+	    }
+
+	    if (periodoProgrammabile != null) {
+	        sb.append("Periodo programmabile: ").append(periodoProgrammabile.toString()).append("\n");
+	    }
+
+	    // Volontari: se vuoi un output leggibile, cicliamo la lista
+	    if (volontari != null && volontari.getVolontari() != null && !volontari.getVolontari().isEmpty()) {
+	        sb.append("Volontari:\n");
+	        for (Volontario v : volontari.getVolontari()) {
+	            sb.append("   - ").append(v.getNickname()).append("\n");
+	        }
+	    } else {
+	        sb.append("Volontari: nessuno assegnato\n");
+	    }
+
+	    sb.append("========================\n");
+
+	    return sb.toString();
+	}
+
     
     
 }
+
