@@ -2,7 +2,7 @@ package Versione1;
 import java.util.Scanner;
 
 public enum TipoStrada {
-	Via, Viale, Vicolo, Strada, Corso, Piazza, Localit√†; 
+	Via, Viale, Vicolo, Strada, Corso, Piazza, Localit‡; 
 
 
     /**

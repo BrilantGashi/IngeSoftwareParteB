@@ -7,7 +7,7 @@ public class TipoVisita {
 	private String titolo;
     private String descrizione;
     private Indirizzo puntoDiIncontro;
-    private Data dataVisita;
+    private Data dataVisitaProgrammabile;
     //private List<GiornoSettimana> giorniSettimana;
     private LocalTime oraInizio;
     private int durataVisita;
@@ -25,7 +25,7 @@ public class TipoVisita {
 		this.titolo = titolo;
 		this.descrizione = descrizione;
 		this.puntoDiIncontro = puntoDiIncontro;
-		this.dataVisita = dataVisita;
+		this.dataVisitaProgrammabile = dataVisita;
 		this.oraInizio = oraInizio;
 		this.durataVisita = durataVisita;
 		this.biglietto = biglietto;
@@ -74,11 +74,11 @@ public class TipoVisita {
 	}
 
 	public Data getDataVisita() {
-		return dataVisita;
+		return dataVisitaProgrammabile;
 	}
 
 	public void setDataVisita(Data dataVisita) {
-		this.dataVisita = dataVisita;
+		this.dataVisitaProgrammabile = dataVisita;
 	}
 
 	public boolean isBiglietto() {
@@ -147,7 +147,7 @@ public class TipoVisita {
 	    sb.append("Titolo: ").append(titolo != null ? titolo : "N/D").append("\n");
 	    sb.append("Descrizione: ").append(descrizione != null ? descrizione : "N/D").append("\n");
 
-	    sb.append("Data visita: ").append(dataVisita != null ? dataVisita.toString() : "N/D").append("\n");
+	    sb.append("Data visita: ").append(dataVisitaProgrammabile != null ? dataVisitaProgrammabile.toString() : "N/D").append("\n");
 	    sb.append("Ora inizio: ").append(oraInizio != null ? oraInizio.toString() : "N/D").append("\n");
 	    sb.append("Durata (minuti): ").append(durataVisita).append("\n");
 
