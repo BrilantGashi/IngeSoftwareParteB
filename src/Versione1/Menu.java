@@ -15,6 +15,7 @@ public class Menu{
 	private static int nMaxPersone = 0;
 	private static ArrayList<Integer> capAmbito = new ArrayList<Integer>();  //modifico capAmbito in Integer perch√® semplifica le cose e non possiamo verificare se si tratta di una parola o un numero con string
 	private static GestioneFile g = new GestioneFile();
+	private static Calendario cal = new Calendario();
 
 	//private static final String LOG_FILENAME = "matriciopoli.log";
 	//////////////////////////////////
@@ -118,15 +119,18 @@ public class Menu{
 		
 		int sceltaMenuConfig;
 		System.out.println("NON VANNO TUTTI, CONTROLLARE PRIMA DI PROCEDERE");
-		String[] vociConfig = {"0 - Torna al Menu Principale","1 - Creazione Corpo Dati", "2 - Avvio Calendario", "3 - Modifica num max per fruitore","4 - Visualizza volontari" ,"5 - Visualizza Luoghi", "6 - Visualizza l‚Äôelenco dei tipi di visita associati a ciascun luogo", "7 - Visualizza Stato Visite"};
+		//LAIBA: ho tolto 0 - Torna al Menu Principale" perchË c'Ë gi‡ di default nel menu fplib. Stesso discorso per i numeri
+		String[] vociConfig = {"Creazione Corpo Dati", "Avvio Calendario", "Modifica num max per fruitore","Visualizza volontari" ,"Visualizza Luoghi", "Visualizza l'elenco dei tipi di visita associati a ciascun luogo", "Visualizza Stato Visite"};
 		//g.leggiUtentiDaFile(listaConfiguratore, listaVolontari);
 				
 		MyMenu menu = new MyMenu("Menu", vociConfig);
-		sceltaMenuConfig=1;
+		sceltaMenuConfig=1;		
 		do {
 			switch (sceltaMenuConfig) {
 			case 0:
-				boolean indietro = InputDati.yesOrNo("Vuoi veramente tornare indietro?");
+				//LAIBA: mi torna indietro ma non stampa conferma, da capire perchË
+				boolean indietro; 
+				indietro = InputDati.yesOrNo("Vuoi veramente tornare indietro?");
 				if (indietro) {
 					menuPrincipale();
 				}
@@ -145,8 +149,8 @@ public class Menu{
 				break;
 				
 			case 2:				
-				//avvio calendario
-				System.out.println("Avvio del Calendario in corso...");
+				//avvio calendario				
+				calendario();
 				break;
 				
 			case 3:			
@@ -328,7 +332,7 @@ public class Menu{
 	    do {
 	        scelta = InputDati.leggiIntero("Inserisci il numero corrispondente al CAP: ");
 	        if (scelta < 1 || scelta > capAmbito.size()) {
-	            System.out.println("‚ùå Errore: scelta non valida, riprova.");
+	            System.out.println("Errore: scelta non valida, riprova.");
 	        }
 	    } while (scelta < 1 || scelta > capAmbito.size());
 
@@ -431,13 +435,46 @@ public class Menu{
 	
 	 public static String getCapAmbito() {
 		 String result = "";
-		    for (int i = 0; i < capAmbito.size(); i++) {
-		        result += capAmbito.get(i);
-		        if (i < capAmbito.size() - 1) {
-		            result += ", ";
-		        }
-		    }
-		    return result;
-	    }
+		 for (int i = 0; i < capAmbito.size(); i++) {
+			 result += capAmbito.get(i);
+			 if (i < capAmbito.size() - 1) {
+				 result += ", ";
+			 }	
+		 }
+		 return result;
+    }
+	
+	 public static void calendario() {
+		 System.out.println("Avvio del Calendario in corso...");		 
+		 
+		//********************** DATE PRECLUSE ***********************************
+		 System.out.println("INSERIMENTO DATE PRECLUSE PER IL MESE DI " + cal.getMeseDatePrecluse());
+		 boolean continuaDataPreclusa = false;
+		 boolean inserisciDate = false;
+		 
+		 inserisciDate = InputDati.yesOrNo("Vuoi aggiungere delle date da escludere?");
+		 if (inserisciDate) {
+			 do {
+				 aggiuntaDataPreclusa();
+				 continuaDataPreclusa = InputDati.yesOrNo("Vuoi inserire un altra data preclusa per il mese " + cal.getMeseDatePrecluse() +"? ");
+			 } while (continuaDataPreclusa);
+			 
+			 System.out.println(cal.toStringDatePrecluse());
+		 } 
+		 
+		 
+		 
+	 }
+	 
+	 public static void aggiuntaDataPreclusa() {
+		 int giornoEscluso = InputDati.leggiIntero("Inserisci il giorno da escludere dal mese di " +  cal.getMeseDatePrecluse() + "\n", 1, 31);
+		 if (!cal.checkData(giornoEscluso)) {
+			 cal.aggiungiDataPreclusa(giornoEscluso);
+		 } else {
+			 System.out.println("Giorno gia' inserito. Inserire un altro giorno.");
+		 }
+		 
+		 
+	 }
 	
 }
