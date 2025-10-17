@@ -1,42 +1,63 @@
 package Versione1;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class ListaLuogo {
-	private ArrayList<Luogo> listaLuoghi;
+    private ArrayList<Luogo> listaLuoghi;
 
-	public ListaLuogo() {
-		super();
-		this.listaLuoghi = new ArrayList<>();
-	}
+    /**
+     * INVARIANTI DI CLASSE:
+     * - listaLuoghi != null
+     * - tutti gli elementi di listaLuoghi != null
+     */
 
-	public ArrayList<Luogo> getListaLuoghi() {
-		return listaLuoghi;
-	}
-
-	public void setListaLuoghi(ArrayList<Luogo> listaLuoghi) {
-		this.listaLuoghi = listaLuoghi;
-	}
-	
-	public void add(Luogo luogo) {
-		listaLuoghi.add(luogo);
-	}
-	
-	// Stampa senza visite
-    public void stampaLuoghiSenzaTipoVisita() {
-        if (listaLuoghi == null || listaLuoghi.isEmpty()) {
-            System.out.println("Nessun luogo disponibile.");
-            return;
-        }
-
-        StringBuilder sb = new StringBuilder("===== ELENCO LUOGHI =====\n");
-        for (Luogo l : listaLuoghi) {
-            sb.append(stampaLuogo(l, false));
-        }
-        System.out.println(sb.toString());
+    public ListaLuogo() {
+        this.listaLuoghi = new ArrayList<>();
+        assert invClass() : "Invariante violato nel costruttore";
     }
 
-    // Stampa con visite
+    /**
+     * Aggiunge un luogo alla lista.
+     * PRECONDIZIONE: luogo != null
+     * POSTCONDIZIONE: listaLuoghi contiene luogo
+     */
+    public void add(Luogo luogo) {
+        Objects.requireNonNull(luogo, "Il luogo non può essere null");
+        listaLuoghi.add(luogo);
+        assert listaLuoghi.contains(luogo) : "Postcondizione violata: luogo non aggiunto";
+        assert invClass() : "Invariante violato in add";
+    }
+
+    /**
+     * Restituisce la lista dei luoghi.
+     * POSTCONDIZIONE: ritorna una lista non null (può essere vuota).
+     */
+    public ArrayList<Luogo> getListaLuoghi() {
+        return new ArrayList<>(listaLuoghi); // copia difensiva
+    }
+
+    /**
+     * Imposta la lista dei luoghi.
+     * PRECONDIZIONE: listaLuoghi != null e non contiene null
+     * POSTCONDIZIONE: this.listaLuoghi == listaLuoghi
+     */
+    public void setListaLuoghi(ArrayList<Luogo> listaLuoghi) {
+        Objects.requireNonNull(listaLuoghi, "La lista non può essere null");
+        for (Luogo l : listaLuoghi) {
+            if (l == null) throw new IllegalArgumentException("La lista non può contenere elementi null");
+        }
+        this.listaLuoghi = new ArrayList<>(listaLuoghi);
+        assert invClass() : "Invariante violato in setListaLuoghi";
+    }
+
+    // ================== METODI DI STAMPA ==================
+
+    /**
+     * Stampa i luoghi con i tipi di visita associati.
+     * PRECONDIZIONE: listaLuoghi != null
+     * POSTCONDIZIONE: stampa tutti i luoghi presenti (o messaggio se vuota).
+     */
     public void stampaLuoghiConTipoVisita() {
         if (listaLuoghi == null || listaLuoghi.isEmpty()) {
             System.out.println("Nessun luogo disponibile.");
@@ -50,23 +71,39 @@ public class ListaLuogo {
         System.out.println(sb.toString());
     }
 
-    // Metodo privato di supporto per i metodi stampaLuoghi con/senza TipoVisita
+    /**
+     * Stampa i luoghi senza i tipi di visita.
+     * PRECONDIZIONE: listaLuoghi != null
+     * POSTCONDIZIONE: stampa tutti i luoghi presenti (o messaggio se vuota).
+     */
+    public void stampaLuoghiSenzaTipoVisita() {
+        if (listaLuoghi == null || listaLuoghi.isEmpty()) {
+            System.out.println("Nessun luogo disponibile.");
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder("======= ELENCO LUOGHI =======\n");
+        for (Luogo l : listaLuoghi) {
+            sb.append(stampaLuogo(l, false));
+        }
+        System.out.println(sb.toString());
+    }
+
+    // Metodo privato di supporto
     private String stampaLuogo(Luogo l, boolean conVisite) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("Nome: ").append(l.getNomeLuogo()).append("\n");
-        sb.append("Descrizione: ").append(l.getDescrizione()).append("\n");
+        sb.append("Nome         : ").append(l.getNomeLuogo()).append("\n");
+        sb.append("Descrizione  : ").append(l.getDescrizione()).append("\n");
 
         if (l.getIndirizzo() != null) {
-            sb.append("Indirizzo: ").append(l.getIndirizzo().toString()).append("\n");
-        } else {
-            sb.append("Indirizzo: non disponibile\n");
+            sb.append("Indirizzo    : ").append(l.getIndirizzo().toString()).append("\n");
         }
 
-        // 🔹 Qui non serve più ciclare i tipi di visita manualmente:
         if (conVisite) {
+            sb.append("Tipo Visita associati:\n");
             if (l.getListaTipoVisita() != null) {
-                sb.append(l.getListaTipoVisita().toString()).append("\n");
+                sb.append(l.getListaTipoVisita().toStringAsList()).append("\n");
             } else {
                 sb.append("Nessun tipo di visita disponibile.\n");
             }
@@ -76,9 +113,12 @@ public class ListaLuogo {
         return sb.toString();
     }
 
-	
+    // ================== INVARIANTE ==================
+    private boolean invClass() {
+        if (listaLuoghi == null) return false;
+        for (Luogo l : listaLuoghi) {
+            if (l == null) return false;
+        }
+        return true;
+    }
 }
-
-
-
-

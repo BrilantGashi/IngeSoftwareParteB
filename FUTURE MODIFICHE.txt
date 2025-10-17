@@ -1,0 +1,7 @@
+La classe GestioneFile fa troppe cose: gestisce sia TXT che XML. Sarebbe meglio separare in due classi (GestioneCredenziali e GestioneCorpoDati) per rispettare il principio Single Responsibility.
+
+Brilant : 
+Laiba: sistema la provincia per sia scrittura su file, sia controllo cap compreso in ambito, per tipo visita, visita e luogo verifica che la provincia.
+
+Roxy: modifica tipo visita e sistema come date disponibili quelle settimanale
+sistema DataVisitaProgramambile di po data in array di tipo enum Giorni ,con giorni setimanali in cui viene fatto

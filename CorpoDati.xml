@@ -1,39 +1,37 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <DatiSistema>
-  <AmbitoTerritoriale provincia="Brescia">
+  <AmbitoTerritoriale provincia="bs">
     <CAPs>
       <CAP>25030</CAP>
-      <CAP>25032</CAP>
     </CAPs>
   </AmbitoTerritoriale>
   <Luoghi>
-    <Luogo nome="Museo Egizio">
-      <Descrizione>Museo con antiche reliquie egizie</Descrizione>
+    <Luogo nome="brescia">
+      <Descrizione>descluogo</Descrizione>
+      <Indirizzo>
+        <TipoStrada>Via</TipoStrada>
+        <NomeStrada>brescia</NomeStrada>
+        <NumeroCivico>1</NumeroCivico>
+        <CAP>25030</CAP>
+        <Comune>brescia</Comune>
+        <Provincia/>
+      </Indirizzo>
       <TipiVisita>
         <TipoVisita>
-          <Titolo>Visita Museo</Titolo>
-          <Descrizione>Visita guidata con cuffie a un museo</Descrizione>
-          <Indirizzo>
-            <TipoStrada>Via</TipoStrada>
-            <NomeStrada>Garibaldi</NomeStrada>
-            <NumeroCivico>12</NumeroCivico>
-            <CAP>25032</CAP>
-            <Comune>Urago d'Oglio</Comune>
-            <Provincia>Brescia</Provincia>
-          </Indirizzo>
-          <DataVisita>
-            <Giorno>12</Giorno>
-            <Mese>4</Mese>
-          </DataVisita>
+          <Titolo>tipo1</Titolo>
+          <Descrizione>desc1</Descrizione>
+          <PuntoDiIncontro>puntoa</PuntoDiIncontro>
+          <GiorniSettimanaProgrammabile>
+            <Giorno>Lunedi</Giorno>
+          </GiorniSettimanaProgrammabile>
           <OraInizio>
-            <Ore>10</Ore>
-            <Minuti>0</Minuti>
-            <Secondi>0</Secondi>
+            <Ore>14</Ore>
+            <Minuti>30</Minuti>
           </OraInizio>
-          <DurataVisita>90</DurataVisita>
+          <DurataVisita>180</DurataVisita>
           <Biglietto>false</Biglietto>
-          <SogliaMinPartecipanti>5</SogliaMinPartecipanti>
-          <SogliaMaxPartecipanti>20</SogliaMaxPartecipanti>
+          <SogliaMinPartecipanti>1</SogliaMinPartecipanti>
+          <SogliaMaxPartecipanti>10</SogliaMaxPartecipanti>
           <PeriodoProgrammabile>
             <DataInizio>
               <Giorno>1</Giorno>
@@ -47,51 +45,7 @@
           <Volontari>
             <Volontario>utente3</Volontario>
             <Volontario>v1</Volontario>
-            <Volontario>v3</Volontario>
-          </Volontari>
-        </TipoVisita>
-      </TipiVisita>
-    </Luogo>
-    <Luogo nome="Montagna Cimone">
-      <Descrizione>Monte cimone molto alto sulle alpi</Descrizione>
-      <TipiVisita>
-        <TipoVisita>
-          <Titolo>Visita Parco</Titolo>
-          <Descrizione>Visita guidata con guida locale a paesaggi naturali</Descrizione>
-          <Indirizzo>
-            <TipoStrada>Via</TipoStrada>
-            <NomeStrada>Della montagna</NomeStrada>
-            <NumeroCivico>5</NumeroCivico>
-            <CAP>25030</CAP>
-            <Comune>Marescia</Comune>
-            <Provincia>Brescia</Provincia>
-          </Indirizzo>
-          <DataVisita>
-            <Giorno>15</Giorno>
-            <Mese>5</Mese>
-          </DataVisita>
-          <OraInizio>
-            <Ore>4</Ore>
-            <Minuti>30</Minuti>
-            <Secondi>0</Secondi>
-          </OraInizio>
-          <DurataVisita>240</DurataVisita>
-          <Biglietto>false</Biglietto>
-          <SogliaMinPartecipanti>5</SogliaMinPartecipanti>
-          <SogliaMaxPartecipanti>20</SogliaMaxPartecipanti>
-          <PeriodoProgrammabile>
-            <DataInizio>
-              <Giorno>1</Giorno>
-              <Mese>1</Mese>
-            </DataInizio>
-            <DataFine>
-              <Giorno>31</Giorno>
-              <Mese>12</Mese>
-            </DataFine>
-          </PeriodoProgrammabile>
-          <Volontari>
             <Volontario>v2</Volontario>
-            <Volontario>v4</Volontario>
           </Volontari>
         </TipoVisita>
       </TipiVisita>

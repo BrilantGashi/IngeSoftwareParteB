@@ -1,108 +1,147 @@
 package Versione1;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Visita {
 
-	private TipoVisita tipoVisita;
-	private ArrayList<Volontario> volontariEffettivi;
-	private StatoVisita statoVisita;
-	private Data dataVisita;
+    private Data dataVisita;
+    private StatoVisita statoVisita;
+    private TipoVisita tipoVisita;
+    private ArrayList<Volontario> volontariEffettivi;
 
-	
-	//Costruttore vuoto
-	//Utile per la creazione della visita passo-passo con inserimento dati man mano
-	//Imposta lo stato di default a PROPOSTA
-	 
-	
-	public Visita() {
-		this.volontariEffettivi = new ArrayList<>();
-		this.statoVisita = statoVisita.PROPOSTA;
-	}
-	
-	//costruttore completo
-	
-	public Visita(TipoVisita tipoVisita, ArrayList<Volontario> volontariEffettivi, StatoVisita statoVisita,
-			Data dataVisita) {
-		this.tipoVisita = tipoVisita;
-		this.volontariEffettivi = volontariEffettivi;
-		this.statoVisita = statoVisita;
-		this.dataVisita = dataVisita;
-		
-		
-	}
-	
-	// aggiorna lo stato della visita 
-	
-	public void aggiornaStato(StatoVisita nuovoStato) {
-		if(nuovoStato != null) {
-			this.statoVisita = nuovoStato;
-		}
-	}
+    /**
+     * INVARIANTI DI CLASSE:
+     * - statoVisita != null
+     * - tipoVisita != null (dopo la creazione completa)
+     * - volontariEffettivi != null
+     * - volontariEffettivi non contiene duplicati
+     */
 
-	//aggiunta volontario alla visita
-	
-	public void aggiungiVolontario(Volontario v) {
-		if(v != null && !volontariEffettivi.contains(v)) {
-			volontariEffettivi.add(v);
-		}
-	}
-	
-	//rimozione volontario dalla visita
-	
-	public void rimuoviVolontario(Volontario v) {
-		volontariEffettivi.remove(v);
-	}
-	
-	
-	
-	//GETTERS & SETTERS
-	
-	public TipoVisita getTipoVisita() {
-		return tipoVisita;
-	}
+    // Costruttore vuoto
+    // Utile per la creazione passo-passo
+    // Stato di default = PROPOSTA
+    public Visita() {
+        this.volontariEffettivi = new ArrayList<>();
+        this.statoVisita = StatoVisita.PROPOSTA;
+        assert invClass() : "Invariante violato nel costruttore vuoto";
+    }
 
+    /**
+     * Costruttore completo
+     * PRECONDIZIONI:
+     * - tipoVisita != null
+     * - primoVolontario != null
+     * - statoVisita != null
+     * - dataVisita != null
+     * POSTCONDIZIONI:
+     * - this.tipoVisita == tipoVisita
+     * - this.statoVisita == statoVisita
+     * - this.dataVisita == dataVisita
+     * - this.volontariEffettivi contiene primoVolontario
+     */
+    public Visita(TipoVisita tipoVisita, Volontario primoVolontario, StatoVisita statoVisita, Data dataVisita) {
+        Objects.requireNonNull(tipoVisita, "TipoVisita non può essere null");
+        Objects.requireNonNull(primoVolontario, "Il primo volontario non può essere null");
+        Objects.requireNonNull(statoVisita, "StatoVisita non può essere null");
+        Objects.requireNonNull(dataVisita, "DataVisita non può essere null");
 
-	public void setTipoVisita(TipoVisita tipoVisita) {
-		this.tipoVisita = tipoVisita;
-	}
+        this.tipoVisita = tipoVisita;
+        this.volontariEffettivi = new ArrayList<>();
+        this.volontariEffettivi.add(primoVolontario);
+        this.statoVisita = statoVisita;
+        this.dataVisita = dataVisita;
 
+        assert this.volontariEffettivi.contains(primoVolontario) : "Postcondizione violata: volontario non aggiunto";
+        assert invClass() : "Invariante violato nel costruttore completo";
+    }
 
-	public ArrayList<Volontario> getVolontariEffettivi() {
-		return volontariEffettivi;
-	}
+    /**
+     * Aggiorna lo stato della visita
+     * PRECONDIZIONE: nuovoStato != null
+     * POSTCONDIZIONE: this.statoVisita == nuovoStato
+     */
+    public void aggiornaStato(StatoVisita nuovoStato) {
+        Objects.requireNonNull(nuovoStato, "Il nuovo stato non può essere null");
+        this.statoVisita = nuovoStato;
+        assert this.statoVisita == nuovoStato : "Postcondizione violata in aggiornaStato";
+        assert invClass() : "Invariante violato in aggiornaStato";
+    }
 
+    /**
+     * Aggiunge un volontario alla visita
+     * PRECONDIZIONE: v != null
+     * POSTCONDIZIONE: se non era già presente, v ∈ volontariEffettivi
+     */
+    public boolean aggiungiVolontario(Volontario v) {
+        Objects.requireNonNull(v, "Il volontario non può essere null");
+        if (!volontariEffettivi.contains(v)) {
+            volontariEffettivi.add(v);
+            assert volontariEffettivi.contains(v) : "Postcondizione violata: volontario non aggiunto";
+            assert invClass() : "Invariante violato in aggiungiVolontario";
+            return true;
+        }
+        return false;
+    }
 
-	public void setVolontariEffettivi(ArrayList<Volontario> volontariEffettivi) {
-		this.volontariEffettivi = volontariEffettivi;
-	}
+    /**
+     * Rimuove un volontario dalla visita
+     * PRECONDIZIONE: v != null
+     * POSTCONDIZIONE: v non appartiene più a volontariEffettivi
+     */
+    public void rimuoviVolontario(Volontario v) {
+        Objects.requireNonNull(v, "Il volontario non può essere null");
+        volontariEffettivi.remove(v);
+        assert !volontariEffettivi.contains(v) : "Postcondizione violata: volontario non rimosso";
+        assert invClass() : "Invariante violato in rimuoviVolontario";
+    }
 
+    // ================== GETTERS ==================
+    public Data getDataVisita() { return dataVisita; }
+    public StatoVisita getStatoVisita() { return statoVisita; }
+    public TipoVisita getTipoVisita() { return tipoVisita; }
+    public ArrayList<Volontario> getVolontariEffettivi() { return new ArrayList<>(volontariEffettivi); }
 
-	public StatoVisita getStatoVisita() {
-		return statoVisita;
-	}
+    // ================== SETTERS ==================
 
+    public void setDataVisita(Data dataVisita) {
+        Objects.requireNonNull(dataVisita, "DataVisita non può essere null");
+        this.dataVisita = dataVisita;
+        assert this.dataVisita == dataVisita : "Postcondizione violata in setDataVisita";
+        assert invClass() : "Invariante violato in setDataVisita";
+    }
 
-	public void setStatoVisita(StatoVisita statoVisita) {
-		this.statoVisita = statoVisita;
-	}
+    public void setStatoVisita(StatoVisita statoVisita) {
+        Objects.requireNonNull(statoVisita, "StatoVisita non può essere null");
+        this.statoVisita = statoVisita;
+        assert this.statoVisita == statoVisita : "Postcondizione violata in setStatoVisita";
+        assert invClass() : "Invariante violato in setStatoVisita";
+    }
 
+    public void setTipoVisita(TipoVisita tipoVisita) {
+        Objects.requireNonNull(tipoVisita, "TipoVisita non può essere null");
+        this.tipoVisita = tipoVisita;
+        assert this.tipoVisita == tipoVisita : "Postcondizione violata in setTipoVisita";
+        assert invClass() : "Invariante violato in setTipoVisita";
+    }
 
-	public Data getDataVisita() {
-		return dataVisita;
-	}
+    public void setVolontariEffettivi(ArrayList<Volontario> volontariEffettivi) {
+        Objects.requireNonNull(volontariEffettivi, "La lista dei volontari non può essere null");
+        // controllo duplicati
+        for (Volontario v : volontariEffettivi) {
+            if (volontariEffettivi.indexOf(v) != volontariEffettivi.lastIndexOf(v)) {
+                throw new IllegalArgumentException("Lista volontari contiene duplicati");
+            }
+        }
+        this.volontariEffettivi = new ArrayList<>(volontariEffettivi);
+        assert invClass() : "Invariante violato in setVolontariEffettivi";
+    }
 
-
-	public void setDataVisita(Data dataVisita) {
-		this.dataVisita = dataVisita;
-	}
-
-	@Override
-	public String toString() {
-		
-		StringBuilder sb = new StringBuilder();
-		sb.append("======VISITA=====\n");
-		sb.append("Tipo Visita: ").append(tipoVisita != null ? tipoVisita.getTitolo() : "N/D").append("\n");
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("======VISITA=====\n");
+        sb.append("Tipo Visita: ").append(tipoVisita != null ? tipoVisita.getTitolo() : "N/D").append("\n");
         sb.append("Data: ").append(dataVisita != null ? dataVisita.toString() : "N/D").append("\n");
         sb.append("Stato: ").append(statoVisita).append("\n");
         sb.append("Volontari Effettivi: ");
@@ -116,16 +155,15 @@ public class Visita {
         sb.append("\n=================\n");
         return sb.toString();
     }
-		
-	
 
+    // ================== INVARIANTE ==================
+    private boolean invClass() {
+        if (statoVisita == null) return false;
+        if (volontariEffettivi == null) return false;
+        // controllo duplicati
+        for (Volontario v : volontariEffettivi) {
+            if (volontariEffettivi.indexOf(v) != volontariEffettivi.lastIndexOf(v)) return false;
+        }
+        return true;
+    }
 }
-	
-	
-	
-
-
-
-
-
-

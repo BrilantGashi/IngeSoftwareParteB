@@ -1,18 +1,18 @@
 package Versione1;
 
 public enum Mesi {
-    GENNAIO, 
-    FEBBRAIO, 
-    MARZO, 
-    APRILE, 
-    MAGGIO, 
-    GIUGNO,
-    LUGLIO, 
-    AGOSTO, 
-    SETTEMBRE, 
-    OTTOBRE, 
-    NOVEMBRE, 
-    DICEMBRE;
+	Gennaio,
+	Febbraio,
+	Marzo,
+	Aprile,
+	Maggio,
+	Giugno,
+	Luglio,
+	Agosto,
+	Settembre,
+	Ottobre,
+	Novembre,
+	Dicembre;
 	
 	
 	

@@ -1,13 +1,32 @@
 package Versione1;
-import java.io.*;
-import it.unibs.fp.mylib.*;
-import java.util.*;
 
-public class Configuratore extends Utente{
+import java.util.Objects;
 
-	public Configuratore(Credenziali credenziali) {
-		super(credenziali);
-		// TODO Auto-generated constructor stub
-	}
+public class Configuratore extends Utente {
 
+    /**
+     * INVARIANTI DI CLASSE:
+     * - credenziali != null
+     * - credenziali.username != null && !username.isBlank()
+     */
+
+    /**
+     * Costruttore
+     * PRECONDIZIONE: credenziali != null && credenziali.getUsername() != null && !isBlank()
+     * POSTCONDIZIONE: this.credenziali == credenziali
+     */
+    public Configuratore(Credenziali credenziali) {
+        super(Objects.requireNonNull(credenziali, "Credenziali non possono essere null"));
+        if (credenziali.getUsername() == null || credenziali.getUsername().isBlank()) {
+            throw new IllegalArgumentException("Username non valido");
+        }
+        assert invClass() : "Invariante violato nel costruttore di Configuratore";
+    }
+
+    // ================== INVARIANTE ==================
+    private boolean invClass() {
+        if (credenziali == null) return false;
+        if (credenziali.getUsername() == null || credenziali.getUsername().isBlank()) return false;
+        return true;
+    }
 }

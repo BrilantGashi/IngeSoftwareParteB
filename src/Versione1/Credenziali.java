@@ -1,118 +1,152 @@
 package Versione1;
-import java.io.*;
-import it.unibs.fp.mylib.*;
-import java.util.*;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Objects;
+import it.unibs.fp.mylib.InputDati;
 
-import it.unibs.fp.mylib.*;
 public class Credenziali {
-	
-	String username;
-	String password;
-	String utenza;
-	
-	GestioneFile g = new GestioneFile();
-	//String[] credenziali = g.leggiSingolaCredenziale("utente1");
-	
-	//per memorizzare credenziali, credo mi convenga gi� memorizzarle su un file
-	
-	public Credenziali(String username) throws FileNotFoundException, IOException {	
-		String[] credenziali = g.leggiSingolaCredenziale(username);
-		this.utenza = credenziali[0];
-		this.username = credenziali[1];
-		this.password = credenziali[2];		
-	}
-	
-	public Credenziali(){	
-		
-	}
-	
-	public String getUsername() {
-		return username;
-	}
-	
-	public void setUsername(String username) {
-		this.username = username;
-	}
-	
-	public String getPassword() {
-		return password;
-	}
-	
-	public void setPassword(String password) throws FileNotFoundException, IOException {
-		this.password = password;
-		if (g.aggiornaPasswordSuFile(username, password)) {
-			System.out.println("Password aggiornata correttamente.");
-		}
-	}
-	
-	
-	public String getUtenza() {
-		return utenza;
-	}
+    
+    private GestioneFile g = new GestioneFile();
+    private String password;
+    private String username;
+    private String utenza;
 
-	public void setUtenza(String utenza) {
-		this.utenza = utenza;
-	}
+    /**
+     * INVARIANTI DI CLASSE:
+     * - username != null && !username.isBlank()
+     * - password != null && !password.isBlank()
+     * - utenza != null && !utenza.isBlank()
+     */
 
-	@Override
-	public String toString() {
-		return "Credenziali [username=" + username + ", password=" + password + "]";
-	}
-	
-	
-	
-	public boolean verificaPrimoAccesso (String username, String password) throws FileNotFoundException, IOException {
-		
-		if (password.equalsIgnoreCase("default")) {
-			String nuovaPass = InputDati.leggiStringaNonVuota("Inserisci la nuova password: ");
-			
-			//************************************************************************************
-			//*************** MOMENTANEAMENTE BLOCCATO MA E' FUNZIONANTE, BLOCCATO SOLO PER COMODITA'*********
-			//************************************************************************************
-			//setPassword(nuovaPass);
-			//DA FARE: aggionare anche su file --> lo faccio in setPassword
-			
-			return true;
-		}
-		
-		return false;
-	}
-	
-	
-	/**
-	 * Metodo che controlla se le credenziali inserite sono corrette
-	 * @param usernameP e passwordP fornite dall'utente
-	 * @return il tipo di utenza auth ok, altrimenti errore
-	 * @throws IOException 
-	 * @throws FileNotFoundException 
-	 */
-	public int controllaCredenziali (String usernameP, String passwordP) throws FileNotFoundException, IOException {
-		
-		/*
-		file strutturato nel seguente modo:
-		
-		TipoUtente;username;password
-		TipoUtente;username2;password2
-		
-		se tutto okay, return true, altrimenti false
-		*/
-		
-		if (!passwordP.equals(password)) {
-			return -1;
-		}
-		
-		if (verificaPrimoAccesso(username, password)) {
-			return 1;
-		}
-		
-		return 0;
-	}
-	
-	
-	
-	
-	
-	
+    // Costruttore vuoto (non garantisce subito l'invariante, da usare con cautela)
+    public Credenziali(){ }
 
+    /**
+     * Costruttore con caricamento da file.
+     * PRECONDIZIONE: username != null && !username.isBlank()
+     * POSTCONDIZIONE: this.username == username letto da file
+     *                 this.password != null
+     *                 this.utenza != null
+     */
+    public Credenziali(String username) throws FileNotFoundException, IOException { 
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("Username non valido");
+        }
+        String[] credenziali = g.leggiSingolaCredenziale(username);
+        this.utenza = credenziali[0];
+        this.username = credenziali[1];
+        this.password = credenziali[2]; 
+        assert invClass() : "Invariante violato nel costruttore Credenziali";
+    }
+
+    /**
+     * Controlla se le credenziali inserite sono corrette.
+     * PRECONDIZIONE: usernameP != null && passwordP != null
+     * POSTCONDIZIONE: ritorna -1 se password errata,
+     *                 1 se primo accesso,
+     *                 0 se credenziali corrette
+     */
+    public int controllaCredenziali(String usernameP, String passwordP) throws FileNotFoundException, IOException {
+        Objects.requireNonNull(usernameP, "Username non può essere null");
+        Objects.requireNonNull(passwordP, "Password non può essere null");
+
+        if (!passwordP.equals(password)) {
+            return -1;
+        }
+        if (verificaPrimoAccesso(username, password)) {
+            return 1;
+        }
+        return 0;
+    }
+
+    public String getPassword() {
+        assert password != null && !password.isBlank() : "Postcondizione violata in getPassword";
+        return password;
+    }
+
+    public String getUsername() {
+        assert username != null && !username.isBlank() : "Postcondizione violata in getUsername";
+        return username;
+    }
+
+    public String getUtenza() {
+        assert utenza != null && !utenza.isBlank() : "Postcondizione violata in getUtenza";
+        return utenza;
+    }
+
+    /**
+     * Imposta una nuova password e la aggiorna anche su file.
+     * PRECONDIZIONE: password != null && !password.isBlank()
+     * POSTCONDIZIONE: this.password == password
+     */
+    public void setPassword(String password) throws FileNotFoundException, IOException {
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("Password non valida");
+        }
+        this.password = password;
+        if (g.aggiornaPasswordSuFile(username, password)) {
+            System.out.println("Password aggiornata correttamente.");
+        }
+        assert this.password.equals(password) : "Postcondizione violata in setPassword";
+        assert invClass() : "Invariante violato in setPassword";
+    }
+
+    /**
+     * PRECONDIZIONE: username != null && !username.isBlank()
+     * POSTCONDIZIONE: this.username == username
+     */
+    public void setUsername(String username) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("Username non valido");
+        }
+        this.username = username;
+        assert this.username.equals(username) : "Postcondizione violata in setUsername";
+        assert invClass() : "Invariante violato in setUsername";
+    }
+
+    /**
+     * PRECONDIZIONE: utenza != null && !utenza.isBlank()
+     * POSTCONDIZIONE: this.utenza == utenza
+     */
+    public void setUtenza(String utenza) {
+        if (utenza == null || utenza.isBlank()) {
+            throw new IllegalArgumentException("Utenza non valida");
+        }
+        this.utenza = utenza;
+        assert this.utenza.equals(utenza) : "Postcondizione violata in setUtenza";
+        assert invClass() : "Invariante violato in setUtenza";
+    }
+
+    @Override
+    public String toString() {
+        String result = "Credenziali [username=" + username + ", password=" + password + "]";
+        assert result.contains(username) : "Postcondizione violata in toString";
+        return result;
+    }
+
+    /**
+     * Verifica se è il primo accesso (password di default).
+     * PRECONDIZIONE: username != null && password != null
+     * POSTCONDIZIONE: ritorna true sse password == "default"
+     */
+    public boolean verificaPrimoAccesso(String username, String password) throws FileNotFoundException, IOException {
+        Objects.requireNonNull(username, "Username non può essere null");
+        Objects.requireNonNull(password, "Password non può essere null");
+
+        if (password.equalsIgnoreCase("default")) {
+            String nuovaPass = InputDati.leggiStringaNonVuota("Inserisci la nuova password: ");
+            // setPassword(nuovaPass); // da abilitare per aggiornare anche su file
+            return true;
+        }
+        return false;
+    }
+
+    // ================== INVARIANTE ==================
+    private boolean invClass() {
+        if (username == null || username.isBlank()) return false;
+        if (password == null || password.isBlank()) return false;
+        if (utenza == null || utenza.isBlank()) return false;
+        return true;
+    }
 }

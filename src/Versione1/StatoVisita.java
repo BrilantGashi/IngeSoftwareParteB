@@ -2,10 +2,10 @@ package Versione1;
 
 public enum StatoVisita {
 	
-	PROPOSTA,
+	CANCELLATA,
 	COMPLETA,
 	CONFERMATA,
-	CANCELLATA,
-	EFFETTUATA;
+	EFFETTUATA,
+	PROPOSTA;
 
 }
