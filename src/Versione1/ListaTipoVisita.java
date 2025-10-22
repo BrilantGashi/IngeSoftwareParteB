@@ -98,7 +98,7 @@ public class ListaTipoVisita {
             sb.append(i++).append(") ").append(tv.getTitolo() != null ? tv.getTitolo() : "Senza titolo").append("\n");
             sb.append("   Descrizione: ").append(tv.getDescrizione() != null ? tv.getDescrizione() : "N/D").append("\n");
 
-            sb.append("Giorni in cui la visita è programmabile: ");
+            sb.append("   Giorni in cui la visita è programmabile: ");
             if (tv.getGiorniSettimanaProgrammabile() != null) {
                 for (int j = 0; j < tv.getGiorniSettimanaProgrammabile().size(); j++) {
                     Giorni g = tv.getGiorniSettimanaProgrammabile().get(j);

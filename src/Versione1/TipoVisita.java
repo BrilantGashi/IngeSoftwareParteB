@@ -177,23 +177,153 @@ public class TipoVisita {
     }
 
     /**
-     * Controlla se due tipi di visita si sovrappongono temporalmente.
-     * PRECONDIZIONE: altraVisita != null
-     * POSTCONDIZIONE: ritorna true sse gli intervalli temporali si intersecano
+     * Determina se due visite si sovrappongono nello stesso giorno della settimana
+     * e nello stesso periodo programmabile.
+     *
+     * PRECONDIZIONI:
+     * - this != null
+     * - altra != null
+     * - this.oraInizio != null e altra.oraInizio != null
+     * - this.durataVisita > 0 e altra.durataVisita > 0
+     * - this.giorniSettimanaProgrammabile != null e non vuota
+     * - altra.giorniSettimanaProgrammabile != null e non vuota
+     * - this.periodoProgrammabile != null e altra.periodoProgrammabile != null
+     * - this.periodoProgrammabile.dataInizio <= this.periodoProgrammabile.dataFine
+     * - altra.periodoProgrammabile.dataInizio <= altra.periodoProgrammabile.dataFine
+     *
+     * POSTCONDIZIONI:
+     * - Restituisce true se:
+     *   1) i due periodi programmabili si intersecano almeno in parte
+     *   2) esiste almeno un giorno della settimana in comune
+     *   3) gli intervalli orari [oraInizio, oraFine) si sovrappongono anche solo parzialmente
+     * - Restituisce false se almeno una delle condizioni sopra non è soddisfatta
+     *
+     * @param altra altro TipoVisita da confrontare
+     * @return true se le due visite si sovrappongono, false altrimenti
      */
-    public boolean siSovrappongono(TipoVisita altraVisita) {
-        Objects.requireNonNull(altraVisita, "La visita di confronto non può essere null");
+    public boolean siSovrappongono(TipoVisita altra) {
+        Objects.requireNonNull(altra, "Il TipoVisita di confronto non può essere null");
+        Objects.requireNonNull(this.oraInizio, "Ora inizio non può essere null");
+        Objects.requireNonNull(altra.oraInizio, "Ora inizio dell'altro TipoVisita non può essere null");
+        Objects.requireNonNull(this.periodoProgrammabile, "Periodo programmabile non può essere null");
+        Objects.requireNonNull(altra.periodoProgrammabile, "Periodo programmabile dell'altro TipoVisita non può essere null");
 
-        LocalTime fineQuesta = this.oraInizio.plusMinutes(this.durataVisita);
-        LocalTime fineAltra = altraVisita.oraInizio.plusMinutes(altraVisita.durataVisita);
+        // 1. Controllo periodo programmabile
+        if (!this.periodoProgrammabile.siIntersecaCon(altra.periodoProgrammabile)) {
+            return false; // periodi non compatibili → non si sovrappongono
+        }
 
-        boolean result = this.oraInizio.isBefore(fineAltra) && altraVisita.oraInizio.isBefore(fineQuesta);
+        // 2. Controllo giorni programmabili
+        for (Giorni g : this.giorniSettimanaProgrammabile) {
+            if (altra.giorniSettimanaProgrammabile.contains(g)) {
+                // Giorno in comune trovato → controlliamo gli orari
+                LocalTime fineQuesta = this.oraInizio.plusMinutes(this.durataVisita);
+                LocalTime fineAltra  = altra.oraInizio.plusMinutes(altra.durataVisita);
 
-        assert result == (this.oraInizio.isBefore(fineAltra) && altraVisita.oraInizio.isBefore(fineQuesta))
-            : "Postcondizione violata in siSovrappongono";
+                // condizione di NON sovrapposizione:
+                // una finisce prima (o esattamente quando) l'altra inizia
+                boolean nonSovrapposte = fineQuesta.isBefore(altra.oraInizio)
+                                       || fineQuesta.equals(altra.oraInizio)
+                                       || fineAltra.isBefore(this.oraInizio)
+                                       || fineAltra.equals(this.oraInizio);
 
-        return result;
+                return !nonSovrapposte;
+            }
+        }
+
+        // Nessun giorno in comune → non si sovrappongono
+        return false;
     }
+
+
+
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("╔════════════════════════════════════════════════╗\n");
+        sb.append("║                   TIPO VISITA                  ║\n");
+        sb.append("╚════════════════════════════════════════════════╝\n");
+
+        sb.append("Titolo: ").append(titolo).append("\n");
+        sb.append("Descrizione: ").append(descrizione).append("\n");
+        sb.append("Biglietto richiesto: ").append(biglietto ? "Sì" : "No").append("\n");
+        sb.append("Durata visita: ").append(durataVisita).append(" minuti\n");
+        sb.append("Ora di inizio: ").append(oraInizio != null ? oraInizio.toString() : "Non specificata").append("\n");
+        sb.append("Punto di incontro: ").append(puntoDiIncontro).append("\n");
+        sb.append("Soglia partecipanti: min ").append(sogliaMinPartecipanti)
+          .append(" - max ").append(sogliaMaxPartecipanti).append("\n");
+
+        sb.append("Periodo programmabile:\n");
+        if (periodoProgrammabile != null) {
+            Data inizio = periodoProgrammabile.getDataInizio();
+            Data fine = periodoProgrammabile.getDataFine();
+            sb.append("  - Data inizio: ").append(inizio.getGiorno()).append("/")
+              .append(inizio.getMese()).append("\n");
+            sb.append("  - Data fine:   ").append(fine.getGiorno()).append("/")
+              .append(fine.getMese()).append("\n");
+        } else {
+            sb.append("  - Non definito\n");
+        }
+
+        sb.append("Giorni disponibili: ");
+        if (giorniSettimanaProgrammabile != null && !giorniSettimanaProgrammabile.isEmpty()) {
+            for (int i = 0; i < giorniSettimanaProgrammabile.size(); i++) {
+                sb.append(giorniSettimanaProgrammabile.get(i).name());
+                if (i < giorniSettimanaProgrammabile.size() - 1) sb.append(", ");
+            }
+        } else {
+            sb.append("Nessun giorno disponibile");
+        }
+        sb.append("\n");
+
+        sb.append("Volontari assegnati: ");
+        if (volontari != null && volontari.getVolontari() != null && !volontari.getVolontari().isEmpty()) {
+            for (int i = 0; i < volontari.getVolontari().size(); i++) {
+                sb.append(volontari.getVolontari().get(i).getNickname());
+                if (i < volontari.getVolontari().size() - 1) sb.append(", ");
+            }
+        } else {
+            sb.append("Nessun volontario assegnato");
+        }
+        sb.append("\n");
+
+        sb.append("══════════════════════════════════════════════════\n");
+        return sb.toString();
+    }
+
+    
+    public String toStringSemplificato() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Titolo: ").append(titolo).append("\n");
+        sb.append("Descrizione: ").append(descrizione).append("\n");
+
+        sb.append("Giorni disponibili: ");
+        if (giorniSettimanaProgrammabile != null && !giorniSettimanaProgrammabile.isEmpty()) {
+            for (int i = 0; i < giorniSettimanaProgrammabile.size(); i++) {
+                sb.append(giorniSettimanaProgrammabile.get(i).name());
+                if (i < giorniSettimanaProgrammabile.size() - 1) sb.append(", ");
+            }
+        } else {
+            sb.append("Nessun giorno disponibile");
+        }
+        sb.append("\n");
+
+        sb.append("Volontari: ");
+        if (volontari != null && volontari.getVolontari() != null) {
+            ArrayList<Volontario> lista = volontari.getVolontari();
+            for (int i = 0; i < lista.size(); i++) {
+                sb.append(lista.get(i).getNickname());
+                if (i < lista.size() - 1) sb.append(", ");
+            }
+        } else {
+            sb.append("Nessun volontario");
+        }
+
+        return sb.toString();
+    }
+
 
     // ================== INVARIANTE ==================
     private boolean invClass() {
@@ -207,4 +337,6 @@ public class TipoVisita {
         if (oraInizio == null) return false;
         return true;
     }
+
+	
 }

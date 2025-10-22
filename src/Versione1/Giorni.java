@@ -1,3 +1,5 @@
+package Versione1;
+
 public enum Giorni {
     Lunedi,
     Martedi,

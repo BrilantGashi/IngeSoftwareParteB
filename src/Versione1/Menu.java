@@ -179,8 +179,6 @@ public class Menu{
 			    assert listaTipoVisita != null : "Precondizione violata: listaTipoVisita null";
 			    assert cal != null : "Precondizione violata: calendario null";
 
-			    ListaTipoVisita tipoVisitaPerVolontario = listaTipoVisita.getTipiPerVolontario(nickname);
-
 			    for (TipoVisita t : tipoVisitaPerVolontario.getTipi()) {
 			        assert t != null : "Invariante violata: TipoVisita null";
 
@@ -275,7 +273,7 @@ public class Menu{
 			System.out.println();
 			System.out.println("Creazione luogo n. " + (i+1) + ": ");
 			System.out.println();
-			definizioneLuogo();							
+			definizioneLuogo(provincia);							
 		}
 		
 		
@@ -293,7 +291,7 @@ public class Menu{
 		        int scelta = InputDati.leggiIntero("Numero visita: ",1,listaTipoVisita.getTipi().size());
 		        TipoVisita visitaScelta = listaTipoVisita.getTipo(scelta - 1);
 		        visitaScelta.getListaVolontari().aggiungiVolontario(v);
-		        System.out.println("Il volontario " + v.getNickname() + "è stato associato a \"" + visitaScelta.getTitolo() + "\".");
+		        System.out.println("Il volontario " + v.getNickname() + " è stato associato a \"" + visitaScelta.getTitolo() + "\".");
 		    }
 		}
 		try {
@@ -305,10 +303,10 @@ public class Menu{
 	}
 	
 	
-	public static void definizioneLuogo () {
+	public static void definizioneLuogo (String pronvinciaAmbito) {
 		String nomeLuogo = InputDati.leggiStringaNonVuota("Inserisci il nome del luogo: ");
 		String descrizione = InputDati.leggiStringa("Inserisci una descrizione del luogo: ");
-		Indirizzo indirizzo = ObjIndirizzo();
+		Indirizzo indirizzo = ObjIndirizzo(pronvinciaAmbito);
 		
 		//ogni LUOGO dovrebbe contenere al suo interno una LISTA DI TIPI VISITA (pg. 4, "A ciascun luogo � associato almeno un tipo di visita")
 			
@@ -323,35 +321,56 @@ public class Menu{
 		ListaTipoVisita listaTipoVisitaToAdd = new ListaTipoVisita();
 		
 		do {
+		    // Se non ci sono più visite disponibili da associare → esco subito
+		    if (listaTipoVisita.getTipi().isEmpty() || 
+		        listaTipoVisitaToAdd.getTipi().size() == listaTipoVisita.getTipi().size()) {
+		        System.out.println("Non ci sono più Tipi Visita disponibili da associare a questo luogo.");
+		        break;
+		    }
+
 		    // Mostra la lista delle visite disponibili
-			System.out.println("Elenco Tipi Visite:");
+		    System.out.println("Elenco Tipi Visite:");
 		    System.out.println(listaTipoVisita.toStringAsList());
+
 		    // Scelta dell'utente
-		    sceltaTipo = InputDati.leggiInteroNonNegativo("Inserisci il numero del Tipo Visita che vuoi associare a questo Luogo: ");
+		    sceltaTipo = InputDati.leggiInteroNonNegativo(
+		        "Inserisci il numero del Tipo Visita che vuoi associare a questo Luogo: "
+		    );
 		    TipoVisita visitaSelezionata = listaTipoVisita.getTipo(sceltaTipo - 1);
+
 		    boolean duplicato = false;
 		    boolean sovrapposta = false;
 
 		    // Controlli su duplicati e sovrapposizioni
 		    for (TipoVisita v : listaTipoVisitaToAdd.getTipi()) {
 		        if (v.equals(visitaSelezionata)) {
-		            System.out.println("Attenzione hai selezionato lo stesso Tipo Visita già associato!");
+		            System.out.println("Attenzione: hai selezionato lo stesso Tipo Visita già associato!");
 		            duplicato = true;
 		            break;
 		        } else if (v.siSovrappongono(visitaSelezionata)) {
-		            System.out.println("Attenzione questa visita si sovrappone ad un'altra già programmata per lo stesso giorno!");
+		            System.out.println("Attenzione: questa visita si sovrappone ad un'altra già programmata per lo stesso giorno!");
 		            sovrapposta = true;
 		            break;
 		        }
 		    }
+
 		    // Se non è duplicata né sovrapposta, la aggiungo
 		    if (!duplicato && !sovrapposta) {
 		        listaTipoVisitaToAdd.add(visitaSelezionata);
 		        System.out.println("Visita aggiunta correttamente.");
 		    }
-		    // Chiedo se continuare SOLO una volta per ciclo
+
+		    // Se dopo l'aggiunta non ci sono più visite disponibili → esco
+		    if (listaTipoVisitaToAdd.getTipi().size() == listaTipoVisita.getTipi().size()) {
+		        System.out.println("Hai associato tutti i Tipi Visita disponibili a questo luogo.");
+		        break;
+		    }
+
+		    // Altrimenti chiedo se continuare
 		    continuaTipo = InputDati.yesOrNo("Vuoi associare un altro Tipo Visita a questo luogo? ");
+
 		} while (continuaTipo);
+
 
 	
 		
@@ -555,7 +574,7 @@ public class Menu{
 	    return giorniSelezionati;
 	}
 	
-	public static Indirizzo ObjIndirizzo() {
+	public static Indirizzo ObjIndirizzo(String provincia) {
 
 	    TipoStrada tipoStrada = TipoStrada.scegliDaNome();
 	    String nomeStrada = InputDati.leggiStringaNonVuota("Inserisci il nome della Strada: ");
@@ -576,8 +595,6 @@ public class Menu{
 	    Integer cap = capAmbito.get(scelta - 1);
 	    
 	    String comune = InputDati.leggiStringaNonVuota("Inserisci il Comune: ");
-	    String provincia = ambito.getProvincia();
-	    System.out.println("provincia TEST: " + provincia + provincia );
 	    Indirizzo indirizzo = new Indirizzo(tipoStrada, nomeStrada, numeroCivico, cap, comune, provincia);
 	    return indirizzo;
 	}

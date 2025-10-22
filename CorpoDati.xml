@@ -1,36 +1,37 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <DatiSistema>
-  <AmbitoTerritoriale provincia="bs">
+  <AmbitoTerritoriale provincia="Brescia">
     <CAPs>
       <CAP>25030</CAP>
     </CAPs>
   </AmbitoTerritoriale>
   <Luoghi>
-    <Luogo nome="brescia">
-      <Descrizione>descluogo</Descrizione>
+    <Luogo nome="Museo Egizio">
+      <Descrizione>descrizione museo ndom</Descrizione>
       <Indirizzo>
         <TipoStrada>Via</TipoStrada>
-        <NomeStrada>brescia</NomeStrada>
+        <NomeStrada>torino</NomeStrada>
         <NumeroCivico>1</NumeroCivico>
         <CAP>25030</CAP>
-        <Comune>brescia</Comune>
-        <Provincia/>
+        <Comune>torino</Comune>
+        <Provincia>Brescia</Provincia>
       </Indirizzo>
       <TipiVisita>
         <TipoVisita>
-          <Titolo>tipo1</Titolo>
-          <Descrizione>desc1</Descrizione>
-          <PuntoDiIncontro>puntoa</PuntoDiIncontro>
+          <Titolo>Visita guidata Museo</Titolo>
+          <Descrizione>visita al museo</Descrizione>
+          <PuntoDiIncontro>entrata museo</PuntoDiIncontro>
           <GiorniSettimanaProgrammabile>
             <Giorno>Lunedi</Giorno>
+            <Giorno>Venerdi</Giorno>
           </GiorniSettimanaProgrammabile>
           <OraInizio>
             <Ore>14</Ore>
-            <Minuti>30</Minuti>
+            <Minuti>0</Minuti>
           </OraInizio>
           <DurataVisita>180</DurataVisita>
           <Biglietto>false</Biglietto>
-          <SogliaMinPartecipanti>1</SogliaMinPartecipanti>
+          <SogliaMinPartecipanti>3</SogliaMinPartecipanti>
           <SogliaMaxPartecipanti>10</SogliaMaxPartecipanti>
           <PeriodoProgrammabile>
             <DataInizio>
@@ -45,6 +46,82 @@
           <Volontari>
             <Volontario>utente3</Volontario>
             <Volontario>v1</Volontario>
+          </Volontari>
+        </TipoVisita>
+      </TipiVisita>
+    </Luogo>
+    <Luogo nome="TestLuogo">
+      <Descrizione>descrizioneTest</Descrizione>
+      <Indirizzo>
+        <TipoStrada>Piazza</TipoStrada>
+        <NomeStrada>Marconi</NomeStrada>
+        <NumeroCivico>4</NumeroCivico>
+        <CAP>25030</CAP>
+        <Comune>das</Comune>
+        <Provincia>Brescia</Provincia>
+      </Indirizzo>
+      <TipiVisita>
+        <TipoVisita>
+          <Titolo>Visita guidata Museo</Titolo>
+          <Descrizione>visita al museo</Descrizione>
+          <PuntoDiIncontro>entrata museo</PuntoDiIncontro>
+          <GiorniSettimanaProgrammabile>
+            <Giorno>Lunedi</Giorno>
+            <Giorno>Venerdi</Giorno>
+          </GiorniSettimanaProgrammabile>
+          <OraInizio>
+            <Ore>14</Ore>
+            <Minuti>0</Minuti>
+          </OraInizio>
+          <DurataVisita>180</DurataVisita>
+          <Biglietto>false</Biglietto>
+          <SogliaMinPartecipanti>3</SogliaMinPartecipanti>
+          <SogliaMaxPartecipanti>10</SogliaMaxPartecipanti>
+          <PeriodoProgrammabile>
+            <DataInizio>
+              <Giorno>1</Giorno>
+              <Mese>1</Mese>
+            </DataInizio>
+            <DataFine>
+              <Giorno>31</Giorno>
+              <Mese>12</Mese>
+            </DataFine>
+          </PeriodoProgrammabile>
+          <Volontari>
+            <Volontario>utente3</Volontario>
+            <Volontario>v1</Volontario>
+          </Volontari>
+        </TipoVisita>
+        <TipoVisita>
+          <Titolo>Visita alla montagna</Titolo>
+          <Descrizione>si va in montagna</Descrizione>
+          <PuntoDiIncontro>piedi della montagna</PuntoDiIncontro>
+          <GiorniSettimanaProgrammabile>
+            <Giorno>Mercoledi</Giorno>
+            <Giorno>Domenica</Giorno>
+            <Giorno>Venerdi</Giorno>
+          </GiorniSettimanaProgrammabile>
+          <OraInizio>
+            <Ore>12</Ore>
+            <Minuti>0</Minuti>
+          </OraInizio>
+          <DurataVisita>270</DurataVisita>
+          <Biglietto>false</Biglietto>
+          <SogliaMinPartecipanti>2</SogliaMinPartecipanti>
+          <SogliaMaxPartecipanti>12</SogliaMaxPartecipanti>
+          <PeriodoProgrammabile>
+            <DataInizio>
+              <Giorno>1</Giorno>
+              <Mese>1</Mese>
+            </DataInizio>
+            <DataFine>
+              <Giorno>31</Giorno>
+              <Mese>12</Mese>
+            </DataFine>
+          </PeriodoProgrammabile>
+          <Volontari>
+            <Volontario>v3</Volontario>
+            <Volontario>v4</Volontario>
             <Volontario>v2</Volontario>
           </Volontari>
         </TipoVisita>

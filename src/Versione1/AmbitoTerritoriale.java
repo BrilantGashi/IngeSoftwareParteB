@@ -72,7 +72,16 @@ public class AmbitoTerritoriale {
     public String getProvincia() {
         return provincia;
     }
+    
+    public void setCap(ArrayList<Integer> cap) {
+        this.cap = cap;
+    }
 
+    public void setProvincia(String provincia) {
+        this.provincia = provincia;
+    }
+
+    
 
     public void stampaAmbito() {
         System.out.println("Provincia: " + provincia);
