@@ -13,8 +13,8 @@ import java.time.LocalTime;
 
 public class GestioneFile {
 
-    File file = new File("credenziali.txt");
-    File fileXML = new File("CorpoDati.xml");
+    //File file = new File("credenziali.txt");
+    //File fileXML = new File("CorpoDati.xml");
 
     private String role1 = null;
     private String role2 = null;
@@ -38,7 +38,7 @@ public class GestioneFile {
      * @param nuovaPass  nuova password da salvare
      * @return true se la password è stata aggiornata; false se lo username non è stato trovato
      */
-    public boolean aggiornaPasswordSuFile(String username, String nuovaPass)
+    /*public boolean aggiornaPasswordSuFile(String username, String nuovaPass)
             throws FileNotFoundException, IOException {
 
         File tmp = new File(file.getAbsolutePath() + ".tmp");
@@ -70,7 +70,7 @@ public class GestioneFile {
         }
 
         return trovato;
-    }
+    }*/
 
     private void appendChildWithText(Document doc, Element parent, String tag, String text) {
         Element e = doc.createElement(tag);
@@ -115,7 +115,7 @@ public class GestioneFile {
             try {
                 capList.add(Integer.parseInt(capText));
             } catch (NumberFormatException e) {
-                System.out.println("⚠️ CAP non valido nel file XML: " + capText);
+                System.out.println(" CAP non valido nel file XML: " + capText);
             }
         }
 
@@ -148,7 +148,7 @@ public class GestioneFile {
         return luoghi;
     }
 
-    public String[] leggiSingolaCredenziale(String username) throws IOException {
+    /*public String[] leggiSingolaCredenziale(String username) throws IOException {
         String[] riga;
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
@@ -162,8 +162,8 @@ public class GestioneFile {
         }
         return null;
     }
-
-    public void leggiUtentiDaFile(List<Configuratore> configuratori, ListaVolontari volontari) throws IOException {
+*/
+    /*public void leggiUtentiDaFile(List<Configuratore> configuratori, ListaVolontari volontari) throws IOException {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -192,8 +192,8 @@ public class GestioneFile {
             }
         }
     }
-
-    public ArrayList<String> restituisciListaUtenza(String utenza) throws IOException {
+*/
+    /*public ArrayList<String> restituisciListaUtenza(String utenza) throws IOException {
         ArrayList<String> lista = new ArrayList<>();
         String[] riga;
 
@@ -207,7 +207,7 @@ public class GestioneFile {
             }
         }
         return lista;
-    }
+    }*/
 
     //---------------------------------- PARSING ------------------------------------------------------
 
@@ -309,7 +309,7 @@ public class GestioneFile {
     }
 
     //---------------------------------- SCRITTURA -----------------------------------------------------
-
+/*
     public void scriviCorpoDati(int nMaxPersone, AmbitoTerritoriale ambito, ListaLuogo listaLuoghi) throws Exception {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
@@ -370,7 +370,7 @@ public class GestioneFile {
             System.out.println("Errore durante la scrittura XML: " + e.getMessage());
         }
     }
-
+*/
     //---------------------------------- SERIALIZZAZIONE ----------------------------------------------
 
     private Element serializeData(Document doc, Data data, String tagName) {

@@ -83,7 +83,24 @@ public class ListaTipoVisita {
         }
         return tipiDisponibiliPerVolontario;
     }
+    
+    public TipoVisita cercaPerTitolo(String titolo) {
+        if (titolo == null || titolo.isBlank()) {
+            throw new IllegalArgumentException("Username non valido");
+        }
+        //ListaTipoVisita tipiDisponibiliPerVolontario = new ListaTipoVisita();
+        for (TipoVisita visita : tipi) {
+            if (visita.getTitolo().equals(titolo)) {
+                return visita;
+            }
+        }
+        return null;
+    }
 
+    
+    
+    
+    
     @Override
     public String toString() {
         if (tipi == null || tipi.isEmpty()) {

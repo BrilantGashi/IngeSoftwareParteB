@@ -234,6 +234,8 @@ public class TipoVisita {
         // Nessun giorno in comune → non si sovrappongono
         return false;
     }
+    
+    
 
 
 
@@ -241,9 +243,9 @@ public class TipoVisita {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("╔════════════════════════════════════════════════╗\n");
-        sb.append("║                   TIPO VISITA                  ║\n");
-        sb.append("╚════════════════════════════════════════════════╝\n");
+        sb.append("=================================================================================================================================\n");
+    sb.append("|                   TIPO VISITA                  ||\n");
+        sb.append("=================================================================================================================================\n");
 
         sb.append("Titolo: ").append(titolo).append("\n");
         sb.append("Descrizione: ").append(descrizione).append("\n");
@@ -288,7 +290,7 @@ public class TipoVisita {
         }
         sb.append("\n");
 
-        sb.append("══════════════════════════════════════════════════\n");
+        sb.append("=================================================================================================================================\n");
         return sb.toString();
     }
 

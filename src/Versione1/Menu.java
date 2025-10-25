@@ -1,5 +1,6 @@
 package Versione1;
 import java.io.*;
+import java.sql.SQLException;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -10,7 +11,6 @@ public class Menu{
 	private static AmbitoTerritoriale ambito = new AmbitoTerritoriale();
 	private static Calendario cal = new Calendario();
 	private static ArrayList<Integer> capAmbito = new ArrayList<Integer>();  //modifico capAmbito in Integer perchÃ¨ semplifica le cose e non possiamo verificare se si tratta di una parola o un numero con string
-	private static GestioneFile g = new GestioneFile();
 	private static ArrayList<Configuratore> listaConfiguratore = new ArrayList<Configuratore>();
 	private static ListaLuogo listaLuoghi = new ListaLuogo();
 	private static ListaTipoVisita listaTipoVisita = new ListaTipoVisita();
@@ -19,6 +19,14 @@ public class Menu{
 	private static int nMaxPersone = 0;
 	private static String[] voci = {"Login"};
 
+	private static GestioneFile g = new GestioneFile();
+	
+	private static UtenteDAO UtenteDao = new UtenteDAO();
+	private static TipoVisitaDAO TipoVisitaDAO = new TipoVisitaDAO();
+	private static AmbitoTerritorialeDAO AmbitoTerritorialeDAO = new AmbitoTerritorialeDAO();
+	private static LuogoDAO LuogoDAO = new LuogoDAO();
+
+	
 	public static void aggiuntaDataPreclusa() {
 		 int giornoEscluso = InputDati.leggiIntero("Inserisci il giorno da escludere dal mese di " +  cal.getMeseDatePrecluse() + "\n", 1, 31);
 		 if (!cal.checkData(giornoEscluso)) {
@@ -65,7 +73,7 @@ public class Menu{
 		*/
 		
 		int sceltaMenuConfig;
-		System.out.println("NON VANNO TUTTI, CONTROLLARE PRIMA DI PROCEDERE");
+		//System.out.println("NON VANNO TUTTI, CONTROLLARE PRIMA DI PROCEDERE");
 		//LAIBA: ho tolto 0 - Torna al Menu Principale" perchï¿½ c'ï¿½ giï¿½ di default nel menu fplib. Stesso discorso per i numeri
 		String[] vociConfig = {"Creazione Corpo Dati", "Avvio Calendario", "Modifica num max per fruitore","Visualizza volontari" ,"Visualizza Luoghi", "Visualizza l'elenco dei tipi di visita associati a ciascun luogo", "Visualizza Stato Visite"};
 		//g.leggiUtentiDaFile(listaConfiguratore, listaVolontari);
@@ -207,7 +215,7 @@ public class Menu{
 	}
 
 	
-	public static void creazioneCorpoDati () {
+	public static void creazioneCorpoDati () throws SQLException {
 		System.out.println("Creazione Corpo Dati");
 		//**************************AMBITO TERRITORIALE ***********************************
 		System.out.println("------------------------------");
@@ -229,7 +237,7 @@ public class Menu{
 		} while (continua);
 		
 		AmbitoTerritoriale ambitoTerritoriale = new AmbitoTerritoriale(capAmbito, provincia);
-		
+		AmbitoTerritorialeDAO.salvaAmbitoTerritoriale(ambitoTerritoriale);
 		
 		//********************** N MAX PARTECIPANTI PER FRUITORE ***********************************
 		/*fissare il numero massimo di persone che un fruitore puï¿½ iscrivere a una iniziativa 
@@ -291,19 +299,21 @@ public class Menu{
 		        int scelta = InputDati.leggiIntero("Numero visita: ",1,listaTipoVisita.getTipi().size());
 		        TipoVisita visitaScelta = listaTipoVisita.getTipo(scelta - 1);
 		        visitaScelta.getListaVolontari().aggiungiVolontario(v);
+		        TipoVisitaDAO.gestisciOrfani(visitaScelta, v);
+		        
 		        System.out.println("Il volontario " + v.getNickname() + " Ã¨ stato associato a \"" + visitaScelta.getTitolo() + "\".");
 		    }
 		}
-		try {
-			g.scriviCorpoDati(nMaxPersone, ambitoTerritoriale, listaLuoghi);
+		/*try {
+			//g.scriviCorpoDati(nMaxPersone, ambitoTerritoriale, listaLuoghi);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 	}
 	
 	
-	public static void definizioneLuogo (String pronvinciaAmbito) {
+	public static void definizioneLuogo (String pronvinciaAmbito) throws SQLException {
 		String nomeLuogo = InputDati.leggiStringaNonVuota("Inserisci il nome del luogo: ");
 		String descrizione = InputDati.leggiStringa("Inserisci una descrizione del luogo: ");
 		Indirizzo indirizzo = ObjIndirizzo(pronvinciaAmbito);
@@ -379,9 +389,10 @@ public class Menu{
 		System.out.println(luogo.toString());
 		
 		listaLuoghi.add(luogo);
+		LuogoDAO.salvaLuogoCompleto(luogo);
 	}
 
-	public static void definizioneTipoVisita() {
+	public static void definizioneTipoVisita() throws SQLException {
 		
 		//prima definisco il singolo tipo visita, e poi lo aggiungo alla lista listaTipoVisita 
 		
@@ -421,6 +432,7 @@ public class Menu{
 		System.out.println(tipoVisita.toString());
 		
 		listaTipoVisita.add(tipoVisita);
+		TipoVisitaDAO.inserisciVisita(tipoVisita);
 		
 	}
 	
@@ -435,13 +447,23 @@ public class Menu{
 		 return result;
     }
 	
-	public static void leggiCorpoDati() throws Exception {
-		ambito = g.leggiAmbiti();
-		listaLuoghi.setListaLuoghi(g.leggiLuoghi());
+	public static void leggiCorpoDati() throws Exception {		
+		listaTipoVisita = TipoVisitaDAO.leggiTuttiTipiVisita(listaVolontari);
+		System.out.println(listaTipoVisita.toString());
+		
+		ambito = AmbitoTerritorialeDAO.leggiTuttiAmbitiTerritoriali();
 		ambito.stampaAmbito();
-		listaLuoghi.toString();
-	    //System.out.println("Ambiti: " + ambiti);
-	    //System.out.println("Luoghi: " + luoghi);
+		
+		listaLuoghi = LuogoDAO.leggiTuttiLuoghi(listaTipoVisita);
+		listaLuoghi.stampaLuoghiConTipoVisita();
+		
+		//listaLuoghi
+		
+		
+		
+		
+		
+		
 	}
 
 	
@@ -455,19 +477,20 @@ public class Menu{
 		System.out.println("Inserisci lo username che ti e' stato fornito dall'amministrazione: ");
 		username = InputDati.leggiStringaNonVuota("Username: ");
 		
-		while (g.leggiSingolaCredenziale(username) == null) {				
+		//while (g.leggiSingolaCredenziale(username) == null) {				
+		while (UtenteDao.leggiSingolaCredenziale(username) == null) {
 			username = InputDati.leggiStringaNonVuota("Username inserito non esistente, riprovare: ");
 			
 		}
-		Credenziali credenziali = new Credenziali (username);
+		Credenziali credenziali = UtenteDAO.leggiSingolaCredenziale(username);
 		
 		password = InputDati.leggiStringaNonVuota("Password: ");
 	
 		/*
 		 	okCred restituisce: 
 		 	- -1 se credenziali sbagliate
-		 	- 0 se non ï¿½ il primo accesso
-		 	- 1 se ï¿½ il primo accesso
+		 	- 0 se non è il primo accesso
+		 	- 1 se è il primo accesso
 		 	
 		 	 questa info la devo mandare al metodo configuratore che, se ï¿½ il primo accesso, deve fare determinate cose
 		 */
@@ -507,8 +530,16 @@ public class Menu{
 	public static boolean menuPrincipale() throws Exception{
 		
 		int sceltaMenu;
-		g.leggiUtentiDaFile(listaConfiguratore, listaVolontari);
-				
+		//g.leggiUtentiDaFile(listaConfiguratore, listaVolontari);
+		UtenteDao.leggiUtentiDaDB(listaConfiguratore, listaVolontari);
+		
+		/*for (Configuratore c : listaConfiguratore) {
+			System.out.println(c.toString());
+		}
+		
+		//listaConfiguratore.toString();
+		listaVolontari.stampaVolontari();
+		*/
 		MyMenu menu = new MyMenu("Menu", voci);
 		sceltaMenu = menu.scegli();
 		

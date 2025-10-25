@@ -51,6 +51,15 @@ public class ListaVolontari {
         }
         return null;
     }
+    
+    public boolean contienePerNickname(String nickname) {
+        for (Volontario v : volontari) {
+            if (v.getNickname().equals(nickname)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * Restituisce la lista dei volontari.
@@ -118,8 +127,15 @@ public class ListaVolontari {
         for (Volontario v : volontari) {
             System.out.println("Volontario: " + v.getNickname());
             ArrayList<TipoVisita> visiteAssociate = new ArrayList<>();
+            //System.out.println("VOLONTARIO IN ESAME: " + v.getNickname());
             for (TipoVisita visita : tutteLeVisite) {
-                if (visita.getListaVolontari().getVolontari().contains(v)) {
+            	//System.out.println("VISITA: "+ visita.getTitolo());
+            	//System.out.println("VOLONTARI VISITA: "+ visita.getListaVolontari().stampaVolontari());
+            	//visita.getListaVolontari().stampaVolontari();
+            	//boolean tmpCheck = visita.getListaVolontari().getVolontari().contains(v);
+            	boolean tmpCheck = visita.getListaVolontari().contienePerNickname(v.getNickname());
+            	System.out.println(tmpCheck);
+                if (tmpCheck) {
                     visiteAssociate.add(visita);
                 }
             }

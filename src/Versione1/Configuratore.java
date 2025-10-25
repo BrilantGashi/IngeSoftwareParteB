@@ -29,4 +29,12 @@ public class Configuratore extends Utente {
         if (credenziali.getUsername() == null || credenziali.getUsername().isBlank()) return false;
         return true;
     }
+    
+    public String toString () {
+    	StringBuilder sb = new StringBuilder();
+        sb.append("CONFIGURATORE\n");
+        sb.append("USERNAME: ");
+        sb.append(this.credenziali.getUsername());
+        return sb.toString();
+    }
 }

@@ -2,6 +2,7 @@ package Versione1;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Objects;
 import it.unibs.fp.mylib.InputDati;
 
@@ -11,6 +12,7 @@ public class Credenziali {
     private String password;
     private String username;
     private String utenza;
+    private UtenteDAO UtenteDao = new UtenteDAO();
 
     /**
      * INVARIANTI DI CLASSE:
@@ -29,14 +31,34 @@ public class Credenziali {
      *                 this.password != null
      *                 this.utenza != null
      */
-    public Credenziali(String username) throws FileNotFoundException, IOException { 
+    /*public Credenziali(String username) throws FileNotFoundException, IOException { 
         if (username == null || username.isBlank()) {
             throw new IllegalArgumentException("Username non valido");
         }
-        String[] credenziali = g.leggiSingolaCredenziale(username);
+        //String[] credenziali = g.leggiSingolaCredenziale(username);
+        String[] credenziali = UtenteDao.leggiSingolaCredenziale(username);
         this.utenza = credenziali[0];
         this.username = credenziali[1];
         this.password = credenziali[2]; 
+        assert invClass() : "Invariante violato nel costruttore Credenziali";
+    }*/
+    
+ 	// Costruttore che NON accede al database
+    public Credenziali(String utenza, String username, String password) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("Username non valido");
+        }
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("Password non valida");
+        }
+        if (utenza == null || utenza.isBlank()) {
+            throw new IllegalArgumentException("Utenza non valida");
+        }
+        
+        this.utenza = utenza;
+        this.username = username;
+        this.password = password;
+        
         assert invClass() : "Invariante violato nel costruttore Credenziali";
     }
 
@@ -48,8 +70,8 @@ public class Credenziali {
      *                 0 se credenziali corrette
      */
     public int controllaCredenziali(String usernameP, String passwordP) throws FileNotFoundException, IOException {
-        Objects.requireNonNull(usernameP, "Username non puÃ² essere null");
-        Objects.requireNonNull(passwordP, "Password non puÃ² essere null");
+        Objects.requireNonNull(usernameP, "Username non può essere null");
+        Objects.requireNonNull(passwordP, "Password non può essere null");
 
         if (!passwordP.equals(password)) {
             return -1;
@@ -79,13 +101,15 @@ public class Credenziali {
      * Imposta una nuova password e la aggiorna anche su file.
      * PRECONDIZIONE: password != null && !password.isBlank()
      * POSTCONDIZIONE: this.password == password
+     * @throws SQLException 
      */
-    public void setPassword(String password) throws FileNotFoundException, IOException {
+    public void setPassword(String password) throws FileNotFoundException, IOException, SQLException {
         if (password == null || password.isBlank()) {
             throw new IllegalArgumentException("Password non valida");
         }
         this.password = password;
-        if (g.aggiornaPasswordSuFile(username, password)) {
+        //if (g.aggiornaPasswordSuFile(username, password)) {
+        if (UtenteDao.aggiornaPasswordSuDB(username, password)) {
             System.out.println("Password aggiornata correttamente.");
         }
         assert this.password.equals(password) : "Postcondizione violata in setPassword";

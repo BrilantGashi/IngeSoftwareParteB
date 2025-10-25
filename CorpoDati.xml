@@ -1,37 +1,39 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <DatiSistema>
-  <AmbitoTerritoriale provincia="Brescia">
+  <AmbitoTerritoriale provincia="brescia">
     <CAPs>
       <CAP>25030</CAP>
+      <CAP>25066</CAP>
     </CAPs>
   </AmbitoTerritoriale>
   <Luoghi>
-    <Luogo nome="Museo Egizio">
-      <Descrizione>descrizione museo ndom</Descrizione>
+    <Luogo nome="luogo 1">
+      <Descrizione>descr luogo</Descrizione>
       <Indirizzo>
-        <TipoStrada>Via</TipoStrada>
-        <NomeStrada>torino</NomeStrada>
+        <TipoStrada>Corso</TipoStrada>
+        <NomeStrada>de</NomeStrada>
         <NumeroCivico>1</NumeroCivico>
         <CAP>25030</CAP>
-        <Comune>torino</Comune>
-        <Provincia>Brescia</Provincia>
+        <Comune>br</Comune>
+        <Provincia>brescia</Provincia>
       </Indirizzo>
       <TipiVisita>
         <TipoVisita>
-          <Titolo>Visita guidata Museo</Titolo>
-          <Descrizione>visita al museo</Descrizione>
-          <PuntoDiIncontro>entrata museo</PuntoDiIncontro>
+          <Titolo>tipo visita 1</Titolo>
+          <Descrizione>descr1</Descrizione>
+          <PuntoDiIncontro>invontro</PuntoDiIncontro>
           <GiorniSettimanaProgrammabile>
             <Giorno>Lunedi</Giorno>
-            <Giorno>Venerdi</Giorno>
+            <Giorno>Mercoledi</Giorno>
+            <Giorno>Domenica</Giorno>
           </GiorniSettimanaProgrammabile>
           <OraInizio>
-            <Ore>14</Ore>
+            <Ore>10</Ore>
             <Minuti>0</Minuti>
           </OraInizio>
-          <DurataVisita>180</DurataVisita>
+          <DurataVisita>30</DurataVisita>
           <Biglietto>false</Biglietto>
-          <SogliaMinPartecipanti>3</SogliaMinPartecipanti>
+          <SogliaMinPartecipanti>1</SogliaMinPartecipanti>
           <SogliaMaxPartecipanti>10</SogliaMaxPartecipanti>
           <PeriodoProgrammabile>
             <DataInizio>
@@ -39,43 +41,45 @@
               <Mese>1</Mese>
             </DataInizio>
             <DataFine>
-              <Giorno>31</Giorno>
-              <Mese>12</Mese>
+              <Giorno>1</Giorno>
+              <Mese>2</Mese>
             </DataFine>
           </PeriodoProgrammabile>
           <Volontari>
             <Volontario>utente3</Volontario>
             <Volontario>v1</Volontario>
+            <Volontario>v3</Volontario>
           </Volontari>
         </TipoVisita>
       </TipiVisita>
     </Luogo>
-    <Luogo nome="TestLuogo">
-      <Descrizione>descrizioneTest</Descrizione>
+    <Luogo nome="luogo 2">
+      <Descrizione>ded 2</Descrizione>
       <Indirizzo>
         <TipoStrada>Piazza</TipoStrada>
-        <NomeStrada>Marconi</NomeStrada>
-        <NumeroCivico>4</NumeroCivico>
-        <CAP>25030</CAP>
-        <Comune>das</Comune>
-        <Provincia>Brescia</Provincia>
+        <NomeStrada>dc</NomeStrada>
+        <NumeroCivico>2</NumeroCivico>
+        <CAP>25066</CAP>
+        <Comune>e</Comune>
+        <Provincia>brescia</Provincia>
       </Indirizzo>
       <TipiVisita>
         <TipoVisita>
-          <Titolo>Visita guidata Museo</Titolo>
-          <Descrizione>visita al museo</Descrizione>
-          <PuntoDiIncontro>entrata museo</PuntoDiIncontro>
+          <Titolo>tipo visita 1</Titolo>
+          <Descrizione>descr1</Descrizione>
+          <PuntoDiIncontro>invontro</PuntoDiIncontro>
           <GiorniSettimanaProgrammabile>
             <Giorno>Lunedi</Giorno>
-            <Giorno>Venerdi</Giorno>
+            <Giorno>Mercoledi</Giorno>
+            <Giorno>Domenica</Giorno>
           </GiorniSettimanaProgrammabile>
           <OraInizio>
-            <Ore>14</Ore>
+            <Ore>10</Ore>
             <Minuti>0</Minuti>
           </OraInizio>
-          <DurataVisita>180</DurataVisita>
+          <DurataVisita>30</DurataVisita>
           <Biglietto>false</Biglietto>
-          <SogliaMinPartecipanti>3</SogliaMinPartecipanti>
+          <SogliaMinPartecipanti>1</SogliaMinPartecipanti>
           <SogliaMaxPartecipanti>10</SogliaMaxPartecipanti>
           <PeriodoProgrammabile>
             <DataInizio>
@@ -83,44 +87,43 @@
               <Mese>1</Mese>
             </DataInizio>
             <DataFine>
-              <Giorno>31</Giorno>
-              <Mese>12</Mese>
+              <Giorno>1</Giorno>
+              <Mese>2</Mese>
             </DataFine>
           </PeriodoProgrammabile>
           <Volontari>
             <Volontario>utente3</Volontario>
             <Volontario>v1</Volontario>
+            <Volontario>v3</Volontario>
           </Volontari>
         </TipoVisita>
         <TipoVisita>
-          <Titolo>Visita alla montagna</Titolo>
-          <Descrizione>si va in montagna</Descrizione>
-          <PuntoDiIncontro>piedi della montagna</PuntoDiIncontro>
+          <Titolo>tipo visita 2</Titolo>
+          <Descrizione>descr 2</Descrizione>
+          <PuntoDiIncontro>d</PuntoDiIncontro>
           <GiorniSettimanaProgrammabile>
+            <Giorno>Martedi</Giorno>
             <Giorno>Mercoledi</Giorno>
-            <Giorno>Domenica</Giorno>
-            <Giorno>Venerdi</Giorno>
           </GiorniSettimanaProgrammabile>
           <OraInizio>
-            <Ore>12</Ore>
+            <Ore>14</Ore>
             <Minuti>0</Minuti>
           </OraInizio>
-          <DurataVisita>270</DurataVisita>
-          <Biglietto>false</Biglietto>
-          <SogliaMinPartecipanti>2</SogliaMinPartecipanti>
+          <DurataVisita>60</DurataVisita>
+          <Biglietto>true</Biglietto>
+          <SogliaMinPartecipanti>1</SogliaMinPartecipanti>
           <SogliaMaxPartecipanti>12</SogliaMaxPartecipanti>
           <PeriodoProgrammabile>
             <DataInizio>
-              <Giorno>1</Giorno>
-              <Mese>1</Mese>
+              <Giorno>5</Giorno>
+              <Mese>5</Mese>
             </DataInizio>
             <DataFine>
-              <Giorno>31</Giorno>
-              <Mese>12</Mese>
+              <Giorno>5</Giorno>
+              <Mese>8</Mese>
             </DataFine>
           </PeriodoProgrammabile>
           <Volontari>
-            <Volontario>v3</Volontario>
             <Volontario>v4</Volontario>
             <Volontario>v2</Volontario>
           </Volontari>
