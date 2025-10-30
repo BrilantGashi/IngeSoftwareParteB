@@ -149,6 +149,29 @@ public class UtenteDAO {
 	        this.idTipoUtente = idTipoUtente;
 	    }
 	}
+	
+	//NUOVO METODO PER LA GESTIONE DEI NUOVI VOLONTARI 
+	//CHE SI POSSONO INSERIRE NELLA V3
+	
+	public void inserisciNuovoVolontario (Volontario v) throws SQLException {
+		String sql = "INSERT INTO credenziali (USERNAME, PASSWORD, ID_TIPOUTENTE) VALUES (?, ?, ?)";
+		
+		try (Connection conn = ConnessioneDB.startConnection();
+	         PreparedStatement ps = conn.prepareStatement(sql)){
+			
+			ps.setString(1,  v.getCredenziali().getUsername());
+			ps.setString(2,  v.getCredenziali().getPassword());
+			ps.setInt(3, 2); // 2 = ID, e' il volontario nella tabella tipologiautente
+			ps.executeUpdate();
+			
+			System.out.println("Nuovo volontario salvato" + v.getCredenziali().getUsername());
+		} catch (SQLException e) {
+			System.out.println("Errore durante l'inserimento del nuovo volontario: " + e.getMessage());
+			throw e;
+		}
+			
+		
+	}
 
 	
 }

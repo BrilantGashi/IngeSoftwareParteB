@@ -154,8 +154,8 @@ public class ListaVisite {
         return true;
     }
       
-    @Override
-    public String toString() {
+    
+   /* public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("===== LISTA VISITE =====\n");
 
@@ -169,8 +169,49 @@ public class ListaVisite {
 
         sb.append("========================\n");
         return sb.toString();
+    }*/
+    
+    //METODO PER LA STAMPA DELLO STATO DELLE VISITE
+    public void stampaTitoloEStato() {
+        if (listaVisite == null || listaVisite.isEmpty()) {
+            System.out.println("Non ci sono visite registrate al momento.");
+            return;
+        }
+
+        System.out.println("===== ELENCO VISITE E STATI =====");
+        for (Visita v : listaVisite) {
+            String titolo = (v.getTipoVisita() != null) ? v.getTipoVisita().getTitolo() : "Senza titolo";
+            String stato = (v.getStatoVisita() != null) ? v.getStatoVisita().name() : "N/D";
+            System.out.println("- " + titolo + " | Stato: " + stato);
+        }
+        System.out.println("=================================");
     }
 
+   //STAMPA PIANO
+    public void stampaPianoVisite() {
+        System.out.println("\n===== PIANO DELLE VISITE =====");
+
+        if (listaVisite == null || listaVisite.isEmpty()) {
+            System.out.println("Nessuna visita pianificata per questo mese.");
+            System.out.println("====================================\n");
+            return;
+        }
+
+        for (Visita v : listaVisite) {
+            System.out.println("Titolo visita   : " + v.getTipoVisita().getTitolo());
+            System.out.println("Data            : " + v.getDataVisita().toString());
+            System.out.println("Stato           : " + v.getStatoVisita());
+            if (!v.getVolontariEffettivi().isEmpty()) {
+                System.out.println("Volontario      : " + v.getVolontariEffettivi().get(0).getNickname());
+            } else {
+                System.out.println("Volontario      : Nessuno assegnato");
+            }
+            System.out.println("------------------------------------");
+        }
+
+    }
+    
+    
     private boolean invClass() {
         if (listaVisite == null) return false;
         for (Visita v : listaVisite) {

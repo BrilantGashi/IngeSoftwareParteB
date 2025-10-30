@@ -244,4 +244,15 @@ public class Calendario {
         }
         return true;
     }
+    
+    //trasforma la stringa del mese nel corrispondente numero
+    public int getMeseNumero(String nomeMese) {
+        for (Mesi m : Mesi.values()) {              
+            if (m.name().equalsIgnoreCase(nomeMese)) {  
+                return m.ordinal() + 1;            
+            }
+        }
+        return -1; // se non trovato
+    }
+
 }

@@ -23,7 +23,7 @@ public class ListaLuogo {
      * POSTCONDIZIONE: listaLuoghi contiene luogo
      */
     public void add(Luogo luogo) {
-        Objects.requireNonNull(luogo, "Il luogo non può essere null");
+        Objects.requireNonNull(luogo, "Il luogo non puo' essere null");
         listaLuoghi.add(luogo);
         assert listaLuoghi.contains(luogo) : "Postcondizione violata: luogo non aggiunto";
         assert invClass() : "Invariante violato in add";

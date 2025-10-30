@@ -18,6 +18,7 @@ public class Menu{
 	private static ListaVisite listaVisite = new ListaVisite();
 	private static int nMaxPersone = 0;
 	private static String[] voci = {"Login"};
+	
 
 	private static GestioneFile g = new GestioneFile();
 	
@@ -25,6 +26,9 @@ public class Menu{
 	private static TipoVisitaDAO TipoVisitaDAO = new TipoVisitaDAO();
 	private static AmbitoTerritorialeDAO AmbitoTerritorialeDAO = new AmbitoTerritorialeDAO();
 	private static LuogoDAO LuogoDAO = new LuogoDAO();
+	private static DisponibilitaDAO DisponibilitaDAO = new DisponibilitaDAO();
+	private static VisitaDAO VisitaDAO = new VisitaDAO();
+
 
 	
 	public static void aggiuntaDataPreclusa() {
@@ -75,11 +79,12 @@ public class Menu{
 		int sceltaMenuConfig;
 		//System.out.println("NON VANNO TUTTI, CONTROLLARE PRIMA DI PROCEDERE");
 		//LAIBA: ho tolto 0 - Torna al Menu Principale" perchï¿½ c'ï¿½ giï¿½ di default nel menu fplib. Stesso discorso per i numeri
-		String[] vociConfig = {"Creazione Corpo Dati", "Avvio Calendario", "Modifica num max per fruitore","Visualizza volontari" ,"Visualizza Luoghi", "Visualizza l'elenco dei tipi di visita associati a ciascun luogo", "Visualizza Stato Visite"};
+		String[] vociConfig = {"Creazione Corpo Dati", "Avvio Calendario", "Modifica num max per fruitore","Visualizza volontari" ,"Visualizza Luoghi", "Visualizza l'elenco dei tipi di visita associati a ciascun luogo", "Visualizza Stato Visite", 
+								"Genera piano delle visite", "Aggiungi nuovo luogo per visite guidate", "Aggiungi tipi visita a luogo esistente", "Aggiungi volontario a tipo visita"};
 		//g.leggiUtentiDaFile(listaConfiguratore, listaVolontari);
 				
 		MyMenu menu = new MyMenu("Menu", vociConfig);
-		sceltaMenuConfig=1;		
+		sceltaMenuConfig= 1;		
 		do {
 			switch (sceltaMenuConfig) {
 			case 0:
@@ -103,6 +108,7 @@ public class Menu{
 				}
 				break;
 				
+			    
 			case 2:				
 				//avvio calendario				
 				calendario();
@@ -122,9 +128,21 @@ public class Menu{
 			
 			case 6:
 				listaLuoghi.stampaLuoghiConTipoVisita();
-				
+				break;
 			case 7:
-				listaVisite.toString();
+				listaVisite.stampaTitoloEStato();
+				break;
+			case 8:
+				generaPianoVisite();
+				break;
+			case 9:
+				definizioneLuogo(ambito.getProvincia(), true);
+				break;
+			case 10:
+				aggiungiTipoVisitaALuogo();
+				break;
+			case 11:
+				aggiungiVolontarioATipoVisita();
 				break;
 				
 			}
@@ -132,10 +150,9 @@ public class Menu{
 		} while (sceltaMenuConfig!=0);
 		
 		
-		
-		
-		
 	}
+	
+
 	
 	public static void volontario (int okCred, String nickname) throws Exception {
 		/*
@@ -146,7 +163,7 @@ public class Menu{
 		*/
 		ListaTipoVisita tipoVisitaPerVolontario = listaTipoVisita.getTipiPerVolontario(nickname);
 		int sceltaMenuVolontario;
-		String[] vociVolontario = {"Visualizza tipi di visita associati", "Esprimi la disponibilitÃ  per il mese :" + cal.getMeseI2()};
+		String[] vociVolontario = {"Visualizza tipi di visita associati", "Esprimi la disponibilita'  per il mese :" + cal.getMeseI2()};
 		MyMenu menu = new MyMenu("Menu", vociVolontario);
 		sceltaMenuVolontario = menu.scegli();	
 		do {
@@ -187,9 +204,13 @@ public class Menu{
 			    assert listaTipoVisita != null : "Precondizione violata: listaTipoVisita null";
 			    assert cal != null : "Precondizione violata: calendario null";
 
-			    for (TipoVisita t : tipoVisitaPerVolontario.getTipi()) {
+			  
+				for (TipoVisita t : tipoVisitaPerVolontario.getTipi()) {
+			   
 			        assert t != null : "Invariante violata: TipoVisita null";
 
+			        boolean continua = true;
+			        do {
 			        Data dataScelta = cal.scegliDataPerTipo(t);
 
 			        if (dataScelta != null) {
@@ -202,13 +223,36 @@ public class Menu{
 			            // - se esiste giÃ  una Visita con stesso tipo+data, aggiunge solo il volontario
 			            // - altrimenti crea una nuova Visita
 			            listaVisite.aggiungiVisita(nuovaVisita);
+			            
+			            //NUOVO METODO - salva disponibilita nel DB
+			            try {
+			                DisponibilitaDAO.salvaDisponibilita(nickname, dataScelta.getGiorno(), cal.getMeseI2());
+			                
+			                //QUI MI STAMPA LE DISPONIBILITA' INSERITE SOPRA
+			                ArrayList<Disponibilita> mie = DisponibilitaDAO.leggiDisponibilitaVolontario(nickname);
+			                System.out.println("==== Le tue disponibilità per " + cal.getMeseI2() + " ====");
+			                for (Disponibilita d : mie) {
+			                    if (d.getMese().equalsIgnoreCase(cal.getMeseI2())) {
+			                        System.out.println("- " + d.getGiorno() + " " + d.getMese());
+			                    }
+			                }
+			                System.out.println("==============================================");
+			            } catch (SQLException e) {
+			                System.out.println("Errore nel salvataggio della disponibilità: " + e.getMessage());
+			            }
 			        }
+			        
+			        	continua = InputDati.yesOrNo("Vuoi esprimere un'altra disponibilita' per i mese di" + cal.getMeseI2() + "? ");
+			   			} while (continua);
 			    }
-
+				   
+				
 			    // POSTCONDIZIONE: tutte le visite in listaVisite rispettano lâ€™unicitÃ  (tipo+data)
 			    assert listaVisite.visiteUnichePerTipoEData() : "Postcondizione violata: visite duplicate presenti";
 
 			    break;
+		
+						 
 			}
 			sceltaMenuVolontario = menu.scegli();
 		} while (sceltaMenuVolontario!=0);		
@@ -229,7 +273,7 @@ public class Menu{
 		do {
 	         int cap = InputDati.leggiIntero("Inserisci un CAP: ", 1, 99999);
 	         if (capAmbito.contains(cap)) {
-	             System.out.println("Attenzione: il CAP " + cap + " Ã¨ giÃ  stato inserito!");
+	             System.out.println("Attenzione: il CAP " + cap + " e' gia'  stato inserito!");
 	         } else {
 	             capAmbito.add(cap);
 	         }
@@ -238,6 +282,7 @@ public class Menu{
 		
 		AmbitoTerritoriale ambitoTerritoriale = new AmbitoTerritoriale(capAmbito, provincia);
 		AmbitoTerritorialeDAO.salvaAmbitoTerritoriale(ambitoTerritoriale);
+		ambito = ambitoTerritoriale;
 		
 		//********************** N MAX PARTECIPANTI PER FRUITORE ***********************************
 		/*fissare il numero massimo di persone che un fruitore puï¿½ iscrivere a una iniziativa 
@@ -262,13 +307,13 @@ public class Menu{
 		boolean continuoTipoVisita;
 		do {
 			System.out.println();
-			definizioneTipoVisita();
+			definizioneTipoVisita(false); //false perche' nella V1 non si possono creare nuovi volontari
 			continuoTipoVisita = InputDati.yesOrNo("Vuoi inserire un altro Tipo Visita?");
 		} while (continuoTipoVisita);
 		
 
 		System.out.println("------------------------------");
-		System.out.println("DEFINZIONE LUOGHI");
+		System.out.println("DEFINIZIONE LUOGHI");
 		System.out.println("------------------------------");
 		//2. chiedere quanti luoghi vuole definire
 		
@@ -281,7 +326,7 @@ public class Menu{
 			System.out.println();
 			System.out.println("Creazione luogo n. " + (i+1) + ": ");
 			System.out.println();
-			definizioneLuogo(provincia);							
+			definizioneLuogo(provincia, false); //false perche' nella V1 non si possono creare nuovi volontari							
 		}
 		
 		
@@ -301,7 +346,7 @@ public class Menu{
 		        visitaScelta.getListaVolontari().aggiungiVolontario(v);
 		        TipoVisitaDAO.gestisciOrfani(visitaScelta, v);
 		        
-		        System.out.println("Il volontario " + v.getNickname() + " Ã¨ stato associato a \"" + visitaScelta.getTitolo() + "\".");
+		        System.out.println("Il volontario " + v.getNickname() + " e' stato associato a \"" + visitaScelta.getTitolo() + "\".");
 		    }
 		}
 		/*try {
@@ -313,7 +358,7 @@ public class Menu{
 	}
 	
 	
-	public static void definizioneLuogo (String pronvinciaAmbito) throws SQLException {
+	public static void definizioneLuogo (String pronvinciaAmbito, boolean consentiNuoviVol) throws SQLException {
 		String nomeLuogo = InputDati.leggiStringaNonVuota("Inserisci il nome del luogo: ");
 		String descrizione = InputDati.leggiStringa("Inserisci una descrizione del luogo: ");
 		Indirizzo indirizzo = ObjIndirizzo(pronvinciaAmbito);
@@ -334,7 +379,7 @@ public class Menu{
 		    // Se non ci sono piÃ¹ visite disponibili da associare â†’ esco subito
 		    if (listaTipoVisita.getTipi().isEmpty() || 
 		        listaTipoVisitaToAdd.getTipi().size() == listaTipoVisita.getTipi().size()) {
-		        System.out.println("Non ci sono piÃ¹ Tipi Visita disponibili da associare a questo luogo.");
+		        System.out.println("Non ci sono piu' Tipi Visita disponibili da associare a questo luogo.");
 		        break;
 		    }
 
@@ -348,6 +393,23 @@ public class Menu{
 		    );
 		    TipoVisita visitaSelezionata = listaTipoVisita.getTipo(sceltaTipo - 1);
 
+		    
+		    //NUOVO BLOCCO GESTIONE NUOVE AGGIUNTE V3
+		    if (consentiNuoviVol) {
+		        boolean aggiungiNuoviVolontari = InputDati.yesOrNo("Vuoi aggiungere nuovi volontari per questo tipo di visita?");
+		        if (aggiungiNuoviVolontari) {
+		            boolean continuaAggiunta = true;
+		            do {
+		                Volontario nuovoVol = aggiungiNuovoVolontario();
+		                if (nuovoVol != null) {
+		                    visitaSelezionata.getListaVolontari().aggiungiVolontario(nuovoVol);
+		                    System.out.println("Volontario " + nuovoVol.getCredenziali().getUsername() +
+		                                       " aggiunto al tipo visita \"" + visitaSelezionata.getTitolo() + "\".");
+		                }
+		                continuaAggiunta = InputDati.yesOrNo("Vuoi aggiungere un altro nuovo volontario a questo tipo di visita?");
+		            } while (continuaAggiunta);
+		        }
+		    }
 		    boolean duplicato = false;
 		    boolean sovrapposta = false;
 
@@ -392,7 +454,16 @@ public class Menu{
 		LuogoDAO.salvaLuogoCompleto(luogo);
 	}
 
-	public static void definizioneTipoVisita() throws SQLException {
+	
+	/* ROXY
+	 * Metodo già esistente modificato leggermente per gestire i nuovi volontari della v3;
+	 * se il boolean è false, nelle voci della v1 non viene chiesto se si vuole aggiungere un nuovo volontario,
+	 * viene messo a true nelle voci della v3 per permettere l'aggiunta di nuovi volontari
+	 * 
+	 * Se non avessi fatto così avrei avuto due metodi praticamente uguali e ridondanza del codice
+	 * (se avete idee migliori aggiornatemi)
+	 */
+	public static void definizioneTipoVisita(boolean consentiNuoviVolontari) throws SQLException {
 		
 		//prima definisco il singolo tipo visita, e poi lo aggiungo alla lista listaTipoVisita 
 		
@@ -410,10 +481,40 @@ public class Menu{
 		Periodo periodoProgrammabile = ObjPeriodo();	
 		
 		boolean continuaVolontario = false;
-		int sceltaVolontario;
 		ListaVolontari volontariToAdd = new ListaVolontari();
+		int sceltaVolontario;
 		
+		//la modifica è qui all'interno del do while
 		do {
+			Volontario volontarioScelto = null;
+			
+			if(consentiNuoviVolontari) {
+				boolean aggiungiNuovo = InputDati.yesOrNo("Vuoi aggiungere un nuovo volontario? ");
+				
+				if(aggiungiNuovo) {
+					volontarioScelto = aggiungiNuovoVolontario();
+				}
+			}
+			
+			if(volontariToAdd.getVolontari().size()==listaVolontari.getVolontari().size()) {
+				System.out.println("Nessun volontario disponibile");
+				continuaVolontario=false;
+				break;
+			}
+			
+	        System.out.println("Elenco Volontari disponibili:");
+			for(int i= 0; i < listaVolontari.getVolontari().size();i++) {
+				Volontario v = listaVolontari.getVolontari().get(i);
+				System.out.println((i+1) + ")" + v.getCredenziali().getUsername());
+			}
+			
+			sceltaVolontario = InputDati.leggiInteroNonNegativo("Inserisci il numero del volontario da associare al tipo visita: ");
+			volontariToAdd.aggiungiVolontario(listaVolontari.getVolontario(sceltaVolontario - 1));
+			continuaVolontario = InputDati.yesOrNo("Vuoi associare un altro Volontario a questo Tipo Visita? ");
+			
+		}while(continuaVolontario);
+		
+		/*do {
 			if(volontariToAdd.getVolontari().size()==listaVolontari.getVolontari().size()) {
 				System.out.println("Nessun volontario disponibile");
 				continuaVolontario=false;
@@ -424,7 +525,7 @@ public class Menu{
 			sceltaVolontario = InputDati.leggiInteroNonNegativo("Inserisci il numero del volontario da associare al tipo visita: ");
 			volontariToAdd.aggiungiVolontario(listaVolontari.getVolontario(sceltaVolontario - 1));
 			continuaVolontario = InputDati.yesOrNo("Vuoi associare un altro Volontario a questo Tipo Visita? ");
-		} while(continuaVolontario);
+		} while(continuaVolontario);*/
 		
 		TipoVisita tipoVisita = new TipoVisita(titolo, descrizione,  puntoDiIncontro, giorniProgrammabiliSettimana, oraInizio,
 				durataVisita, biglietto, sogliaMinPartecipanti, sogliaMaxPartecipanti, periodoProgrammabile, volontariToAdd);
@@ -456,13 +557,7 @@ public class Menu{
 		
 		listaLuoghi = LuogoDAO.leggiTuttiLuoghi(listaTipoVisita);
 		listaLuoghi.stampaLuoghiConTipoVisita();
-		
-		//listaLuoghi
-		
-		
-		
-		
-		
+	
 		
 	}
 
@@ -570,9 +665,185 @@ public class Menu{
 	public static void modificaNumFruitore() {
 		nMaxPersone = InputDati.leggiInteroPositivo("Inserisci il numero massimo di persone che un fruitore puo' iscrivere a una iniziativa mediante una singola iscrizione: ");
 	}
+	
+	// NUOVO METODO!! PER GENERARE PIANO VISITE
+	public static void generaPianoVisite() {
+		System.out.println("\n===== Generazione del piano delle visite per il mese " + cal.getMeseI2() + " =====\n");
+	    
+		String meseConsiderato = cal.getMeseI2();
+		
+		try {
+			for(Volontario v : listaVolontari.getVolontari()) {
+				ArrayList<Disponibilita> disponibilitaVolontario = DisponibilitaDAO.leggiDisponibilitaVolontario(v.getNickname());
+				
+				for(Disponibilita d : disponibilitaVolontario) {
+					if(d.getMese().equalsIgnoreCase(meseConsiderato)) {
+					
+						ListaTipoVisita tipiVolontario = listaTipoVisita.getTipiPerVolontario(v.getNickname());
+						for(TipoVisita tipo : tipiVolontario.getTipi()) {
+							Data dataVisita = new Data(d.getGiorno(), cal.getMeseNumero(meseConsiderato));
+							Visita nuova = new Visita(tipo, v, StatoVisita.PROPOSTA, dataVisita);
+							listaVisite.aggiungiVisita(nuova);
+							
+							VisitaDAO.salvaVisita(nuova);
+						}
+					}
+				}
+			
+			}
+			
+			//System.out.println("Il piano delle visite e' stato generato con successo!");
+			listaVisite.stampaPianoVisite();
+			
+		}catch(SQLException e) {
+			System.out.println("Errore durante la generazione del piano delle visite: " + e.getMessage());
+		}
+	}
 
 
+	//NUOVO METODO PER CREARE NUOVO VOLONTARIO PER V3
+	
+	public static Volontario aggiungiNuovoVolontario() throws SQLException {
+	 
+	    String username = InputDati.leggiStringaNonVuota("Inserisci username per il nuovo volontario: ");
+	    String passwordPredefinita = "default"; //password iniziale predefinita per semplificare le cose l'ho intesa cosi se no non so come fare
+	    String utenza = "VOLONTARIO";
 
+	    Credenziali nuoveCred = new Credenziali(utenza, username, passwordPredefinita);
+	    Volontario nuovoVolontario = new Volontario(nuoveCred);
+
+	    // Salva nel DB e nella listaVolontari
+	    listaVolontari.aggiungiVolontario(nuovoVolontario);
+	    UtenteDao.inserisciNuovoVolontario(nuovoVolontario);
+
+	    System.out.println("\nNuovo volontario aggiunto con successo!");
+	    System.out.println("Username: " + username);
+	    System.out.println("Password predefinita: " + passwordPredefinita);
+	    System.out.println("------------------------------------------");
+
+	    return nuovoVolontario;
+	}
+	
+	//NUOVO METODO V3 PER AGGIUNGERE TIPO VISITA A LUOGO ESISTENTE 
+	//+ VOLONTARI NUOVI O GIA' ESISTENTI
+
+	private static void aggiungiTipoVisitaALuogo() throws SQLException{
+
+		if (listaLuoghi.getListaLuoghi().isEmpty()) {
+	        System.out.println("Non ci sono luoghi esistenti.");
+	        return;
+	    }
+		
+		//elenco dei luoghi esistenti
+		
+		System.out.println("Elenco dei luoghi esistenti:");
+	    for (int i = 0; i < listaLuoghi.getListaLuoghi().size(); i++) {
+	        Luogo l = listaLuoghi.getListaLuoghi().get(i);
+	        System.out.println((i + 1) + ") " + l.getNomeLuogo());
+	    }
+	    
+	    int sceltaLuogo = InputDati.leggiIntero("Seleziona il luogo a cui aggiungere tipi di visita: ",
+	    				1, listaLuoghi.getListaLuoghi().size());
+	    Luogo luogoScelto = listaLuoghi.getListaLuoghi().get(sceltaLuogo - 1);
+		
+		//fa vedere i tipi visita non ancora associati al luogo
+	    
+	    ListaTipoVisita tipiDisponibili = new ListaTipoVisita();
+	    for (TipoVisita t : listaTipoVisita.getTipi()) {
+	        if (!luogoScelto.getListaTipoVisita().getTipi().contains(t)) {
+	            tipiDisponibili.add(t);
+	        }
+	    }
+
+	    if (tipiDisponibili.getTipi().isEmpty()) {
+	        System.out.println("Tutti i tipi di visita sono già associati a questo luogo.");
+	        return;
+	    }
+	    
+	    boolean continuaAggiunta = true;
+	    do {
+	        System.out.println("Tipi di visita disponibili da aggiungere:");
+	        System.out.println(tipiDisponibili.toStringAsList());
+
+	        int sceltaTipo = InputDati.leggiIntero("Scegli il tipo di visita da aggiungere: ",
+	                                               1, tipiDisponibili.getTipi().size());
+	        TipoVisita tipoScelto = tipiDisponibili.getTipo(sceltaTipo - 1);
+
+	        // gestisce i volontari (nuovi o già esistenti)
+	        boolean aggiungiVolontari = InputDati.yesOrNo(
+	            "Vuoi aggiungere volontari (nuovi o esistenti) per questo tipo di visita?");
+	        if (aggiungiVolontari) {
+	            definizioneTipoVisita(true); //richiama metodo con true per i nuovi volontari
+	        }
+
+	        // aggiungi il tipo al luogo e salva le modifiche
+	        luogoScelto.getListaTipoVisita().add(tipoScelto);
+	        LuogoDAO.salvaLuogoCompleto(luogoScelto);
+
+	        continuaAggiunta = InputDati.yesOrNo("Vuoi aggiungere un altro tipo di visita a questo luogo?");
+	    } while (continuaAggiunta);
+
+	    System.out.println("Il luogo è stato correttamente modificato.");
+	    
+	}
+	
+	//NUOVO METODO V3 PER AGGIUNGERE VOLONTARIO NUOVO O ESISTENTE A TIPO VISITA ESISTENTE
+	private static void aggiungiVolontarioATipoVisita() throws SQLException{
+		
+		if (listaTipoVisita.getTipi().isEmpty()) {
+	        System.out.println("Non ci sono tipi di visita disponibili.");
+	        return;
+	    }
+
+	    // mostra elenco tipi visita
+	    System.out.println("Elenco tipi di visita:");
+	    for (int i = 0; i < listaTipoVisita.getTipi().size(); i++) {
+	        System.out.println((i + 1) + ") " + listaTipoVisita.getTipo(i).getTitolo());
+	    }
+
+	    int scelta = InputDati.leggiIntero("Scegli il numero del tipo visita: ", 1, listaTipoVisita.getTipi().size());
+	    TipoVisita tipoScelto = listaTipoVisita.getTipo(scelta - 1);
+
+	    System.out.println("\nHai selezionato: " + tipoScelto.getTitolo());
+
+	    boolean continua = true;
+	    do {
+	        // Chiedo se aggiungere nuovo volontario o uno già esistente
+	        boolean nuovo = InputDati.yesOrNo("Vuoi aggiungere un volontario ancora non registrato?");
+	        Volontario v;
+
+	        if (nuovo) {
+	            v = aggiungiNuovoVolontario(); // uso il metodo creato apposta
+	        } else {
+	            if (listaVolontari.getVolontari().isEmpty()) {
+	                System.out.println("Nessun volontario disponibile.");
+	                return;
+	            }
+
+	            System.out.println("Elenco volontari esistenti:");
+	            for (int i = 0; i < listaVolontari.getVolontari().size(); i++) {
+	                System.out.println((i + 1) + ") " + listaVolontari.getVolontari().get(i).getCredenziali().getUsername());
+	            }
+
+	            int sceltaVol = InputDati.leggiIntero("Scegli il numero del volontario: ", 1, listaVolontari.getVolontari().size());
+	            v = listaVolontari.getVolontario(sceltaVol - 1);
+	        }
+
+	        //salva nel db
+	        if (v != null) {
+	            tipoScelto.getListaVolontari().aggiungiVolontario(v);
+	            TipoVisitaDAO.gestisciOrfani(tipoScelto, v); 
+	            System.out.println("Volontario \"" + v.getCredenziali().getUsername() + "\" aggiunto a \"" + tipoScelto.getTitolo() + "\".");
+	        }
+
+	        continua = InputDati.yesOrNo("Vuoi aggiungerne un altro?");
+	    } while (continua);
+		
+	}
+
+
+	
+	
 	
 	public static Data ObjData (String descrizioneGiorno, String descrizioneMese) {
 		int giorno = InputDati.leggiIntero(descrizioneGiorno,1,31);

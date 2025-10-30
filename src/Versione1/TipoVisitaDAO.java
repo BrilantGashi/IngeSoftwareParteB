@@ -199,6 +199,7 @@ public class TipoVisitaDAO {
 	 
     public void collegaVolontariATipoVisita(Connection conn, int idTipoVisita, ListaVolontari lista) throws SQLException {
         String selectIdVolontario = "SELECT id FROM credenziali WHERE username = ?";
+        String checkEsistenza = "SELECT COUNT(*) FROM tipovisita_volontario WHERE fk_tipovisita = ? AND fk_volontario = ?";
         String insertAssociazione = "INSERT INTO tipovisita_volontario (fk_tipovisita, fk_volontario) VALUES (?, ?)";
 
         
@@ -206,7 +207,8 @@ public class TipoVisitaDAO {
             //conn.setAutoCommit(false); // transazione manuale
 
             try (PreparedStatement psSelect = conn.prepareStatement(selectIdVolontario);
-                 PreparedStatement psInsert = conn.prepareStatement(insertAssociazione)) {
+            		PreparedStatement psCheck = conn.prepareStatement(checkEsistenza);
+            		PreparedStatement psInsert = conn.prepareStatement(insertAssociazione)) {
 
                 for (Volontario volontario : lista.getVolontari()) {
                     // Cerca l'ID del volontario in base all'username
@@ -215,19 +217,32 @@ public class TipoVisitaDAO {
                         if (rs.next()) {
                             int idVolontario = rs.getInt("id");
 
-                            // Inserisce nella tabella ponte
-                            psInsert.setInt(1, idTipoVisita);
-                            psInsert.setInt(2, idVolontario);
-                            psInsert.executeUpdate();
+                            
+                            psCheck.setInt(1, idTipoVisita);
+                            psCheck.setInt(2, idVolontario);
+                            try (ResultSet rsCheck = psCheck.executeQuery()) {
+                                rsCheck.next();
+                                int count = rsCheck.getInt(1);
+                                
+                                if (count == 0) {
+                                	// Inserisce nella tabella ponte
+                                	psInsert.setInt(1, idTipoVisita);
+                                	psInsert.setInt(2, idVolontario);
+                                	psInsert.executeUpdate();
 
-                            System.out.println("Collegato volontario " + volontario.getNickname() + 
-                                               " (ID: " + idVolontario + ") al tipo visita " + idTipoVisita);
+                                	System.out.println("Collegato volontario " + volontario.getNickname() + 
+                                					" (ID: " + idVolontario + ") al tipo visita " + idTipoVisita);
+                                }else {
+                                	System.out.println(" Volontario " + volontario.getNickname() +
+                                    " già collegato a tipo visita " + idTipoVisita);
+                                }
+                            }
                         } else {
-                            System.out.println("Nessun volontario trovato per username: " + volontario.getNickname());
+                        	System.out.println("Nessun volontario trovato per username: " + volontario.getNickname());
                         }
                     }
                 }
-
+                    
                 conn.commit();
                 System.out.println("Tutti i volontari sono stati collegati con successo!");
             } catch (SQLException e) {
