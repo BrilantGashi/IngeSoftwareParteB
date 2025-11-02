@@ -79,8 +79,10 @@ public class Menu{
 		int sceltaMenuConfig;
 		//System.out.println("NON VANNO TUTTI, CONTROLLARE PRIMA DI PROCEDERE");
 		//LAIBA: ho tolto 0 - Torna al Menu Principale" perchï¿½ c'ï¿½ giï¿½ di default nel menu fplib. Stesso discorso per i numeri
-		String[] vociConfig = {"Creazione Corpo Dati", "Avvio Calendario", "Modifica num max per fruitore","Visualizza volontari" ,"Visualizza Luoghi", "Visualizza l'elenco dei tipi di visita associati a ciascun luogo", "Visualizza Stato Visite", 
-								"Genera piano delle visite", "Aggiungi nuovo luogo per visite guidate", "Aggiungi tipi visita a luogo esistente", "Aggiungi volontario a tipo visita"};
+		String[] vociConfig = {"Creazione Corpo Dati", "Avvio Calendario", "Modifica num max per fruitore","Visualizza volontari" ,
+								"Visualizza Luoghi", "Visualizza l'elenco dei tipi di visita associati a ciascun luogo", "Visualizza Stato Visite", 
+								"Genera piano delle visite", "Aggiungi nuovo luogo per visite guidate", "Aggiungi tipi visita a luogo esistente", 
+								"Aggiungi volontario a tipo visita", "Rimuovi Luogo","Rimuovi Tipo Visita","Rimuovi Volontario"};
 		//g.leggiUtentiDaFile(listaConfiguratore, listaVolontari);
 				
 		MyMenu menu = new MyMenu("Menu", vociConfig);
@@ -144,6 +146,18 @@ public class Menu{
 			case 11:
 				aggiungiVolontarioATipoVisita();
 				break;
+			case 12:
+				//rimuovere un luogo dall’elenco dei luoghi visitabili,
+				rimuoviLuogo();
+				break;
+			case 13:
+				//rimuovere un tipo di visita relativo a un luogo
+				rimuoviTipoVisitaDaLuogo();
+				break;
+			case 14:
+				// rimuovere un volontario dall’elenco dei volontari
+				rimuoviVolontario();
+				break;
 				
 			}
 			sceltaMenuConfig = menu.scegli();
@@ -152,7 +166,416 @@ public class Menu{
 		
 	}
 	
+	public static void rimuoviTipoVisitaDaLuogo() throws SQLException {
+	    System.out.println("================================================================");
+	    System.out.println("RIMOZIONE TIPO DI VISITA DA LUOGO");
+	    System.out.println("================================================================");
+	    
+	    // Mostra lista luoghi
+	    System.out.println("\nElenco Luoghi:");
+	    for (int i = 0; i < listaLuoghi.getListaLuoghi().size(); i++) {
+	        Luogo l = listaLuoghi.getListaLuoghi().get(i);
+	        System.out.println((i + 1) + ") " + l.getNomeLuogo());
+	    }
+	    
+	    int sceltaLuogo = InputDati.leggiInteroNonNegativo(
+	        "Seleziona il numero del luogo: "
+	    );
+	    
+	    if (sceltaLuogo < 1 || sceltaLuogo > listaLuoghi.getListaLuoghi().size()) {
+	        System.out.println("Selezione non valida!");
+	        return;
+	    }
+	    
+	    Luogo luogoScelto = listaLuoghi.getListaLuoghi().get(sceltaLuogo - 1);
+	    
+	    // Mostra tipi visita del luogo
+	    System.out.println("\nTipi visita per '" + luogoScelto.getNomeLuogo() + "':");
+	    ArrayList<TipoVisita> tipiDelLuogo = luogoScelto.getListaTipoVisita().getTipi();
+	    
+	    if (tipiDelLuogo.isEmpty()) {
+	        System.out.println("   Nessun tipo visita associato.");
+	        return;
+	    }
+	    
+	    for (int i = 0; i < tipiDelLuogo.size(); i++) {
+	        TipoVisita tv = tipiDelLuogo.get(i);
+	        System.out.println((i + 1) + ") " + tv.getTitolo() + 
+	                         " - Volontari: " + tv.getListaVolontari().getVolontari().size());
+	    }
+	    
+	    int sceltaTipo = InputDati.leggiInteroNonNegativo(
+	        "Seleziona il numero del tipo visita da rimuovere: "
+	    );
+	    
+	    if (sceltaTipo < 1 || sceltaTipo > tipiDelLuogo.size()) {
+	        System.out.println("Selezione non valida!");
+	        return;
+	    }
+	    
+	    TipoVisita tipoVisitaDaRimuovere = tipiDelLuogo.get(sceltaTipo - 1);
+	    String nomeTipo = tipoVisitaDaRimuovere.getTitolo();
+	    
+	    // Conferma eliminazione
+	    boolean conferma = InputDati.yesOrNo(
+	        "Sei sicuro di voler rimuovere il tipo visita '" + nomeTipo + "' dal luogo '" + 
+	        luogoScelto.getNomeLuogo() + "'? "
+	    );
+	    
+	    if (conferma) {
+	        // PASSO 1: Elimina il tipo visita completamente (con tutte le conseguenze)
+	        System.out.println("\nEliminazione tipo visita dal database...");
+	        TipoVisitaDAO.eliminaTipoVisita(tipoVisitaDaRimuovere);
+	        
+	        // PASSO 2: Rimuovi da listaTipoVisita
+	        listaTipoVisita.rimuovi(tipoVisitaDaRimuovere);
+	        
+	        // PASSO 3: Rimuovi da tutti i luoghi
+	        for (Luogo l : listaLuoghi.getListaLuoghi()) {
+	            l.getListaTipoVisita().rimuovi(tipoVisitaDaRimuovere);
+	        }
+	        
+	        // PASSO 4: Gestisci volontari orfani (senza più tipi visita)
+	        System.out.println("Verifica volontari orfani...");
+	        gestisciVolontariOrfani();
+	        
+	        // PASSO 5: Gestisci luoghi orfani (senza più tipi visita)
+	        System.out.println("Verifica luoghi orfani...");
+	        gestisciLuoghiOrfani();
+	        
+	        System.out.println("Tipo visita '" + nomeTipo + "' rimosso con successo!\n");
+	    } else {
+	        System.out.println("Operazione annullata.\n");
+	    }
+	}
 
+	
+	
+	
+	
+	//************************* INIZIO ELIMINAZIONE LUOGO ******************************
+	
+	
+	public static void rimuoviLuogo() throws SQLException {
+	    System.out.println("================================================================");
+	    System.out.println("INIZIO PROCEDURA ELIMINAZIONE LUOGHI, procedere con cautela.");
+	    System.out.println("================================================================");
+	    
+	    boolean continuaLuogo = false;
+	    
+	    do {
+	        // Mostra lista luoghi
+	        System.out.println("\nElenco Luoghi disponibili:");
+	        for (int i = 0; i < listaLuoghi.getListaLuoghi().size(); i++) {
+	            Luogo l = listaLuoghi.getListaLuoghi().get(i);
+	            System.out.println((i + 1) + ") " + l.getNomeLuogo());
+	        }
+	        
+	        int sceltaLuogo = InputDati.leggiInteroNonNegativo(
+	            "Inserisci il numero del luogo da rimuovere: "
+	        );
+	        
+	        if (sceltaLuogo < 1 || sceltaLuogo > listaLuoghi.getListaLuoghi().size()) {
+	            System.out.println("Selezione non valida!");
+	            continue;
+	        }
+	        
+	        Luogo luogoDaRimuovere = listaLuoghi.getListaLuoghi().get(sceltaLuogo - 1);
+	        String nomeLuogo = luogoDaRimuovere.getNomeLuogo();
+	        
+	        // Conferma eliminazione
+	        boolean conferma = InputDati.yesOrNo(
+	            "Sei sicuro di voler eliminare il luogo '" + nomeLuogo + "'? "
+	        );
+	        
+	        if (conferma) {
+	            // PASSO 1: Salva i tipi visita del luogo prima di eliminarli
+	            ArrayList<TipoVisita> tipiVisitaDaRimuovere = new ArrayList<>(
+	                luogoDaRimuovere.getListaTipoVisita().getTipi()
+	            );
+	            
+	            // PASSO 2: Elimina i tipi visita associati al luogo
+	            rimuoviTipiVisitaDaLuogo(luogoDaRimuovere, tipiVisitaDaRimuovere);
+	            
+	            // PASSO 3: Gestisci volontari orfani (senza più tipi visita)
+	            gestisciVolontariOrfani();
+	            
+	            // PASSO 4: Elimina il luogo dal database
+	            System.out.println("Eliminazione luogo dal database...");
+	            LuogoDAO.eliminaLuogo(luogoDaRimuovere);
+	            
+	            // PASSO 5: Rimuovi dalla lista locale
+	            listaLuoghi.rimuovi(luogoDaRimuovere);
+	            
+	            System.out.println("Luogo '" + nomeLuogo + "' eliminato con successo!\n");
+	        } else {
+	            System.out.println("Operazione annullata.\n");
+	        }
+	        
+	        continuaLuogo = InputDati.yesOrNo("Vuoi rimuovere un altro Luogo? ");
+	        
+	    } while (continuaLuogo);
+	    
+	    System.out.println("\nProcedura completata.");
+	}
+
+	private static void rimuoviTipiVisitaDaLuogo(Luogo luogo, ArrayList<TipoVisita> tipiVisitaDaRimuovere) throws SQLException {
+	    if (tipiVisitaDaRimuovere.isEmpty()) {
+	        System.out.println("Nessun tipo visita associato al luogo.");
+	        return;
+	    }
+	    
+	    System.out.println("Rimozione tipi visita associati al luogo...");
+	    System.out.println("Trovati " + tipiVisitaDaRimuovere.size() + " tipi visita da eliminare:");
+	    
+	    for (TipoVisita tv : tipiVisitaDaRimuovere) {
+	        System.out.println("      - " + tv.getTitolo());
+	        
+	        // Elimina il tipo visita (dal DB e da tutte le strutture)
+	        eliminaTipoVisitaCompleto(tv);
+	    }
+	}
+
+	private static void gestisciVolontariOrfani() throws SQLException {
+	    ArrayList<Volontario> volontariOrfani = new ArrayList<>();
+	    
+	    // Trova volontari che non hanno più tipi visita associati
+	    for (Volontario v : listaVolontari.getVolontari()) {
+	        boolean haAssociazioni = false;
+	        
+	        // Controlla se il volontario è presente in almeno un tipo visita
+	        for (TipoVisita tv : listaTipoVisita.getTipi()) {
+	            if (tv.getListaVolontari().getVolontari().contains(v)) {
+	                haAssociazioni = true;
+	                break;
+	            }
+	        }
+	        
+	        if (!haAssociazioni) {
+	            volontariOrfani.add(v);
+	        }
+	    }
+	    
+	    if (volontariOrfani.isEmpty()) {
+	        System.out.println("Nessun volontario orfano trovato.");
+	        return;
+	    }
+	    
+	    System.out.println("Trovati " + volontariOrfani.size() + " volontari senza tipi visita:");
+	    for (Volontario v : volontariOrfani) {
+	        System.out.println("      - " + v.getNickname());
+	    }
+	    
+	    // Elimina automaticamente (come da consegna)
+	    System.out.println("Eliminazione automatica volontari orfani...");
+	    for (Volontario v : volontariOrfani) {
+	        // Elimina dal database
+	        UtenteDAO.eliminaDaCredenziali(v);
+	        
+	        // Rimuovi dalla lista locale
+	        listaVolontari.rimuoviVolontario(v);
+	        
+	        System.out.println("Eliminato volontario: " + v.getNickname());
+	    }
+	}
+
+	private static void eliminaTipoVisitaCompleto(TipoVisita tipoVisita) throws SQLException {
+	    // 1. Elimina da database (con CASCADE elimina anche da luogo_tipo_visita e tipo_visita_giorni)
+	    TipoVisitaDAO.eliminaTipoVisita(tipoVisita);
+	    
+	    // 2. Rimuovi dalle associazioni volontari in memoria
+	    for (Volontario v : tipoVisita.getListaVolontari().getVolontari()) {
+	        // Nota: non eliminiamo il volontario, solo l'associazione
+	        // Il volontario potrebbe avere altri tipi visita
+	    }
+	    
+	    // 3. Rimuovi da listaTipoVisita
+	    listaTipoVisita.rimuovi(tipoVisita);
+	    
+	    // 4. Rimuovi da tutti i luoghi in memoria
+	    for (Luogo l : listaLuoghi.getListaLuoghi()) {
+	        l.getListaTipoVisita().rimuovi(tipoVisita);
+	    }
+	    
+	    System.out.println("Eliminato tipo visita: " + tipoVisita.getTitolo());
+	}
+
+	//************************* FINE ELIMINAZIONE LUOGO ******************************
+	
+	//************************* INIZIO ELIMINAZIONE VOLONTARIO ******************************
+	public static void rimuoviVolontario() throws SQLException {
+		System.out.println("================================================================");
+		System.out.println("INIZIO PROCEDURA ELIMINAZIONE VOLONTARI, procedere con cautela.");
+		System.out.println("================================================================");
+		
+		//fare vedere lista Volontari
+		//selezionare numero
+		//prima di eliminare volontario, deve essere eliminato dalle tabelle:
+		/*
+		 - VISITA --> NO, perchè sono visite ormai confermate
+		 - tipovisita_volontario
+		 - disponibilita
+		 - E PER ULTIMO da Credenziali	 
+		 
+		  
+		  
+		  ******************IMPORTANTE*******************
+		 se tipo visita rimane senza volontario: eliminare tale tipo visita
+		 se luogo rimane senza tipo visita: eliminare tale luogo
+		 * */
+		
+		//listaVolontari.stampaVolontari();
+		boolean continuaVolontario;
+		int sceltaVolontario;
+		Volontario volontarioDaRimuovere;
+		//ListaVolontari volontariToRem = new ListaVolontari();
+		do {
+
+			System.out.println("Elenco Volontari disponibili:");
+			for(int i= 0; i < listaVolontari.getVolontari().size();i++) {
+				Volontario v = listaVolontari.getVolontari().get(i);
+				System.out.println((i+1) + ")" + v.getCredenziali().getUsername());
+			}
+			
+			sceltaVolontario = InputDati.leggiInteroNonNegativo("Inserisci il numero del volontario da rimuovere: ");
+			//volontariToRem.aggiungiVolontario(listaVolontari.getVolontario(sceltaVolontario - 1));
+			volontarioDaRimuovere = listaVolontari.getVolontario(sceltaVolontario - 1);
+			String username = volontarioDaRimuovere.getNickname();
+			
+			 boolean conferma = InputDati.yesOrNo(
+			            "Sei sicuro di voler eliminare il volontario '" + username + "'? "
+			        );
+
+			 if (conferma) {
+				 // PASSO 1: Rimuovi volontario dalle associazioni nel db (da tipo visita e disponibilita)
+				 UtenteDAO.rimuoviVolontario(volontarioDaRimuovere);
+				 
+				// PASSO 2: Rimuovi volontario da listaTipoVisita in memoria
+			    rimuoviVolontarioDaTipiVisita(volontarioDaRimuovere);
+				 
+				 // PASSO 3: Trova e gestisci tipi visita orfani, cioè senza volontari, nel db e da lista luoghi
+				 gestisciTipiVisitaOrfani();
+				 
+				// PASSO 4: Rimuovi tipi visita orfani da listaLuoghi in memoria
+			    //rimuoviTipiVisitaOrfaniDaLuoghi();
+				 
+				 // PASSO 3: Trova e gestisci luoghi orfani
+				 gestisciLuoghiOrfani();				 
+	            
+				 // PASSO 4: SOLO ORA elimina il volontario da credenziali				 
+				 UtenteDAO.eliminaDaCredenziali(volontarioDaRimuovere);
+	            
+				 // PASSO 5: Rimuovi dalla lista locale
+				 listaVolontari.rimuoviVolontario(volontarioDaRimuovere);
+				 //BISOGNA ANCHE RIMUOVERE IL TIPO VISITA/VOLONTARIO SINGOLO DA LISTALUOGO
+				 
+				 System.out.println("Volontario '" + username + "' eliminato con successo!\n");
+			 }
+			
+			
+			
+			
+			//check tipo visita e luogo
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			continuaVolontario = InputDati.yesOrNo("Vuoi rimuovere un altro Volontario? ");
+			
+		} while (continuaVolontario);
+		System.out.println("\nProcedura completata.");
+		
+		
+		
+	}
+	
+	
+	private static void rimuoviVolontarioDaTipiVisita(Volontario volontarioDaRimuovere) {
+	    for (TipoVisita tv : listaTipoVisita.getTipi()) {
+	        ListaVolontari volontariTipoVisita = tv.getListaVolontari();
+	        volontariTipoVisita.rimuoviVolontario(volontarioDaRimuovere);
+	    }
+	    System.out.println("Volontario rimosso dai tipi visita in memoria");
+	}
+
+	
+	private static void gestisciTipiVisitaOrfani() throws SQLException {
+	    //TipoVisitaDAO tipoVisitaDAO = new TipoVisitaDAO();
+	    
+	    // Trova tutti i tipi visita senza volontari
+	    ArrayList<TipoVisita> tipiOrfani = TipoVisitaDAO.trovaTipiVisitaOrfani(listaTipoVisita);
+	    
+	    if (tipiOrfani.isEmpty()) {
+	        System.out.println("Nessun tipo visita orfano trovato.");
+	        return;
+	    }
+	    
+	    System.out.println("Trovati " + tipiOrfani.size() + " tipi visita senza volontari:");
+	    for (TipoVisita tv : tipiOrfani) {
+	        System.out.println("      - " + tv.getTitolo());
+	    }
+	    
+	   /* boolean conferma = InputDati.yesOrNo(
+	        "    Eliminare i tipi visita orfani? "
+	    );
+	    
+	    if (conferma) {*/
+	        for (TipoVisita tv : tipiOrfani) {
+	        	TipoVisitaDAO.eliminaTipoVisita(tv);
+	            listaTipoVisita.rimuovi(tv); // Rimuovi anche dalla lista locale
+	            for (Luogo luogo : listaLuoghi.getListaLuoghi()) {
+	                luogo.getListaTipoVisita().rimuovi(tv);
+	            }
+	            System.out.println("Eliminato tipo visita: " + tv.getTitolo());
+	        }
+	    /*} else {
+	        System.out.println("     Tipi visita orfani mantenuti.");
+	    }*/
+	}
+
+	private static void gestisciLuoghiOrfani() throws SQLException {
+	    //LuogoDAO luogoDAO = new LuogoDAO();
+	    
+	    // Trova tutti i luoghi senza tipi visita
+	    ArrayList<Luogo> luoghiOrfani = LuogoDAO.trovaLuoghiOrfani(listaLuoghi);
+	    
+	    if (luoghiOrfani.isEmpty()) {
+	        System.out.println("Nessun luogo orfano trovato.");
+	        return;
+	    }
+	    
+	    System.out.println("Trovati " + luoghiOrfani.size() + " luoghi senza tipi visita:");
+	    for (Luogo l : luoghiOrfani) {
+	        System.out.println("      - " + l.getNomeLuogo());
+	    }
+	    
+	    /*boolean conferma = InputDati.yesOrNo(
+	        "    Eliminare i luoghi orfani? "
+	    );
+	    
+	    if (conferma) {*/
+	        for (Luogo l : luoghiOrfani) {
+	        	LuogoDAO.eliminaLuogo(l);
+	            listaLuoghi.rimuovi(l); // Rimuovi anche dalla lista locale
+	            System.out.println("Eliminato luogo: " + l.getNomeLuogo());
+	        }
+	    /*} else {
+	        System.out.println("     Luoghi orfani mantenuti.");
+	    }*/
+	}
+
+	//************************* FINE ELIMINAZIONE VOLONTARIO ******************************
 	
 	public static void volontario (int okCred, String nickname) throws Exception {
 		/*
@@ -882,7 +1305,13 @@ public class Menu{
 	    String nomeStrada = InputDati.leggiStringaNonVuota("Inserisci il nome della Strada: ");
 	    String numeroCivico = InputDati.leggiStringaNonVuota("Inserisci il numero civico: ");
 
+	    
+	    capAmbito = ambito.getCap();
+	    //non capisco il senso di capAmbito se ce l'abbiamo nell'oggetto ambito. 
+	    //sovrascrivo capAmbito al posto di modificarlo ogni volta con capAmbito
+	    
 	    System.out.println("Seleziona un CAP valido:");
+	    //for (int i = 0; i < ambito.getCap().size(); i++) {
 	    for (int i = 0; i < capAmbito.size(); i++) {
 	        System.out.println((i + 1) + ". " + capAmbito.get(i));
 	    }

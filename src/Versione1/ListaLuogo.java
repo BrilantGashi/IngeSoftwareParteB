@@ -50,6 +50,24 @@ public class ListaLuogo {
         this.listaLuoghi = new ArrayList<>(listaLuoghi);
         assert invClass() : "Invariante violato in setListaLuoghi";
     }
+    
+    
+    public Luogo cercaPerNome(String titolo) {
+        if (titolo == null || titolo.isBlank()) {
+            throw new IllegalArgumentException("Username non valido");
+        }
+        //ListaTipoVisita tipiDisponibiliPerVolontario = new ListaTipoVisita();
+        for (Luogo l : listaLuoghi) {
+            if (l.getNomeLuogo().equals(titolo)) {
+                return l;
+            }
+        }
+        return null;
+    }
+    
+    public void rimuovi (Luogo l) {
+    	listaLuoghi.remove(l);
+    }
 
     // ================== METODI DI STAMPA ==================
 

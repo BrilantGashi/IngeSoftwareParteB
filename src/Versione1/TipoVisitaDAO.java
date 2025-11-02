@@ -297,7 +297,8 @@ public class TipoVisitaDAO {
   	//*********************** LETTURA**** ***********************************
   	//=======================================================================
     
- // Legge tutti i TipoVisita dal database
+ 
+    // Legge tutti i TipoVisita dal database
     public ListaTipoVisita leggiTuttiTipiVisita(ListaVolontari listaV) throws SQLException, FileNotFoundException, IOException {
     	ListaTipoVisita listaTipi = new ListaTipoVisita();
         //ArrayList<TipoVisita> listaTipi = new ArrayList<>();
@@ -348,7 +349,8 @@ public class TipoVisitaDAO {
         
         return listaTipi;
     }
- // Metodo ausiliario per leggere i volontari associati a un tipo visita
+ 
+    // Metodo ausiliario per leggere i volontari associati a un tipo visita
     private ListaVolontari leggiVolontariPerTipoVisita(Connection conn, int idTipoVisita, ListaVolontari listaV) throws SQLException, FileNotFoundException, IOException {
         ListaVolontari listaVolontari = new ListaVolontari();
         UtenteDAO UtenteDAO = new UtenteDAO();
@@ -390,7 +392,8 @@ public class TipoVisitaDAO {
         
         return listaVolontari;
     }
- // Metodo ausiliario per leggere i giorni associati a un tipo visita
+ 
+    // Metodo ausiliario per leggere i giorni associati a un tipo visita
     private ArrayList<Giorni> leggiGiorniPerTipoVisita(Connection conn, int idTipoVisita) throws SQLException {
         ArrayList<Giorni> giorniList = new ArrayList<>();
         String sql = "SELECT g.NOME FROM giorni g " +
@@ -419,8 +422,146 @@ public class TipoVisitaDAO {
         return giorniList;
     }
 
-    //metodo per popolare listaVolontari
+    //metodo per vedere se tipo visita è rimasto senza volontari
+    private void checkVolontari () {
+    	
+    }
+    
+    //=======================================================================
+	//*********************** ELIMINAZIONE **********************************
+    //=======================================================================
     
     
+    
+    public ArrayList<TipoVisita> trovaTipiVisitaOrfani(ListaTipoVisita listaTipoVisita) throws SQLException {
+        ArrayList<TipoVisita> tipiOrfani = new ArrayList<>();
+        
+        // Query che trova tipi visita SENZA associazioni in tipovisita_volontario
+        String sql = "SELECT tv.ID, tv.TITOLO, tv.DESCRIZIONE " +
+                     "FROM tipo_visita tv " +
+                     "WHERE tv.ID NOT IN ( " +
+                     "    SELECT DISTINCT fk_tipovisita " +
+                     "    FROM tipovisita_volontario " +
+                     ") " +
+                     "ORDER BY tv.TITOLO";
+        
+        try (Connection conn = ConnessioneDB.startConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            while (rs.next()) {
+                String titolo = rs.getString("TITOLO");
+                
+                // Cerca nella lista globale
+                TipoVisita tv = listaTipoVisita.cercaPerTitolo(titolo);
+                if (tv != null) {
+                    tipiOrfani.add(tv);
+                }
+            }
+        }
+        
+        return tipiOrfani;
+    }
+
+   public void eliminaTipoVisita(TipoVisita tipoVisita) throws SQLException {
+    // 0. Trova l'ID del periodo prima di eliminare il tipo visita
+    String selectPeriodoSql = "SELECT FK_PERIODO FROM tipo_visita " +
+                              "WHERE TITOLO = ? AND DESCRIZIONE = ? AND PUNTO_INCONTRO = ?";
+    
+    // 1. Elimina da tipovisita_volontario
+    String deleteTipoVisitaVolontarioSql = "DELETE FROM tipovisita_volontario " +
+                                            "WHERE FK_TIPOVISITA IN " +
+                                            "(SELECT ID FROM tipo_visita WHERE TITOLO = ? AND DESCRIZIONE = ? AND PUNTO_INCONTRO = ?)";
+    
+    // 2. Elimina da tipo_visita_giorni
+    String deleteTipoVisitaGiorniSql = "DELETE FROM tipo_visita_giorni " +
+                                        "WHERE FK_TIPOVISITA IN " +
+                                        "(SELECT ID FROM tipo_visita WHERE TITOLO = ? AND DESCRIZIONE = ? AND PUNTO_INCONTRO = ?)";
+    
+    // 3. Elimina da luogo_tipo_visita
+    String deleteLuogoAssocSql = "DELETE FROM luogo_tipo_visita " +
+                                  "WHERE FK_TIPO_VISITA IN " +
+                                  "(SELECT ID FROM tipo_visita WHERE TITOLO = ? AND DESCRIZIONE = ? AND PUNTO_INCONTRO = ?)";
+    
+    // 4. Elimina il tipo visita
+    String deleteTipoVisitaSql = "DELETE FROM tipo_visita WHERE TITOLO = ? AND DESCRIZIONE = ? AND PUNTO_INCONTRO = ?";
+    
+    // 5. Elimina il periodo programmabile
+    String deletePeriodoSql = "DELETE FROM periodo_programmabile WHERE ID = ?";
+    
+    try (Connection conn = ConnessioneDB.startConnection()) {
+        conn.setAutoCommit(false);
+        
+        try {
+            Integer idPeriodo = null;
+            
+            // 0. Trova l'ID del periodo associato
+            try (PreparedStatement ps = conn.prepareStatement(selectPeriodoSql)) {
+                ps.setString(1, tipoVisita.getTitolo());
+                ps.setString(2, tipoVisita.getDescrizione());
+                ps.setString(3, tipoVisita.getPuntoDiIncontro());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        idPeriodo = rs.getInt("FK_PERIODO");
+                    }
+                }
+            }
+            
+            // 1. Elimina da tipovisita_volontario
+            try (PreparedStatement ps = conn.prepareStatement(deleteTipoVisitaVolontarioSql)) {
+                ps.setString(1, tipoVisita.getTitolo());
+                ps.setString(2, tipoVisita.getDescrizione());
+                ps.setString(3, tipoVisita.getPuntoDiIncontro());
+                ps.executeUpdate();
+            }
+            
+            // 2. Elimina da tipo_visita_giorni
+            try (PreparedStatement ps = conn.prepareStatement(deleteTipoVisitaGiorniSql)) {
+                ps.setString(1, tipoVisita.getTitolo());
+                ps.setString(2, tipoVisita.getDescrizione());
+                ps.setString(3, tipoVisita.getPuntoDiIncontro());
+                ps.executeUpdate();
+            }
+            
+            // 3. Elimina da luogo_tipo_visita
+            try (PreparedStatement ps = conn.prepareStatement(deleteLuogoAssocSql)) {
+                ps.setString(1, tipoVisita.getTitolo());
+                ps.setString(2, tipoVisita.getDescrizione());
+                ps.setString(3, tipoVisita.getPuntoDiIncontro());
+                ps.executeUpdate();
+            }
+            
+            // 4. Elimina da tipo_visita
+            try (PreparedStatement ps = conn.prepareStatement(deleteTipoVisitaSql)) {
+                ps.setString(1, tipoVisita.getTitolo());
+                ps.setString(2, tipoVisita.getDescrizione());
+                ps.setString(3, tipoVisita.getPuntoDiIncontro());
+                int righe = ps.executeUpdate();
+                
+                if (righe == 0) {
+                    System.out.println("Nessun tipo visita eliminato");
+                }
+            }
+           
+            // 5. Elimina periodo programmabile (ora non ci sono più vincoli)
+            if (idPeriodo != null) {
+                try (PreparedStatement ps = conn.prepareStatement(deletePeriodoSql)) {
+                    ps.setInt(1, idPeriodo);
+                    int righe = ps.executeUpdate();
+                    if (righe > 0) {
+                        System.out.println("Periodo programmabile eliminato");
+                    }
+                }
+            }
+            
+            conn.commit();
+            
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        }
+    }
+}
+
 
 }

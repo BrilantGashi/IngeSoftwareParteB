@@ -73,6 +73,71 @@ public class LuogoDAO {
         }
     }
 
+    
+    public ArrayList<Luogo> trovaLuoghiOrfani(ListaLuogo listaLuoghi) throws SQLException {
+        ArrayList<Luogo> luoghiOrfani = new ArrayList<>();
+        
+        // Query che trova luoghi SENZA associazioni in luogo_tipo_visita
+        String sql = "SELECT l.ID, l.NOME, l.DESCRIZIONE " +
+                     "FROM luogo l " +
+                     "WHERE l.ID NOT IN ( " +
+                     "    SELECT DISTINCT FK_LUOGO " +
+                     "    FROM luogo_tipo_visita " +
+                     ") " +
+                     "ORDER BY l.NOME";
+        
+        try (Connection conn = ConnessioneDB.startConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            while (rs.next()) {
+                String nome = rs.getString("NOME");
+                
+                // Cerca nella lista globale
+                Luogo luogo = listaLuoghi.cercaPerNome(nome);
+                if (luogo != null) {
+                    luoghiOrfani.add(luogo);
+                }
+            }
+        }
+        
+        return luoghiOrfani;
+    }
+
+    public void eliminaLuogo(Luogo l) throws SQLException {
+        // Prima elimina indirizzo se necessario, poi luogo
+        String deleteIndirizzoSql = "DELETE FROM indirizzo " +
+                                     "WHERE ID = (SELECT FK_INDIRIZZO FROM luogo WHERE NOME = ?)";
+        
+        String deleteLuogoSql = "DELETE FROM luogo WHERE NOME = ?";
+        
+        try (Connection conn = ConnessioneDB.startConnection()) {
+            conn.setAutoCommit(false);
+            
+            try {
+                
+                
+                // 2. Elimina luogo
+                try (PreparedStatement ps = conn.prepareStatement(deleteLuogoSql)) {
+                    ps.setString(1, l.getNomeLuogo());
+                    ps.executeUpdate();
+                }
+             // 1. Elimina indirizzo
+                try (PreparedStatement ps = conn.prepareStatement(deleteIndirizzoSql)) {
+                    ps.setString(1, l.getNomeLuogo());
+                    ps.executeUpdate();
+                }
+                conn.commit();
+                
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+        }
+    }
+
+    
+    
     // Associa i tipi visita al luogo
     /*private void associaTipiVisita(Connection conn, int idLuogo, List<TipoVisita> tipiVisita) throws SQLException {
         String sql = "INSERT INTO luogo_tipo_visita (FK_LUOGO, FK_TIPO_VISITA) VALUES (?, ?)";

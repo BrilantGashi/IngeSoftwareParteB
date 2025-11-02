@@ -35,6 +35,10 @@ public class ListaVolontari {
         assert invClass() : "Invariante violato in aggiungiVolontario";
     }
     
+    public void rimuoviVolontario (Volontario v) {
+    	volontari.remove(v);
+    }
+    
     /**
      * Cerca un volontario per nickname.
      * PRECONDIZIONE: nickname != null && !nickname.isBlank()

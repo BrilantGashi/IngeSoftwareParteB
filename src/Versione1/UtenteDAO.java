@@ -173,5 +173,76 @@ public class UtenteDAO {
 		
 	}
 
+	public static void rimuoviVolontario(Volontario v) throws SQLException {
+		
+	    String selectIdSql = "SELECT ID FROM credenziali WHERE USERNAME = ?";
+	    String deleteVisiteSql = "DELETE FROM tipovisita_volontario WHERE fk_volontario = ?";
+	    String deleteDisponibilitaSql = "DELETE FROM disponibilita WHERE fk_volontario = ?";
+	    
+	    try (Connection conn = ConnessioneDB.startConnection()) {
+	        conn.setAutoCommit(false); // Inizia transazione
+	        
+	        try {
+	            int idVolontario = -1;
+	            
+	            // 1. Trova l'ID del volontario
+	            try (PreparedStatement ps = conn.prepareStatement(selectIdSql)) {
+	                ps.setString(1, v.getNickname());
+	                try (ResultSet rs = ps.executeQuery()) {
+	                    if (rs.next()) {
+	                        idVolontario = rs.getInt("ID");
+	                    } else {
+	                        throw new SQLException("Volontario non trovato: " + v.getNickname());
+	                    }
+	                }
+	            }
+	            
+	            // 2. Elimina da tipovisita_volontario
+	            try (PreparedStatement ps = conn.prepareStatement(deleteVisiteSql)) {
+	                ps.setInt(1, idVolontario);
+	                int righeEliminateVisite = ps.executeUpdate();
+	                System.out.println("Eliminate " + righeEliminateVisite + " associazioni visite");
+	            }
+	            
+	            // 3. Elimina da disponibilità
+	            try (PreparedStatement ps = conn.prepareStatement(deleteDisponibilitaSql)) {
+	                ps.setInt(1, idVolontario);
+	                int righeEliminateDisp = ps.executeUpdate();
+	                System.out.println("Eliminate " + righeEliminateDisp + " disponibilità");
+	            }
+	            
+	            conn.commit(); // Conferma transazione
+	            System.out.println("Associazioni volontario eliminate con successo!");
+	            
+	        } catch (SQLException e) {
+	            conn.rollback(); // Annulla tutto in caso di errore
+	            throw e;
+	        }
+	    }
+		
+	}
 	
+	public static void eliminaDaCredenziali(Volontario v) throws SQLException {
+	    String deleteSql = "DELETE FROM credenziali WHERE USERNAME  = ?";
+	    
+	    try (Connection conn = ConnessioneDB.startConnection();
+	         PreparedStatement ps = conn.prepareStatement(deleteSql)) {
+	        
+	        ps.setString(1, v.getNickname());
+	        int righe = ps.executeUpdate();
+	        
+	        if (righe > 0) {
+	            System.out.println("Volontario eliminato da credenziali");
+	        } else {
+	            System.out.println("Nessuna riga eliminata da credenziali");
+	        }
+	    }
+	}
+
+	
+
+
+
+
+
 }

@@ -32,6 +32,9 @@ public class ListaTipoVisita {
         assert invClass() : "Invariante violato in add";
     }
 
+    public void rimuovi(TipoVisita tipoVisita) {
+    	tipi.remove(tipoVisita);
+    }
     /**
      * Restituisce la lista dei tipi di visita.
      * POSTCONDIZIONE: ritorna una lista non null (può essere vuota).
