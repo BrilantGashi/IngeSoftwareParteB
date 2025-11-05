@@ -133,4 +133,20 @@ public class Luogo {
         if (listaTipoVisita == null || listaTipoVisita.getTipi() == null || listaTipoVisita.getTipi().isEmpty()) return false;
         return true;
     }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Luogo luogo = (Luogo) obj;
+        return Objects.equals(nomeLuogo, luogo.nomeLuogo) &&
+               Objects.equals(descrizione, luogo.descrizione) &&
+               Objects.equals(indirizzo, luogo.indirizzo);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(nomeLuogo, descrizione, indirizzo);
+    }
+
 }

@@ -97,19 +97,40 @@ public class Periodo {
         Objects.requireNonNull(altro.dataInizio, "Data inizio del periodo di confronto non può essere null");
         Objects.requireNonNull(altro.dataFine, "Data fine del periodo di confronto non può essere null");
 
-        // Caso 1: questo periodo finisce prima che inizi l'altro
-        if (this.dataFine.precede(altro.dataInizio)) {
-            return false;
+        // Controlla se un periodo attraversa il capodanno (dataFine < dataInizio)
+        boolean thisAttraversaCapodanno = this.dataFine.precede(this.dataInizio);
+        boolean altroAttraversaCapodanno = altro.dataFine.precede(altro.dataInizio);
+
+        // CASO 1: Nessuno dei due periodi attraversa il capodanno
+        if (!thisAttraversaCapodanno && !altroAttraversaCapodanno) {
+            // Logica normale: si intersecano se non sono completamente separati
+            return !(this.dataFine.precede(altro.dataInizio) || altro.dataFine.precede(this.dataInizio));
         }
 
-        // Caso 2: l'altro periodo finisce prima che inizi questo
-        if (altro.dataFine.precede(this.dataInizio)) {
-            return false;
+        // CASO 2: Entrambi attraversano il capodanno
+        if (thisAttraversaCapodanno && altroAttraversaCapodanno) {
+            // Entrambi sono attivi per tutto l'anno (con buchi), quindi si intersecano sempre
+            return true;
         }
 
-        // Altrimenti c'è almeno una sovrapposizione
-        return true;
+        // CASO 3: Solo THIS attraversa il capodanno
+        if (thisAttraversaCapodanno && !altroAttraversaCapodanno) {
+            // THIS è attivo da 1/1 a dataFine E da dataInizio a 31/12
+            // Si interseca se altro cade in uno di questi due intervalli
+            return !altro.dataInizio.precede(this.dataFine) || !this.dataInizio.precede(altro.dataFine);
+        }
+
+        // CASO 4: Solo ALTRO attraversa il capodanno
+        if (!thisAttraversaCapodanno && altroAttraversaCapodanno) {
+            // ALTRO è attivo da 1/1 a dataFine E da dataInizio a 31/12
+            // Si interseca se this cade in uno di questi due intervalli
+            return !this.dataInizio.precede(altro.dataFine) || !altro.dataInizio.precede(this.dataFine);
+        }
+
+        // Non dovrebbe mai arrivare qui
+        return false;
     }
+
     
     @Override
     public String toString() {

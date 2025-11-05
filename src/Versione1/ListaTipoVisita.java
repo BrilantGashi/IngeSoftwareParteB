@@ -3,6 +3,8 @@ package Versione1;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import it.unibs.fp.mylib.InputDati;
+
 public class ListaTipoVisita {
     private ArrayList<TipoVisita> tipi;
 
@@ -99,6 +101,23 @@ public class ListaTipoVisita {
         }
         return null;
     }
+    
+    /**
+     * Stampa l'elenco numerato e permette la selezione interattiva di un tipo visita.
+     * PRECONDIZIONE: tipi non vuota
+     * POSTCONDIZIONE: ritorna il TipoVisita selezionato o null se lista vuota
+     */
+    public TipoVisita selezionaTipoVisita() {
+        if (tipi == null || tipi.isEmpty()) {
+            System.out.println("Nessun tipo visita disponibile.");
+            return null;
+        }
+
+        stampaElencoNumeratoConVolontari();
+        int scelta = InputDati.leggiIntero("Seleziona il numero del tipo visita: ", 1, tipi.size());
+        return tipi.get(scelta - 1);
+    }
+
 
     
     
@@ -171,4 +190,23 @@ public class ListaTipoVisita {
         }
         return true;
     }
+    
+    /**
+     * Stampa l'elenco numerato dei tipi di visita con titolo e numero di volontari.
+     * PRECONDIZIONE: tipi != null
+     * POSTCONDIZIONE: stampa tutti i tipi di visita numerati (o messaggio se vuota).
+     */
+    public void stampaElencoNumeratoConVolontari() {
+        if (tipi == null || tipi.isEmpty()) {
+            System.out.println("Nessun tipo visita disponibile.");
+            return;
+        }
+
+        for (int i = 0; i < tipi.size(); i++) {
+            TipoVisita tv = tipi.get(i);
+            int numVolontari = tv.getListaVolontari().getVolontari().size();
+            System.out.println((i + 1) + ") " + tv.getTitolo() + " - Volontari: " + numVolontari);
+        }
+    }
+
 }

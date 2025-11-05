@@ -3,6 +3,8 @@ package Versione1;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import it.unibs.fp.mylib.InputDati;
+
 public class ListaLuogo {
     private ArrayList<Luogo> listaLuoghi;
 
@@ -68,6 +70,17 @@ public class ListaLuogo {
     public void rimuovi (Luogo l) {
     	listaLuoghi.remove(l);
     }
+    
+    public Luogo selezionaLuogo() {
+        if (listaLuoghi == null || listaLuoghi.isEmpty()) {
+            System.out.println("Nessun luogo disponibile.");
+            return null;
+        }
+
+        stampaElencoNumerato();
+        int scelta = InputDati.leggiIntero("Scegli un luogo: ", 1, listaLuoghi.size());
+        return listaLuoghi.get(scelta - 1);
+    }
 
     // ================== METODI DI STAMPA ==================
 
@@ -82,12 +95,19 @@ public class ListaLuogo {
             return;
         }
 
-        StringBuilder sb = new StringBuilder("===== ELENCO LUOGHI =====\n");
+        StringBuilder sb = new StringBuilder();
+        sb.append("Elenco luoghi\n");
+        sb.append("-----------------------------------------------\n");
+
         for (Luogo l : listaLuoghi) {
             sb.append(stampaLuogo(l, true));
+            sb.append("-----------------------------------------------\n"); // Separatore dopo ogni luogo
         }
         System.out.println(sb.toString());
     }
+
+    
+    
 
     /**
      * Stampa i luoghi senza i tipi di visita.
@@ -100,36 +120,73 @@ public class ListaLuogo {
             return;
         }
 
-        StringBuilder sb = new StringBuilder("======= ELENCO LUOGHI =======\n");
+        StringBuilder sb = new StringBuilder();
+        sb.append("Elenco luoghi\n");
+        sb.append("-----------------------------------------------\n");
+
         for (Luogo l : listaLuoghi) {
             sb.append(stampaLuogo(l, false));
+            sb.append("-----------------------------------------------\n");  // Separatore dopo ogni luogo
         }
         System.out.println(sb.toString());
     }
+
+
 
     // Metodo privato di supporto
     private String stampaLuogo(Luogo l, boolean conVisite) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("Nome         : ").append(l.getNomeLuogo()).append("\n");
-        sb.append("Descrizione  : ").append(l.getDescrizione()).append("\n");
+        sb.append("Nome        : ").append(l.getNomeLuogo()).append("\n");
+        sb.append("Descrizione : ").append(l.getDescrizione()).append("\n");
 
         if (l.getIndirizzo() != null) {
-            sb.append("Indirizzo    : ").append(l.getIndirizzo().toString()).append("\n");
+            sb.append("Indirizzo   : ").append(l.getIndirizzo().toString()).append("\n");
         }
 
         if (conVisite) {
-            sb.append("Tipo Visita associati:\n");
-            if (l.getListaTipoVisita() != null) {
-                sb.append(l.getListaTipoVisita().toStringAsList()).append("\n");
+            sb.append("Tipi visita associati:\n");
+            if (l.getListaTipoVisita() != null && !l.getListaTipoVisita().getTipi().isEmpty()) {
+                for (TipoVisita tv : l.getListaTipoVisita().getTipi()) {
+                    sb.append("\tTitolo      : ").append(tv.getTitolo()).append("\n");
+                    sb.append("\tDescrizione : ").append(tv.getDescrizione()).append("\n");
+                    // Altri attributi, sempre indentati
+                }
             } else {
-                sb.append("Nessun tipo di visita disponibile.\n");
+                sb.append("\tNessun tipo di visita disponibile.\n");
             }
         }
-
-        sb.append("-----------------------------------\n");
+        // La linea separatrice (più o meno lunga a piacere)
+        sb.append("-----------------------------------------------\n");
         return sb.toString();
     }
+
+    
+    /**
+     * Stampa l'elenco dei luoghi in formato numerato.
+     * PRECONDIZIONE: listaLuoghi != null
+     * POSTCONDIZIONE: stampa tutti i luoghi numerati (o messaggio se vuota).
+     */
+    public void stampaElencoNumerato() {
+        if (listaLuoghi == null || listaLuoghi.isEmpty()) {
+            System.out.println("Nessun luogo disponibile.");
+            return;
+        }
+
+        System.out.println("===== ELENCO LUOGHI =====");
+        for (int i = 0; i < listaLuoghi.size(); i++) {
+            Luogo l = listaLuoghi.get(i);
+            System.out.println((i + 1) + ") " + l.getNomeLuogo());
+        }
+    }
+    
+    /**
+     * Stampa l'elenco numerato e permette la selezione di un luogo.
+     * PRECONDIZIONE: listaLuoghi non vuota
+     * POSTCONDIZIONE: ritorna il Luogo selezionato o null se lista vuota
+     */
+    
+
 
     // ================== INVARIANTE ==================
     private boolean invClass() {
@@ -138,5 +195,9 @@ public class ListaLuogo {
             if (l == null) return false;
         }
         return true;
+    }
+    
+    public boolean contains(Luogo luogo) {
+        return listaLuoghi.contains(luogo);
     }
 }

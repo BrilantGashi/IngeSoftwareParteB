@@ -11,15 +11,15 @@ public class DisponibilitaDAO {
 	
 	/*
 	 * classe per la gestione della disponibilita' dei volontari, permette
-	 * di salvare e leggere i giorni in cui un volontario è disponibile	
+	 * di salvare e leggere i giorni in cui un volontario ï¿½ disponibile	
 	 */
 
 	public void salvaDisponibilita(String username, int giorno, String mese) throws SQLException {
 		
-		//controlla se esiste già una disponibilità
+		//controlla se esiste giï¿½ una disponibilitï¿½
 		String checkSql = "SELECT COUNT(*) FROM disponibilita WHERE username = ? AND giorno = ? AND mese = ?";
 		
-		//inserisce nuova disponibilità dopo aver verificato che non esiste già
+		//inserisce nuova disponibilitï¿½ dopo aver verificato che non esiste giï¿½
 		String insertSql = "INSERT INTO disponibilita (username, giorno, mese) VALUES (?, ?, ?)";
 	
 		try(Connection conn = ConnessioneDB.startConnection();
@@ -35,12 +35,12 @@ public class DisponibilitaDAO {
 			ResultSet rs = checkPs.executeQuery();
 			
 			//sposto il cursore alla prima riga e prende la prima colonna, ossia il risultato di count
-			//count = 0 --> non esiste disponibilità per quel mese
-			//count = 1 --> esiste disponibilità 
+			//count = 0 --> non esiste disponibilitï¿½ per quel mese
+			//count = 1 --> esiste disponibilitï¿½ 
 			rs.next();
 			int count = rs.getInt(1);
 			
-			//inserisco la nuova disponibilità solo se non esiste
+			//inserisco la nuova disponibilitï¿½ solo se non esiste
 			if (count == 0) {
 				insertPs.setString(1, username);
 				insertPs.setInt(2, giorno);
@@ -65,8 +65,15 @@ public class DisponibilitaDAO {
 		ArrayList<Disponibilita> listaDisponibilita = new ArrayList<>();
 		
 		//prende tutte le righe della tabella disponibilita' dove
-		//lo username è uguale a quello passato come parametro
-		String query = "SELECT giorno, mese FROM disponibilita WHERE username = ?";
+		//lo username ï¿½ uguale a quello passato come parametro
+		//String query = "SELECT giorno, mese FROM disponibilita WHERE username = ?";
+		String query = 
+			    "SELECT d.giorno, d.mese " +
+			    "FROM disponibilita d " +
+			    "INNER JOIN credenziali c ON d.fk_volontario = c.ID " +
+			    "WHERE c.USERNAME = ?";
+
+		
 		
 		try (Connection conn = ConnessioneDB.startConnection();
 			 PreparedStatement ps = conn.prepareStatement(query)) {
@@ -93,15 +100,15 @@ public class DisponibilitaDAO {
 	
 	
 	
-	//stampa le disponibilità di un volontario
+	//stampa le disponibilitï¿½ di un volontario
 	
 	public void stampaDisponibilitaVolontario(String username) throws SQLException {
 		ArrayList<Disponibilita> listaDisponibilita = leggiDisponibilitaVolontario(username);
 		
 		if (listaDisponibilita.isEmpty()) {
-            System.out.println("Nessuna disponibilità trovata per " + username);
+            System.out.println("Nessuna disponibilitï¿½ trovata per " + username);
         } else {
-            System.out.println("===== DISPONIBILITÀ DI " + username.toUpperCase() + " =====");
+            System.out.println("===== DISPONIBILITï¿½ DI " + username.toUpperCase() + " =====");
             for (Disponibilita d : listaDisponibilita) {
                 System.out.println("- Giorno " + d.getGiorno() + " di " + d.getMese());
             }

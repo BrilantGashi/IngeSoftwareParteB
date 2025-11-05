@@ -243,9 +243,9 @@ public class TipoVisita {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("=================================================================================================================================\n");
-    sb.append("|                   TIPO VISITA                  ||\n");
-        sb.append("=================================================================================================================================\n");
+        sb.append("|=================================================|\n");
+        sb.append("|                   TIPO VISITA                   |\n");
+        sb.append("|=================================================|\n");
 
         sb.append("Titolo: ").append(titolo).append("\n");
         sb.append("Descrizione: ").append(descrizione).append("\n");
@@ -290,7 +290,7 @@ public class TipoVisita {
         }
         sb.append("\n");
 
-        sb.append("=================================================================================================================================\n");
+        sb.append("=================================================\n");
         return sb.toString();
     }
 
@@ -339,6 +339,22 @@ public class TipoVisita {
         if (oraInizio == null) return false;
         return true;
     }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        TipoVisita that = (TipoVisita) obj;
+        return Objects.equals(titolo, that.titolo) &&
+               Objects.equals(descrizione, that.descrizione) &&
+               Objects.equals(puntoDiIncontro, that.puntoDiIncontro);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(titolo, descrizione, puntoDiIncontro);
+    }
+
 
 	
 }

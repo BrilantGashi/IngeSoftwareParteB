@@ -1,23 +1,21 @@
 package Versione1;
 import java.sql.*;
-import java.util.*;
 
 public class AmbitoTerritorialeDAO {
 
     public int salvaAmbitoTerritoriale(AmbitoTerritoriale ambito) throws SQLException {
-        String insertAmbitoSql = "INSERT INTO ambito_territoriale (provincia) VALUES (?)";
-        String insertCapSql = "INSERT INTO cap_ambito (cap, fk_ambito) VALUES (?, ?)";
+        String insertAmbitoSql = "INSERT INTO ambito_territoriale (provincia, comune, cap) VALUES (?,?,?)";
 
         int idAmbitoGenerato = -1;
 
         try (Connection conn = ConnessioneDB.startConnection()) {
             conn.setAutoCommit(false);
 
-            try (PreparedStatement psAmbito = conn.prepareStatement(insertAmbitoSql, Statement.RETURN_GENERATED_KEYS);
-                 PreparedStatement psCap = conn.prepareStatement(insertCapSql)) {
+            try (PreparedStatement psAmbito = conn.prepareStatement(insertAmbitoSql, Statement.RETURN_GENERATED_KEYS)) {
 
-                // Inserisci provincia e prendi ID generato
                 psAmbito.setString(1, ambito.getProvincia());
+                psAmbito.setString(2, ambito.getComune());
+                psAmbito.setInt(3, ambito.getCap());
                 int righe = psAmbito.executeUpdate();
 
                 if (righe == 0) {
@@ -30,13 +28,6 @@ public class AmbitoTerritorialeDAO {
                     } else {
                         throw new SQLException("Creazione ambito territoriale fallita, nessun ID generato.");
                     }
-                }
-
-                // Inserisci i CAP collegati
-                for (Integer cap : ambito.getCap()) {
-                    psCap.setInt(1, cap);
-                    psCap.setInt(2, idAmbitoGenerato);
-                    psCap.executeUpdate();
                 }
 
                 conn.commit();
@@ -52,52 +43,25 @@ public class AmbitoTerritorialeDAO {
         return idAmbitoGenerato;
     }
 
-    //=======================================================================
-  	//*********************** LETTURA**** ***********************************
-  	//=======================================================================
-    
- // Legge tutti gli ambiti territoriali dal database
+    // Legge tutti gli ambiti territoriali dal database (ritorna il primo/ultimo trovato; per restituirli tutti, usa una lista).
     public AmbitoTerritoriale leggiTuttiAmbitiTerritoriali() throws SQLException {
-        AmbitoTerritoriale ambito = new AmbitoTerritoriale();
-        
-        String sql = "SELECT ID, PROVINCIA FROM ambito_territoriale";
-        
+        AmbitoTerritoriale ambito = null;
+
+        String sql = "SELECT ID, PROVINCIA, COMUNE, CAP FROM ambito_territoriale";
+
         try (Connection conn = ConnessioneDB.startConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-            
+
             while (rs.next()) {
-                int idAmbito = rs.getInt("ID");
                 String provincia = rs.getString("PROVINCIA");
-                
-                // Leggi i CAP associati
-                ArrayList<Integer> capList = leggiCapPerAmbito(conn, idAmbito);
-                
-                // Crea oggetto AmbitoTerritoriale
-                ambito = new AmbitoTerritoriale(capList, provincia);
-                //listaAmbiti.add(ambito);
+                String comune = rs.getString("COMUNE");
+                int cap = rs.getInt("CAP");
+
+                ambito = new AmbitoTerritoriale(cap, provincia, comune);
+                // Se vuoi restituirli tutti, metti questi oggetti in una lista e restituiscila.
             }
         }
-        
         return ambito;
     }
-
-    // Metodo ausiliario per leggere i CAP di un ambito
-    private ArrayList<Integer> leggiCapPerAmbito(Connection conn, int idAmbito) throws SQLException {
-        ArrayList<Integer> capList = new ArrayList<>();
-        String sql = "SELECT CAP FROM cap_ambito WHERE fk_ambito = ?";
-        
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, idAmbito);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    capList.add(rs.getInt("CAP"));
-                }
-            }
-        }
-        return capList;
-    }
-
-
-
 }

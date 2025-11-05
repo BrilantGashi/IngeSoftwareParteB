@@ -69,4 +69,18 @@ public class Volontario extends Utente {
         if (nickname == null || nickname.isBlank()) return false;
         return true;
     }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Volontario that = (Volontario) obj;
+        return Objects.equals(credenziali.getUsername(), that.credenziali.getUsername());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(credenziali.getUsername());
+    }
+
 }

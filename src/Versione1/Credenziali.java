@@ -68,10 +68,11 @@ public class Credenziali {
      * POSTCONDIZIONE: ritorna -1 se password errata,
      *                 1 se primo accesso,
      *                 0 se credenziali corrette
+     * @throws SQLException 
      */
-    public int controllaCredenziali(String usernameP, String passwordP) throws FileNotFoundException, IOException {
-        Objects.requireNonNull(usernameP, "Username non può essere null");
-        Objects.requireNonNull(passwordP, "Password non può essere null");
+    public int controllaCredenziali(String usernameP, String passwordP) throws FileNotFoundException, IOException, SQLException {
+        Objects.requireNonNull(usernameP, "Username non puï¿½ essere null");
+        Objects.requireNonNull(passwordP, "Password non puï¿½ essere null");
 
         if (!passwordP.equals(password)) {
             return -1;
@@ -153,14 +154,15 @@ public class Credenziali {
      * Verifica se Ã¨ il primo accesso (password di default).
      * PRECONDIZIONE: username != null && password != null
      * POSTCONDIZIONE: ritorna true sse password == "default"
+     * @throws SQLException 
      */
-    public boolean verificaPrimoAccesso(String username, String password) throws FileNotFoundException, IOException {
+    public boolean verificaPrimoAccesso(String username, String password) throws FileNotFoundException, IOException, SQLException {
         Objects.requireNonNull(username, "Username non puÃ² essere null");
         Objects.requireNonNull(password, "Password non puÃ² essere null");
 
         if (password.equalsIgnoreCase("default")) {
             String nuovaPass = InputDati.leggiStringaNonVuota("Inserisci la nuova password: ");
-            // setPassword(nuovaPass); // da abilitare per aggiornare anche su file
+            setPassword(nuovaPass); // da abilitare per aggiornare anche su file
             return true;
         }
         return false;

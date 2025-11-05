@@ -138,7 +138,6 @@ public class ListaVolontari {
             	//visita.getListaVolontari().stampaVolontari();
             	//boolean tmpCheck = visita.getListaVolontari().getVolontari().contains(v);
             	boolean tmpCheck = visita.getListaVolontari().contienePerNickname(v.getNickname());
-            	System.out.println(tmpCheck);
                 if (tmpCheck) {
                     visiteAssociate.add(visita);
                 }
