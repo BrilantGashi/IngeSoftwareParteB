@@ -5,18 +5,18 @@ import java.util.Objects;
 public class Luogo {
     private String descrizione;
     private Indirizzo indirizzo;
-    private ListaTipoVisita listaTipoVisita; // deve contenere almeno un tipo di visita
+    private ListaTipoVisita listaTipoVisita;
     private String nomeLuogo;
+    private boolean isAttivo;  // ✅ Cambiato da public a private
 
     /**
      * INVARIANTI DI CLASSE:
      * - nomeLuogo != null && !nomeLuogo.isBlank()
      * - descrizione != null && !descrizione.isBlank()
-     * - indirizzo != null (ogni luogo deve avere un indirizzo valido)
+     * - indirizzo != null
      * - listaTipoVisita != null && listaTipoVisita.getTipi() != null && !listaTipoVisita.getTipi().isEmpty()
      */
 
-    // Costruttore vuoto (per XML o framework di serializzazione)
     public Luogo() {}
 
     /**
@@ -28,6 +28,7 @@ public class Luogo {
      * - listaTipoVisita != null && contiene almeno un tipo di visita
      * POSTCONDIZIONI:
      * - i campi dell'oggetto coincidono con i parametri passati
+     * - isAttivo == true
      */
     public Luogo(String nomeLuogo, String descrizione, Indirizzo indirizzo, ListaTipoVisita listaTipoVisita) {
         if (nomeLuogo == null || nomeLuogo.isBlank()) throw new IllegalArgumentException("Nome luogo non valido");
@@ -41,7 +42,7 @@ public class Luogo {
         this.descrizione = descrizione;
         this.indirizzo = indirizzo;
         this.listaTipoVisita = listaTipoVisita;
-
+        this.isAttivo = true;  // Di default è attivo
         assert invClass() : "Invariante violato nel costruttore";
     }
 
@@ -50,6 +51,13 @@ public class Luogo {
     public Indirizzo getIndirizzo() { return indirizzo; }
     public ListaTipoVisita getListaTipoVisita() { return listaTipoVisita; }
     public String getNomeLuogo() { return nomeLuogo; }
+    
+    // ✅ AGGIUNTO getter per isAttivo
+    /**
+     * Restituisce lo stato di attivazione del luogo.
+     * POSTCONDIZIONE: ritorna true se attivo, false se disattivato
+     */
+    public boolean isAttivo() { return isAttivo; }
 
     // ================== SETTERS ==================
 
@@ -99,13 +107,26 @@ public class Luogo {
         assert invClass() : "Invariante violato in setNomeLuogo";
     }
 
+    // ✅ AGGIUNTO setter per isAttivo
+    /**
+     * Imposta lo stato di attivazione del luogo.
+     * POSTCONDIZIONE: this.isAttivo == attivo
+     */
+    public void setAttivo(boolean attivo) {
+        this.isAttivo = attivo;
+        assert this.isAttivo == attivo : "Postcondizione violata in setAttivo";
+    }
+
     // ================== METODI DI UTILITÀ ==================
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
         sb.append("===== LUOGO =====\n");
-        sb.append("Nome: ").append(nomeLuogo != null ? nomeLuogo : "N/D").append("\n");
+        sb.append("Nome: ").append(nomeLuogo != null ? nomeLuogo : "N/D");
+        // ✅ AGGIUNTO stato attivo
+        sb.append(isAttivo ? " [ATTIVO]" : " [DISATTIVATO]").append("\n");
+        
         sb.append("Descrizione: ").append(descrizione != null ? descrizione : "N/D").append("\n");
 
         if (indirizzo != null) {
@@ -148,5 +169,4 @@ public class Luogo {
     public int hashCode() {
         return Objects.hash(nomeLuogo, descrizione, indirizzo);
     }
-
 }

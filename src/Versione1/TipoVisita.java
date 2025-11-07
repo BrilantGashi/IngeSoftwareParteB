@@ -17,6 +17,7 @@ public class TipoVisita {
     private int sogliaMinPartecipanti;
     private String titolo;
     private ListaVolontari volontari;
+    private boolean isAttivo;  // ✅ Cambiato da public a private
 
     /**
      * INVARIANTI DI CLASSE:
@@ -46,6 +47,7 @@ public class TipoVisita {
      * - volontari != null
      * POSTCONDIZIONI:
      * - i campi dell'oggetto coincidono con i parametri passati
+     * - isAttivo == true
      */
     public TipoVisita(String titolo, String descrizione, String puntoDiIncontro, ArrayList<Giorni> giorniSettimanaProgrammabile,
                       LocalTime oraInizio, int durataVisita, boolean biglietto,
@@ -74,7 +76,7 @@ public class TipoVisita {
         this.sogliaMaxPartecipanti = sogliaMaxPartecipanti;
         this.periodoProgrammabile = periodoProgrammabile;
         this.volontari = volontari;
-
+        this.isAttivo = true;  // ✅ Di default è attivo
         assert invClass() : "Invariante violato nel costruttore";
     }
 
@@ -90,6 +92,7 @@ public class TipoVisita {
     public int getSogliaMinPartecipanti() { return sogliaMinPartecipanti; }
     public String getTitolo() { return titolo; }
     public boolean isBiglietto() { return biglietto; }
+    public boolean isAttivo() { return isAttivo; }
 
     // ================== SETTERS ==================
 
@@ -159,6 +162,16 @@ public class TipoVisita {
         assert invClass() : "Invariante violato in setTitolo";
     }
 
+    // ✅ AGGIUNTO setter per isAttivo
+    /**
+     * Imposta lo stato di attivazione del tipo visita.
+     * POSTCONDIZIONE: this.isAttivo == attivo
+     */
+    public void setAttivo(boolean attivo) {
+        this.isAttivo = attivo;
+        assert this.isAttivo == attivo : "Postcondizione violata in setAttivo";
+    }
+
     /**
      * Verifica se un volontario con username è associato a questo tipo di visita.
      * PRECONDIZIONE: username != null && !username.isBlank()
@@ -179,27 +192,6 @@ public class TipoVisita {
     /**
      * Determina se due visite si sovrappongono nello stesso giorno della settimana
      * e nello stesso periodo programmabile.
-     *
-     * PRECONDIZIONI:
-     * - this != null
-     * - altra != null
-     * - this.oraInizio != null e altra.oraInizio != null
-     * - this.durataVisita > 0 e altra.durataVisita > 0
-     * - this.giorniSettimanaProgrammabile != null e non vuota
-     * - altra.giorniSettimanaProgrammabile != null e non vuota
-     * - this.periodoProgrammabile != null e altra.periodoProgrammabile != null
-     * - this.periodoProgrammabile.dataInizio <= this.periodoProgrammabile.dataFine
-     * - altra.periodoProgrammabile.dataInizio <= altra.periodoProgrammabile.dataFine
-     *
-     * POSTCONDIZIONI:
-     * - Restituisce true se:
-     *   1) i due periodi programmabili si intersecano almeno in parte
-     *   2) esiste almeno un giorno della settimana in comune
-     *   3) gli intervalli orari [oraInizio, oraFine) si sovrappongono anche solo parzialmente
-     * - Restituisce false se almeno una delle condizioni sopra non è soddisfatta
-     *
-     * @param altra altro TipoVisita da confrontare
-     * @return true se le due visite si sovrappongono, false altrimenti
      */
     public boolean siSovrappongono(TipoVisita altra) {
         Objects.requireNonNull(altra, "Il TipoVisita di confronto non può essere null");
@@ -235,11 +227,6 @@ public class TipoVisita {
         return false;
     }
     
-    
-
-
-
-    
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -247,7 +234,8 @@ public class TipoVisita {
         sb.append("|                   TIPO VISITA                   |\n");
         sb.append("|=================================================|\n");
 
-        sb.append("Titolo: ").append(titolo).append("\n");
+        sb.append("Titolo: ").append(titolo);
+        
         sb.append("Descrizione: ").append(descrizione).append("\n");
         sb.append("Biglietto richiesto: ").append(biglietto ? "Sì" : "No").append("\n");
         sb.append("Durata visita: ").append(durataVisita).append(" minuti\n");
@@ -298,7 +286,8 @@ public class TipoVisita {
     public String toStringSemplificato() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("Titolo: ").append(titolo).append("\n");
+        sb.append("Titolo: ").append(titolo);
+                
         sb.append("Descrizione: ").append(descrizione).append("\n");
 
         sb.append("Giorni disponibili: ");
@@ -354,7 +343,5 @@ public class TipoVisita {
     public int hashCode() {
         return Objects.hash(titolo, descrizione, puntoDiIncontro);
     }
-
-
-	
 }
+

@@ -10,7 +10,7 @@ public class UtenteDAO {
         String query = "SELECT credenziali.USERNAME, credenziali.PASSWORD, tipologiautente.TIPO " +
                 "FROM credenziali " +
                 "JOIN tipologiautente ON credenziali.ID_TIPOUTENTE = tipologiautente.ID " +
-                "WHERE credenziali.USERNAME = ?;";
+                "WHERE credenziali.USERNAME = ? AND credenziali.ISATTIVO = true";  // ✅ Solo attivi
 
         try (Connection conn = ConnessioneDB.startConnection();
              PreparedStatement ps = conn.prepareStatement(query)) {
@@ -18,7 +18,6 @@ public class UtenteDAO {
             ps.setString(1, username);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    // Trim to remove possible leading/trailing whitespace or CRLF
                     String utenza = rs.getString("TIPO");
                     String user = rs.getString("USERNAME");
                     String pass = rs.getString("PASSWORD");
@@ -38,9 +37,28 @@ public class UtenteDAO {
         }
         return null;
     }
+    
+    public static int trovaIdVolontarioDaNickname(String nickname) throws SQLException {
+        String query = "SELECT ID FROM credenziali WHERE USERNAME = ? AND ISATTIVO = true";
+        int idVolontario = -1;
+
+        try (Connection conn = ConnessioneDB.startConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, nickname);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    idVolontario = rs.getInt("ID");
+                } else {
+                    System.out.println("Volontario non trovato per username: " + nickname);
+                }
+            }
+        }
+        return idVolontario; // -1 se non trovato
+    }
+
 
     public void stampaCredenziale(String username) {
-        //String[] dati = leggiSingolaCredenziale(username);
         Credenziali dati = leggiSingolaCredenziale(username);
 
         if (dati != null) {
@@ -59,8 +77,8 @@ public class UtenteDAO {
 
         String query = "UPDATE credenziali "
                     + " JOIN tipologiautente ON credenziali.ID_TIPOUTENTE = tipologiautente.ID "
-                    + "\tSET credenziali.PASSWORD=? "
-                    + " WHERE credenziali.USERNAME=?;";
+                    + " SET credenziali.PASSWORD=? "
+                    + " WHERE credenziali.USERNAME=? AND credenziali.ISATTIVO = true";  // ✅ Solo attivi
 
         try (Connection conn = ConnessioneDB.startConnection();
              PreparedStatement ps = conn.prepareStatement(query)) {
@@ -79,12 +97,10 @@ public class UtenteDAO {
     }
 
     public void leggiUtentiDaDB(ArrayList<Configuratore> configuratori, ListaVolontari volontari) throws SQLException, FileNotFoundException, IOException {
-        String sql = "SELECT id, username, password, id_tipoutente FROM credenziali";
+        String sql = "SELECT id, username, password, id_tipoutente FROM credenziali WHERE ISATTIVO = true";  // ✅ Solo attivi
 
-        // Lista temporanea per salvare i dati letti dal DB
         ArrayList<DatiUtente> datiUtenti = new ArrayList<>();
 
-        // Leggi tutti i dati dal database
         try (Connection conn = ConnessioneDB.startConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -93,13 +109,11 @@ public class UtenteDAO {
                 int idTipoUtente = rs.getInt("id_tipoutente");
                 String username = rs.getString("username");
                 String password = rs.getString("password");
-                // Salva i dati in una struttura temporanea
                 datiUtenti.add(new DatiUtente(username, password, idTipoUtente));
             }
         }
-        // Ora crea gli oggetti dalle informazioni salvate
+        
         for (DatiUtente dati : datiUtenti) {
-
             Credenziali cred = leggiSingolaCredenziale(dati.username);
 
             switch (dati.idTipoUtente) {
@@ -110,15 +124,13 @@ public class UtenteDAO {
                     volontari.aggiungiVolontario(new Volontario(cred));
                     break;
                 case 3:
-                    // gestisci fruitore se serve, es:
-                    // fruitori.add(new Fruitore(dati.username, dati.password));
+                    // gestisci fruitore se serve
                     break;
                 default:
             }
         }
     }
 
-    // Classe interna privata per memorizzare temporaneamente i dati
     private static class DatiUtente {
         String username;
         String password;
@@ -131,27 +143,23 @@ public class UtenteDAO {
         }
     }
 
-    //NUOVO METODO PER LA GESTIONE DEI NUOVI VOLONTARI 
-    //CHE SI POSSONO INSERIRE NELLA V3
-
     public void inserisciNuovoVolontario (Volontario v) throws SQLException {
-        String sql = "INSERT INTO credenziali (USERNAME, PASSWORD, ID_TIPOUTENTE) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO credenziali (USERNAME, PASSWORD, ID_TIPOUTENTE, ISATTIVO) VALUES (?, ?, ?, ?)";  // ✅ Aggiunto ISATTIVO
 
         try (Connection conn = ConnessioneDB.startConnection();
              PreparedStatement ps = conn.prepareStatement(sql)){
 
-            ps.setString(1,  v.getCredenziali().getUsername());
-            ps.setString(2,  v.getCredenziali().getPassword());
-            ps.setInt(3, 2); // 2 = ID, e' il volontario nella tabella tipologiautente
+            ps.setString(1, v.getCredenziali().getUsername());
+            ps.setString(2, v.getCredenziali().getPassword());
+            ps.setInt(3, 2); // 2 = volontario
+            ps.setBoolean(4, true);  // ✅ Default: attivo quando viene creato
             ps.executeUpdate();
 
-            System.out.println("Nuovo volontario salvato" + v.getCredenziali().getUsername());
+            System.out.println("Nuovo volontario salvato: " + v.getCredenziali().getUsername());
         } catch (SQLException e) {
             System.out.println("Errore durante l'inserimento del nuovo volontario: " + e.getMessage());
             throw e;
         }
-
-
     }
 
     public static void rimuoviVolontario(Volontario v) throws SQLException {
@@ -161,7 +169,7 @@ public class UtenteDAO {
         String deleteDisponibilitaSql = "DELETE FROM disponibilita WHERE fk_volontario = ?";
 
         try (Connection conn = ConnessioneDB.startConnection()) {
-            conn.setAutoCommit(false); // Inizia transazione
+            conn.setAutoCommit(false);
 
             try {
                 int idVolontario = -1;
@@ -185,45 +193,41 @@ public class UtenteDAO {
                     System.out.println("Eliminate " + righeEliminateVisite + " associazioni visite");
                 }
 
-                // 3. Elimina da disponibilit�
+                // 3. Elimina da disponibilità
                 try (PreparedStatement ps = conn.prepareStatement(deleteDisponibilitaSql)) {
                     ps.setInt(1, idVolontario);
                     int righeEliminateDisp = ps.executeUpdate();
-                    System.out.println("Eliminate " + righeEliminateDisp + " disponibilit�");
+                    System.out.println("Eliminate " + righeEliminateDisp + " disponibilità");
                 }
 
-                conn.commit(); // Conferma transazione
+                conn.commit();
                 System.out.println("Associazioni volontario eliminate con successo!");
 
             } catch (SQLException e) {
-                conn.rollback(); // Annulla tutto in caso di errore
+                conn.rollback();
                 throw e;
             }
         }
-
     }
 
-    public static void eliminaDaCredenziali(Volontario v) throws SQLException {
-        String deleteSql = "DELETE FROM credenziali WHERE USERNAME  = ?";
-
+    public static void eliminaDaCredenziali(Volontario volontario) throws SQLException {
+        String updateSql = "UPDATE credenziali SET ISATTIVO = false WHERE USERNAME = ?";  // ✅ Corretto con ISATTIVO
+        
         try (Connection conn = ConnessioneDB.startConnection();
-             PreparedStatement ps = conn.prepareStatement(deleteSql)) {
-
-            ps.setString(1, v.getNickname());
+             PreparedStatement ps = conn.prepareStatement(updateSql)) {
+            
+            ps.setString(1, volontario.getNickname());
+            
             int righe = ps.executeUpdate();
-
+            
             if (righe > 0) {
-                System.out.println("Volontario eliminato da credenziali");
+                System.out.println("✓ Volontario disattivato");
             } else {
-                System.out.println("Nessuna riga eliminata da credenziali");
+                System.out.println("⚠️  Volontario non trovato");
             }
+        } catch (SQLException e) {
+            System.out.println("❌ Errore: " + e.getMessage());
+            throw e;
         }
     }
-
-
-
-
-
-
-
 }

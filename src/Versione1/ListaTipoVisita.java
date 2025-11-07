@@ -34,9 +34,7 @@ public class ListaTipoVisita {
         assert invClass() : "Invariante violato in add";
     }
 
-    public void rimuovi(TipoVisita tipoVisita) {
-    	tipi.remove(tipoVisita);
-    }
+    
     /**
      * Restituisce la lista dei tipi di visita.
      * POSTCONDIZIONE: ritorna una lista non null (può essere vuota).
@@ -82,12 +80,55 @@ public class ListaTipoVisita {
         }
         ListaTipoVisita tipiDisponibiliPerVolontario = new ListaTipoVisita();
         for (TipoVisita visita : tipi) {
-            if (visita.volontarioTrovato(username)) {
+            if (visita.volontarioTrovato(username) && visita.isAttivo()) {
                 tipiDisponibiliPerVolontario.add(visita);
             }
         }
         return tipiDisponibiliPerVolontario;
     }
+
+    public ListaTipoVisita trovaTipiVisitaOrfani() {
+    	ListaTipoVisita orfani = new ListaTipoVisita();
+        for (TipoVisita tv : this.getTipi()) { // oppure: for (TipoVisita tv : tipi)
+            if (tv.isAttivo()) {
+                boolean haVolontarioAttivo = false;
+                for (Volontario v : tv.getListaVolontari().getVolontari()) {
+                    if (v.isAttivo()) {
+                        haVolontarioAttivo = true;
+                        break;
+                    }
+                }
+                if (!haVolontarioAttivo) {
+                    orfani.add(tv);
+                }
+            }
+        }
+        return orfani;
+    }
+
+    public boolean isAggiungibile(TipoVisita visitaSelezionata, ListaTipoVisita listaTipoVisitaToAdd) {
+    		boolean duplicato = false;
+		    boolean sovrapposta = false;		    
+		    // Controlli su duplicati e sovrapposizioni
+		    for (TipoVisita v : listaTipoVisitaToAdd.getTipi()) {
+		        if (v.equals(visitaSelezionata)) {
+		            System.out.println("Attenzione: hai selezionato un Tipo Visita già associato!");
+		            duplicato = true;
+		            break;
+		        } else if (v.siSovrappongono(visitaSelezionata)) {
+		            System.out.println("Attenzione: questa visita si sovrappone ad un'altra già programmata per lo stesso giorno!");
+		            sovrapposta = true;
+		            break;
+		        }
+		    }
+		    
+		    // Se non è duplicata né sovrapposta, la aggiungo
+		    if (!duplicato && !sovrapposta) {
+		        return true;
+		    }
+		    return false;
+    }
+
     
     public TipoVisita cercaPerTitolo(String titolo) {
         if (titolo == null || titolo.isBlank()) {
@@ -95,7 +136,7 @@ public class ListaTipoVisita {
         }
         //ListaTipoVisita tipiDisponibiliPerVolontario = new ListaTipoVisita();
         for (TipoVisita visita : tipi) {
-            if (visita.getTitolo().equals(titolo)) {
+            if (visita.getTitolo().equals(titolo) && visita.isAttivo()==true) {
                 return visita;
             }
         }
@@ -112,83 +153,93 @@ public class ListaTipoVisita {
             System.out.println("Nessun tipo visita disponibile.");
             return null;
         }
+        // Filtra solo tipi visita attivi
+        ArrayList<TipoVisita> tipiAttivi = new ArrayList<>();
+        for (TipoVisita tv : tipi) {
+            if (tv.isAttivo()) tipiAttivi.add(tv);
+        }
+        if (tipiAttivi.isEmpty()) {
+            System.out.println("Nessun tipo visita attivo disponibile.");
+            return null;
+        }
 
-        stampaElencoNumeratoConVolontari();
-        int scelta = InputDati.leggiIntero("Seleziona il numero del tipo visita: ", 1, tipi.size());
-        return tipi.get(scelta - 1);
+        // Stampa elenco SOLO di tipi attivi
+        for (int i = 0; i < tipiAttivi.size(); i++) {
+            int numVolontari = tipiAttivi.get(i).getListaVolontari().getVolontari().size();
+            System.out.println((i + 1) + ") " + tipiAttivi.get(i).getTitolo() + " - Volontari: " + numVolontari);
+        }
+        int scelta = InputDati.leggiIntero("Seleziona il numero del tipo visita: ", 1, tipiAttivi.size());
+        return tipiAttivi.get(scelta - 1);
     }
 
 
+
     
     
     
     
-    @Override
     public String toString() {
         if (tipi == null || tipi.isEmpty()) {
             return "Nessun tipo di visita disponibile.";
         }
-
         StringBuilder sb = new StringBuilder();
-        sb.append("===== ELENCO TIPI DI VISITA =====\n");
-
+        sb.append("===== ELENCO TIPI DI VISITA ATTIVI =====\n");
         int i = 1;
+        boolean almenoUnoStampato = false;
         for (TipoVisita tv : tipi) {
-            sb.append(i++).append(") ").append(tv.getTitolo() != null ? tv.getTitolo() : "Senza titolo").append("\n");
-            sb.append("   Descrizione: ").append(tv.getDescrizione() != null ? tv.getDescrizione() : "N/D").append("\n");
-
-            sb.append("   Giorni in cui la visita è programmabile: ");
-            if (tv.getGiorniSettimanaProgrammabile() != null) {
-                for (int j = 0; j < tv.getGiorniSettimanaProgrammabile().size(); j++) {
-                    Giorni g = tv.getGiorniSettimanaProgrammabile().get(j);
-                    sb.append(Giorni.getNomeGiorno(g.ordinal() + 1));
-                    if (j < tv.getGiorniSettimanaProgrammabile().size() - 1) {
-                        sb.append(", ");
+            if (tv.isAttivo()) {
+                sb.append(i++).append(") ").append(tv.getTitolo() != null ? tv.getTitolo() : "Senza titolo").append("\n");
+                sb.append("   Descrizione: ").append(tv.getDescrizione() != null ? tv.getDescrizione() : "N/D").append("\n");
+                sb.append("   Giorni in cui la visita è programmabile: ");
+                if (tv.getGiorniSettimanaProgrammabile() != null) {
+                    for (int j = 0; j < tv.getGiorniSettimanaProgrammabile().size(); j++) {
+                        Giorni g = tv.getGiorniSettimanaProgrammabile().get(j);
+                        sb.append(Giorni.getNomeGiorno(g.ordinal() + 1));
+                        if (j < tv.getGiorniSettimanaProgrammabile().size() - 1) {
+                            sb.append(", ");
+                        }
+                    }
+                } else {
+                    sb.append("N/D");
+                }
+                sb.append("\n   Ora inizio: ").append(tv.getOraInizio() != null ? tv.getOraInizio().toString() : "N/D").append("\n");
+                sb.append("   Durata (minuti): ").append(tv.getDurataVisita()).append("\n");
+                sb.append("   Biglietto richiesto: ").append(tv.isBiglietto() ? "Sì" : "No").append("\n");
+                sb.append("   Partecipanti: min=").append(tv.getSogliaMinPartecipanti()).append(", max=").append(tv.getSogliaMaxPartecipanti()).append("\n");
+                sb.append("   Punto di incontro: ").append(tv.getPuntoDiIncontro() != null ? tv.getPuntoDiIncontro() : "N/D").append("\n");
+                if (tv.getPeriodoProgrammabile() != null) {
+                    sb.append("   Periodo: ").append(tv.getPeriodoProgrammabile().toString()).append("\n");
+                }
+                if (tv.getListaVolontari() != null && !tv.getListaVolontari().getVolontari().isEmpty()) {
+                    sb.append("   Volontari:\n");
+                    for (Volontario v : tv.getListaVolontari().getVolontari()) {
+                        sb.append("      - ").append(v.getNickname()).append("\n");
                     }
                 }
-            } else {
-                sb.append("N/D");
+                sb.append("-----------------------------------\n");
+                almenoUnoStampato = true;
             }
-
-            sb.append("\n   Ora inizio: ").append(tv.getOraInizio() != null ? tv.getOraInizio().toString() : "N/D").append("\n");
-            sb.append("   Durata (minuti): ").append(tv.getDurataVisita()).append("\n");
-            sb.append("   Biglietto richiesto: ").append(tv.isBiglietto() ? "Sì" : "No").append("\n");
-            sb.append("   Partecipanti: min=").append(tv.getSogliaMinPartecipanti()).append(", max=").append(tv.getSogliaMaxPartecipanti()).append("\n");
-            sb.append("   Punto di incontro: ").append(tv.getPuntoDiIncontro() != null ? tv.getPuntoDiIncontro() : "N/D").append("\n");
-
-            if (tv.getPeriodoProgrammabile() != null) {
-                sb.append("   Periodo: ").append(tv.getPeriodoProgrammabile().toString()).append("\n");
-            }
-
-            if (tv.getListaVolontari() != null && !tv.getListaVolontari().getVolontari().isEmpty()) {
-                sb.append("   Volontari:\n");
-                for (Volontario v : tv.getListaVolontari().getVolontari()) {
-                    sb.append("      - ").append(v.getNickname()).append("\n");
-                }
-            }
-
-            sb.append("-----------------------------------\n");
         }
-
+        if (!almenoUnoStampato) {
+            sb.append("Nessun tipo di visita attivo disponibile.\n");
+        }
         return sb.toString();
     }
 
+
     public String toStringAsList() {
         StringBuilder returnString = new StringBuilder();
-        for (int i = 0; i < tipi.size(); i++) {
-            returnString.append((i+1)).append(") ").append(tipi.get(i).toStringSemplificato()).append("\n");
+        int count = 1;
+        for (TipoVisita tv : tipi) {
+            if (tv.isAttivo()) {
+                returnString.append(count).append(") ").append(tv.toStringSemplificato()).append("\n");
+                count++;
+            }
+        }
+        if (count == 1) {
+            returnString.append("Nessun tipo visita disponibile.");
         }
         return returnString.toString();
-    }
-
-    // ================== INVARIANTE ==================
-    private boolean invClass() {
-        if (tipi == null) return false;
-        for (TipoVisita t : tipi) {
-            if (t == null) return false;
-            if (tipi.indexOf(t) != tipi.lastIndexOf(t)) return false; // duplicato
-        }
-        return true;
     }
     
     /**
@@ -201,12 +252,31 @@ public class ListaTipoVisita {
             System.out.println("Nessun tipo visita disponibile.");
             return;
         }
-
-        for (int i = 0; i < tipi.size(); i++) {
-            TipoVisita tv = tipi.get(i);
-            int numVolontari = tv.getListaVolontari().getVolontari().size();
-            System.out.println((i + 1) + ") " + tv.getTitolo() + " - Volontari: " + numVolontari);
+        int count = 1;
+        for (TipoVisita tv : tipi) {
+            if (tv.isAttivo()) {
+                int numVolontari = tv.getListaVolontari().getVolontari().size();
+                System.out.println(count + ") " + tv.getTitolo() + " - Volontari: " + numVolontari);
+                count++;
+            }
+        }
+        if (count == 1) {
+            System.out.println("Nessun tipo visita disponibile.");
         }
     }
+
+
+    // ================== INVARIANTE ==================
+    private boolean invClass() {
+        if (tipi == null) return false;
+        for (TipoVisita t : tipi) {
+            if (t == null) return false;
+            if (tipi.indexOf(t) != tipi.lastIndexOf(t)) return false; // duplicato
+        }
+        return true;
+    }
+    
+   
+
 
 }

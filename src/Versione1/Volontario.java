@@ -5,6 +5,7 @@ import java.util.Objects;
 public class Volontario extends Utente {
     
     private String nickname;
+    private boolean isAttivo;
 
     /**
      * INVARIANTI DI CLASSE:
@@ -16,7 +17,7 @@ public class Volontario extends Utente {
     /**
      * Costruttore
      * PRECONDIZIONE: credenziali != null && credenziali.getUsername() != null && !isBlank()
-     * POSTCONDIZIONE: this.nickname == credenziali.getUsername()
+     * POSTCONDIZIONE: this.nickname == credenziali.getUsername() && this.isAttivo == true
      */
     public Volontario(Credenziali credenziali) {
         super(Objects.requireNonNull(credenziali, "Credenziali non possono essere null"));
@@ -24,6 +25,7 @@ public class Volontario extends Utente {
             throw new IllegalArgumentException("Username non valido");
         }
         this.nickname = credenziali.getUsername();
+        this.isAttivo = true;  // Di default un nuovo volontario è attivo
         assert invClass() : "Invariante violato nel costruttore";
     }
 
@@ -51,12 +53,30 @@ public class Volontario extends Utente {
     }
 
     /**
+     * Restituisce lo stato di attivazione del volontario.
+     * POSTCONDIZIONE: ritorna true se attivo, false se disattivato
+     */
+    public boolean isAttivo() {
+        return isAttivo;
+    }
+
+    /**
+     * Imposta lo stato di attivazione del volontario.
+     * POSTCONDIZIONE: this.isAttivo == attivo
+     */
+    public void setAttivo(boolean attivo) {
+        this.isAttivo = attivo;
+        assert this.isAttivo == attivo : "Postcondizione violata in setAttivo";
+    }
+
+    /**
      * Restituisce una rappresentazione testuale del volontario.
      * POSTCONDIZIONE: il risultato contiene la parola "Volontario" e l'username delle credenziali
      */
     @Override
     public String toString() {
-        String result = "Volontario " + credenziali.getUsername();
+        String statoAttivo = isAttivo ? "[ATTIVO]" : "[DISATTIVATO]";
+        String result = "Volontario " + credenziali.getUsername() + " " + statoAttivo;
         assert result.contains("Volontario") : "Postcondizione violata in toString";
         assert result.contains(credenziali.getUsername()) : "Postcondizione violata in toString";
         return result;
@@ -82,5 +102,4 @@ public class Volontario extends Utente {
     public int hashCode() {
         return Objects.hash(credenziali.getUsername());
     }
-
 }

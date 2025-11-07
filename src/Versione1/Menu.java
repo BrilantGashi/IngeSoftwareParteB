@@ -8,7 +8,7 @@ import it.unibs.fp.mylib.*;
 
 
 public class Menu{
-	private static StatoSistema statoSistema = StatoSistema.RACCOLTA_DISPONIBILITA_I_2;
+	private static StatoSistema statoSistema = StatoSistema.PRODUZIONE_VISITE_PROPONIBILI_I_1;
 	private static AmbitoTerritoriale ambito = new AmbitoTerritoriale();
     private static Calendario cal = new Calendario();
     private static ArrayList<Configuratore> listaConfiguratore = new ArrayList<Configuratore>();
@@ -25,7 +25,7 @@ public class Menu{
     private static LuogoDAO LuogoDAO = new LuogoDAO();
     private static DisponibilitaDAO DisponibilitaDAO = new DisponibilitaDAO();
     private static VisitaDAO VisitaDAO = new VisitaDAO();
-
+    private static CalendarioDAO CalendarioDAO = new CalendarioDAO();
     
     public static void login() throws Exception {
 		String username;
@@ -82,6 +82,7 @@ public class Menu{
   		
   		int sceltaMenu;
   		UtenteDao.leggiUtentiDaDB(listaConfiguratore, listaVolontari);
+  		CalendarioDAO.leggiCalendarioDaDB(cal);
   		MyMenu menu = new MyMenu("Menu", voci);
   		sceltaMenu = menu.scegli();
   		
@@ -107,7 +108,7 @@ public class Menu{
 										"Aggiungi volontario a tipo visita", "Rimuovi Luogo","Rimuovi Tipo Visita","Rimuovi Volontario"};
 		MyMenu menu = new MyMenu("Menu configuratore", vociConfig);
 		MyMenu menuModifica = new MyMenu("Menu di modifica", vociConfigModifica);
-		okCred=1;
+		okCred=0;
 		if(okCred==1) sceltaMenuConfig= 1; else sceltaMenuConfig = menu.scegli();		
 		do {
 			switch (sceltaMenuConfig) {
@@ -135,8 +136,13 @@ public class Menu{
 				break;
 				    
 			case 2:				
-				//avvio calendario				
-				calendario();
+				if(StatoSistema.RACCOLTA_DATE_PRECLUSE_I_3!=statoSistema) {
+					System.out.println("Non puoi inserire le date precluse in questo stato del sistema.\nStato attuale: " + statoSistema.stampaStatoSistema() + ")");
+				}
+				else {
+				inserimentoDatePrecluse();
+				statoSistema=StatoSistema.RACCOLTA_DATE_PRECLUSE_I_3_COMPLETATA;
+				}
 				break;
 				
 			case 3:			
@@ -160,12 +166,12 @@ public class Menu{
 				break;
 				
 			case 8:
-				if(statoSistema==StatoSistema.PRODUZIONE_VISITE_PROPONIBILI_I_1) {
+				if(statoSistema!=StatoSistema.PRODUZIONE_VISITE_PROPONIBILI_I_1) {
+					System.out.println("Non puoi generare il piano visite in questo stato del sistema.\nStato attuale: " + statoSistema.stampaStatoSistema() + ")");
+					}
+				else {
 					generaPianoVisite();
 					statoSistema=StatoSistema.PRODUZIONE_VISITE_PROPONIBILI_I_1_COMPLETATA;
-				}
-				else {
-					System.out.println("Non puoi generare il piano visite in questo stato del sistema. (Stato attuale: " + statoSistema + ")");
 				}
 				break;
 				
@@ -180,7 +186,7 @@ public class Menu{
 			                case 0: // Indietro dal sottomenu
 			                    break;
 			                case 1:
-			                    definizioneLuogo(true);
+			                    aggiungiLuogo(true);
 			                    break;
 			                case 2:
 			                    aggiungiTipoVisitaALuogo();
@@ -202,7 +208,7 @@ public class Menu{
 			        } while (sceltaModifica != 0);
 			        statoSistema = StatoSistema.GESTIONE_RICHIESTE_AGGIUNTA_RIMOZIONE_COMPLETATA;
 			    } else {
-			        System.out.println("Non puoi modificare luoghi/tipi visita/volontari in questo stato del sistema. (Stato attuale: " + statoSistema + ")");
+					System.out.println("Non puoi procedere alla moodifica del corpo dati in questo stato del sistema.\nStato attuale: " + statoSistema.stampaStatoSistema() + ")");
 			    }
 			    break;
 	
@@ -236,7 +242,12 @@ public class Menu{
 			    break;
 
 			case 2:
+				if(statoSistema!=StatoSistema.RACCOLTA_DISPONIBILITA_I_2) {
+					System.out.println("Non puoi esprimere disponibilita' in questo stato del sistema.\nStato attuale: " + statoSistema.stampaStatoSistema() + ")");
+					}
+				else
 				raccogliDisponibilitaVolontario(nickname);
+				statoSistema=StatoSistema.RACCOLTA_DISPONIBILITA_I_2_COMPLETATA;
 			    break;
 		
 			}
@@ -284,7 +295,7 @@ public class Menu{
 		boolean continuoTipoVisita;
 		do {
 			System.out.println();
-			definizioneTipoVisita(false); //false perche' nella V1 non si possono creare nuovi volontari
+			aggiungiTipoVisita(false); //false perche' nella V1 non si possono creare nuovi volontari
 			continuoTipoVisita = InputDati.yesOrNo("Vuoi inserire un altro Tipo Visita?");
 		} while (continuoTipoVisita);
 		
@@ -297,7 +308,7 @@ public class Menu{
 		boolean continuoLuoghi;
 		do {
 		    System.out.println();
-		    definizioneLuogo(false); // false: nella V1 non si possono creare nuovi volontari
+		    aggiungiLuogo(false); // false: nella V1 non si possono creare nuovi volontari
 		    continuoLuoghi = InputDati.yesOrNo("Vuoi inserire un altro luogo?");
 		} while (continuoLuoghi);
 
@@ -315,14 +326,34 @@ public class Menu{
 		}*/
 	}
 	
-	public static void calendario() {
-		 System.out.println("Avvio del Calendario in corso...");		 
-		 
-		//********************** DATE PRECLUSE ***********************************
-		 System.out.println("INSERIMENTO DATE PRECLUSE PER IL MESE DI " + cal.getMeseI3());
+  	public static void leggiCorpoDati() throws Exception {	
+  		
+  		ambito = AmbitoTerritorialeDAO.leggiTuttiAmbitiTerritoriali();
+		ambito.stampaAmbito();
+		
+		listaTipoVisita = TipoVisitaDAO.leggiTuttiTipiVisita(listaVolontari);
+		System.out.println(listaTipoVisita.toString());
+		
+		listaLuoghi = LuogoDAO.leggiTuttiLuoghi(listaTipoVisita);
+		listaLuoghi.stampaLuoghiConTipoVisita();
+		
+		
+		
+		/*listaVisite = VisitaDAO.leggiTutteVisite(listaTipoVisita, listaVolontari);
+		listaVisite.stampaPianoVisite();*/
+		
+		CalendarioDAO.leggiCalendarioDaDB(cal);
+		
+		for(Volontario v : listaVolontari.getVolontari()) {
+			DisponibilitaDAO.leggiDisponibilitaVolontario(v.getNickname());
+		}
+		
+	}
+  	
+	public static void inserimentoDatePrecluse() throws SQLException {
+		 System.out.println("Inserimento delle date precluse per il mese di " + cal.getMeseI3());
 		 boolean continuaDataPreclusa = false;
-		 boolean inserisciDate = false;
-		 inserisciDate = InputDati.yesOrNo("Vuoi aggiungere delle date da escludere?");
+		 boolean inserisciDate = true;
 		 if (inserisciDate) {
 			 do {
 				 aggiuntaDataPreclusa();
@@ -330,12 +361,13 @@ public class Menu{
 			 } while (continuaDataPreclusa);
 			 System.out.println(cal.toStringDatePrecluse(3));
 		 }	 
-	 }
+	}
 	
-	public static void aggiuntaDataPreclusa() {
+	public static void aggiuntaDataPreclusa() throws SQLException {
 		 int giornoEscluso = InputDati.leggiIntero("Inserisci il giorno da escludere dal mese di " +  cal.getMeseI3() + "\n", 1, 31);
 		 if (!cal.checkData(giornoEscluso,3)) {
 			 cal.aggiungiDataPreclusa(giornoEscluso, 3);
+			 CalendarioDAO.salvaDataPreclusa(giornoEscluso, 3);
 		 } else {
 			 System.out.println("Giorno gia' inserito. Inserire un altro giorno.");
 		 }
@@ -343,91 +375,95 @@ public class Menu{
 		 
 	}
 	
-	public static void rimuoviTipoVisitaDaLuogo() throws SQLException {
-	    System.out.println("================================================================");
-	    System.out.println("RIMOZIONE TIPO DI VISITA DA LUOGO, procedere con cautela.");
-	    System.out.println("================================================================");
-	    
-	    Luogo luogoScelto = listaLuoghi.selezionaLuogo();
-
-	    // Mostra tipi visita del luogo
-	    System.out.println("\nTipi visita per '" + luogoScelto.getNomeLuogo() + "':");
-	    ListaTipoVisita tipiDelLuogo = luogoScelto.getListaTipoVisita();
-	 
-	    if (tipiDelLuogo.getTipi().isEmpty()) {
-	     System.out.println("   Nessun tipo visita associato.");
-	     return;
-	    }
-
-	    // Usa il metodo di selezione
-	    TipoVisita tipoVisitaDaRimuovere = tipiDelLuogo.selezionaTipoVisita();
-
-	    if (tipoVisitaDaRimuovere == null) {
-	     System.out.println("Selezione non valida!");
-	     return;
-	    }
-
-	    String nomeTipo = tipoVisitaDaRimuovere.getTitolo();
-	 	// ... continua con la rimozione
-
-	    
-	    // Conferma eliminazione
-	    boolean conferma = InputDati.yesOrNo(
-	        "Sei sicuro di voler rimuovere il tipo visita '" + nomeTipo + "' dal luogo '" + 
-	        luogoScelto.getNomeLuogo() + "'? "
-	    );
-	    
-	    if (conferma) {
-	        // PASSO 1: Elimina il tipo visita completamente (con tutte le conseguenze)
-	        System.out.println("\nEliminazione tipo visita dal database...");
-	        TipoVisitaDAO.eliminaTipoVisita(tipoVisitaDaRimuovere);
-	        
-	        // PASSO 2: Rimuovi da listaTipoVisita
-	        listaTipoVisita.rimuovi(tipoVisitaDaRimuovere);
-	        
-	        // PASSO 3: Rimuovi da tutti i luoghi
-	        for (Luogo l : listaLuoghi.getListaLuoghi()) {
-	            l.getListaTipoVisita().rimuovi(tipoVisitaDaRimuovere);
-	        }
-	        
-	        // PASSO 4: Gestisci volontari orfani (senza pi� tipi visita)
-	        System.out.println("Verifica volontari orfani...");
-	        gestisciVolontariOrfani();
-	        
-	        // PASSO 5: Gestisci luoghi orfani (senza pi� tipi visita)
-	        System.out.println("Verifica luoghi orfani...");
-	        gestisciLuoghiOrfani();
-	        
-	        System.out.println("Tipo visita '" + nomeTipo + "' rimosso con successo!\n");
-	    } else {
-	        System.out.println("Operazione annullata.\n");
-	    }
+	public static void modificaNumFruitore() {
+		nMaxPersone = InputDati.leggiInteroPositivo("Inserisci il numero massimo di persone che un fruitore puo' iscrivere a una iniziativa mediante una singola iscrizione: ");
 	}
-	/**
-	 * Associa interattivamente i volontari orfani a un tipo visita durante la creazione del corpo dati.
-	 * @throws SQLException se si verifica un errore durante il salvataggio nel database
-	 */
-	private static void associaVolontariOrfani() throws SQLException {
-	    List<Volontario> orfani = listaVolontari.trovaVolontariSenzaVisite(listaTipoVisita);
-
-	    if (!orfani.isEmpty()) {
-	        System.out.println("Attenzione: ci sono volontari senza visite associate!");
-	        for (Volontario v : orfani) {
-	            // Guida l'utente ad associarlo
-	            System.out.println("\nScegli una visita per il volontario " + v.getNickname() + ":");
-	            System.out.println(listaTipoVisita.toStringAsList());
-	            int scelta = InputDati.leggiIntero("Numero visita: ", 1, listaTipoVisita.getTipi().size());
-	            
-	            TipoVisita visitaScelta = listaTipoVisita.getTipo(scelta - 1);
-	            visitaScelta.getListaVolontari().aggiungiVolontario(v);
-	            TipoVisitaDAO.gestisciOrfani(visitaScelta, v);
-	            
-	            System.out.println("Il volontario " + v.getNickname() + " è stato associato a \"" + visitaScelta.getTitolo() + "\".");
-	        }
-	    } else {
-	        System.out.println("Tutti i volontari hanno almeno un tipo visita associato.");
-	    }
+	
+	// NUOVO METODO!! PER GENERARE PIANO VISITE
+	public static void generaPianoVisite() {
+			System.out.println("\n===== Generazione del piano delle visite per il mese " + cal.getMeseI1() + " =====\n");
+		   
+			
+			try {
+				for(Volontario v : listaVolontari.getVolontari()) {
+					ArrayList<Disponibilita> disponibilitaVolontario = DisponibilitaDAO.leggiDisponibilitaVolontario(v.getNickname());
+					
+					for(Disponibilita d : disponibilitaVolontario) {
+						if(d.getMese()==1) {
+							if (cal.isGiornoEscluso(d.getGiorno(), 1)) {
+		                        continue;
+		                    }
+							ListaTipoVisita tipiVolontario = listaTipoVisita.getTipiPerVolontario(v.getNickname());
+							for(TipoVisita tipo : tipiVolontario.getTipi()) {
+								int numero_mese = cal.getMeseNumero(cal.getMeseI1());
+								Data dataVisita = new Data(d.getGiorno(), numero_mese);
+								Visita nuova = new Visita(tipo, v, StatoVisita.PROPOSTA, dataVisita);
+								listaVisite.aggiungiVisita(nuova);
+								VisitaDAO.salvaVisita(nuova,v.getNickname());
+							}
+						}
+					}
+				
+				}
+				
+				//System.out.println("Il piano delle visite e' stato generato con successo!");
+				listaVisite.stampaPianoVisite();
+				
+			}catch(SQLException e) {
+				System.out.println("Errore durante la generazione del piano delle visite: " + e.getMessage());
+			}
 	}
+	
+	private static void raccogliDisponibilitaVolontario(String nickname) throws SQLException {
+	    if (statoSistema != StatoSistema.GESTIONE_RICHIESTE_AGGIUNTA_RIMOZIONE_COMPLETATA) {
+	        System.out.println("Non puoi esprimere disponibilità in questo stato del sistema. (Stato attuale: " + statoSistema + ")");
+	        return;
+	    }
+	    statoSistema = StatoSistema.RACCOLTA_DISPONIBILITA_I_2;   
+	    ListaTipoVisita tipoVisitaPerVolontario = listaTipoVisita.getTipiPerVolontario(nickname);
+	    
+	    for (TipoVisita t : tipoVisitaPerVolontario.getTipi()) {
+	        assert t != null : "Invariante violata: TipoVisita null";
+
+	        boolean continua = true;
+	        do {
+	            Data dataScelta = cal.scegliDataPerTipo(t, 2);
+
+	            if (dataScelta != null) {
+	                Volontario v = listaVolontari.cercaPerNickname(nickname);
+	                assert v != null : "Invariante violata: volontario non trovato";
+
+	                Visita nuovaVisita = new Visita(t, v, StatoVisita.PROPOSTA, dataScelta);
+
+	                // Metodo aggiungiVisita deve garantire:
+	                // - se esiste già una Visita con stesso tipo+data, aggiunge solo il volontario
+	                // - altrimenti crea una nuova Visita
+	                listaVisite.aggiungiVisita(nuovaVisita);
+	                
+	               
+	                    DisponibilitaDAO.salvaDisponibilita(nickname, dataScelta.getGiorno(), 2);
+	                    
+	                    // Stampa le disponibilità inserite
+	                    ArrayList<Disponibilita> mie = DisponibilitaDAO.leggiDisponibilitaVolontario(nickname);
+	                    System.out.println("==== Le tue disponibilità per " + cal.getMeseI2() + " ====");
+	                    for (Disponibilita d : mie) {
+	                        if (d.getMese()==2) {
+	                            System.out.println("- " + d.getGiorno() + " " + d.getMese());
+	                        }
+	                    }
+	                    System.out.println("==============================================");
+	                
+	            	}
+	            
+	            continua = InputDati.yesOrNo("Vuoi esprimere un'altra disponibilità per il mese di " + cal.getMeseI2() + "? ");
+	        } while (continua);
+	    }
+	    // POSTCONDIZIONE: tutte le visite in listaVisite rispettano l'unicità (tipo+data)
+	    assert listaVisite.visiteUnichePerTipoEData() : "Postcondizione violata: visite duplicate presenti";
+	    statoSistema = StatoSistema.RACCOLTA_DISPONIBILITA_I_2_COMPLETATA;
+	}
+	
+	
 	
 	public static void rimuoviLuogo() throws SQLException {
 	    System.out.println("================================================================");
@@ -438,7 +474,7 @@ public class Menu{
 	    
 	    do {
 	        // Mostra lista luoghi
-	    	Luogo luogoSceltoDaRimuovere = listaLuoghi.selezionaLuogo();
+	    	Luogo luogoSceltoDaRimuovere = listaLuoghi.selezionaLuogoAttivo();
 	    	if (luogoSceltoDaRimuovere != null) {
 		        String nomeLuogo = luogoSceltoDaRimuovere.getNomeLuogo();
 		        boolean conferma = InputDati.yesOrNo("Sei sicuro di voler eliminare il luogo '" + nomeLuogo + "'? ");
@@ -457,21 +493,82 @@ public class Menu{
 		            LuogoDAO.eliminaLuogo(luogoSceltoDaRimuovere);
 		            
 		            // PASSO 5: Rimuovi dalla lista locale
-		            listaLuoghi.rimuovi(luogoSceltoDaRimuovere);
+		            luogoSceltoDaRimuovere.setAttivo(false);
 		            
 		            System.out.println("Luogo '" + nomeLuogo + "' eliminato con successo!\n");
 		        } else {
 		            System.out.println("Operazione annullata.\n");
 		        }
 	    	}
-		        
 		        continuaLuogo = InputDati.yesOrNo("Vuoi rimuovere un altro Luogo? ");
 		        
 		    } while (continuaLuogo);
 	    
 	    System.out.println("\nProcedura completata.");
 	}
+	
+	public static void rimuoviTipoVisitaDaLuogo() throws SQLException {
+	    System.out.println("================================================================");
+	    System.out.println("RIMOZIONE TIPO DI VISITA DA LUOGO, procedere con cautela.");
+	    System.out.println("================================================================");
+	    
+	    // Seleziona solo un luogo attivo
+	    Luogo luogoScelto = listaLuoghi.selezionaLuogoAttivo();
+	    if (luogoScelto == null) {
+	        System.out.println("Selezione annullata o nessun luogo attivo disponibile.");
+	        return;
+	    }
 
+	    // Mostra tipi visita attivi del luogo
+	    System.out.println("\nTipi visita per '" + luogoScelto.getNomeLuogo() + "':");
+	    ListaTipoVisita tipiDelLuogo = luogoScelto.getListaTipoVisita();
+
+	    if (tipiDelLuogo.getTipi().isEmpty()) {
+	        System.out.println("   Nessun tipo visita associato.");
+	        return;
+	    }
+
+	    // Seleziona solo tipi visita attivi tramite il metodo specifico
+	    TipoVisita tipoVisitaDaRimuovere = tipiDelLuogo.selezionaTipoVisita();
+	    if (tipoVisitaDaRimuovere == null) {
+	        System.out.println("Selezione non valida!");
+	        return;
+	    }
+
+	    String nomeTipo = tipoVisitaDaRimuovere.getTitolo();
+
+	    // Conferma eliminazione
+	    boolean conferma = InputDati.yesOrNo(
+	        "Sei sicuro di voler rimuovere il tipo visita '" + nomeTipo + "' dal luogo '" +
+	        luogoScelto.getNomeLuogo() + "'? "
+	    );
+
+	    if (conferma) {
+	        // Rimozione dal luogo (basta non mostrarlo più: lo segni non attivo)
+	        tipoVisitaDaRimuovere.setAttivo(false);
+
+	        // Rimozione fisica dal DB
+	        System.out.println("\nEliminazione tipo visita dal database...");
+	        TipoVisitaDAO.eliminaTipoVisita(tipoVisitaDaRimuovere);
+
+	        // Rimozione da associazioni con volontari (se appropriato)
+	        // Questa logica va gestita all'interno di eliminaTipoVisita/DAO oppure chiamando qui la funzione appropriata!
+
+	        // Gestione volontari orfani (senza più tipi visita)
+	        System.out.println("Verifica volontari orfani...");
+	        gestisciVolontariOrfani();
+
+	        // Gestione luoghi orfani (senza più tipi visita attivi associati)
+	        System.out.println("Verifica luoghi orfani...");
+	        gestisciLuoghiOrfani();
+
+	        System.out.println("Tipo visita '" + nomeTipo + "' rimosso con successo!\n");
+	    } else {
+	        System.out.println("Operazione annullata.\n");
+	    }
+	}
+
+	
 	private static void rimuoviTipiVisitaDaLuogo(Luogo luogo, ArrayList<TipoVisita> tipiVisitaDaRimuovere) throws SQLException {
 	    if (tipiVisitaDaRimuovere.isEmpty()) {
 	        System.out.println("Nessun tipo visita associato al luogo.");
@@ -482,10 +579,178 @@ public class Menu{
 	    System.out.println("Trovati " + tipiVisitaDaRimuovere.size() + " tipi visita da eliminare:");
 	    
 	    for (TipoVisita tv : tipiVisitaDaRimuovere) {
+	        System.out.print("      - " + tv.getTitolo());
+
+	        // Verifica se il tipo visita è rimasto "orfano"
+	        boolean orfano = true;
+	        for (Luogo l : listaLuoghi.getListaLuoghi()) {
+	            if (l.isAttivo() && l.getListaTipoVisita().getTipi().contains(tv)) {
+	                // C'è almeno un altro luogo attivo che usa questo tipo visita
+	                orfano = false;
+	                break;
+	            }
+	        }
+	        if (orfano) {
+	            // Se è orfano, allora elimina/disattiva tipo visita
+	            eliminaTipoVisitaCompleto(tv);
+	        }
+	    }
+	}
+	
+	private static void eliminaTipoVisitaCompleto(TipoVisita tipoVisita) throws SQLException {
+	    // 1. Elimina da database (con CASCADE elimina anche da luogo_tipo_visita e tipo_visita_giorni)
+	    TipoVisitaDAO.eliminaTipoVisita(tipoVisita);
+	       
+	    // 2. Rimuovi da listaTipoVisita
+	    tipoVisita.setAttivo(false);
+	    
+	    // 3. Rimuovi da tutti i luoghi in memoria
+	    /*for (Luogo l : listaLuoghi.getListaLuoghi()) {
+	        l.getListaTipoVisita().rimuovi(tipoVisita);
+	    }*/
+	    
+	    System.out.println("Eliminato tipo visita: " + tipoVisita.getTitolo());
+	}
+	
+	public static void rimuoviVolontario() throws SQLException {
+	    System.out.println("================================================================");
+	    System.out.println("INIZIO PROCEDURA ELIMINAZIONE VOLONTARI, procedere con cautela.");
+	    System.out.println("================================================================");
+
+	    boolean continuaVolontario=false;
+	    
+	    do {
+	        // ✅ CONTROLLO 1: Verifica se ci sono volontari
+	        if (listaVolontari.getVolontari().isEmpty()) {
+	            System.out.println("Non ci sono volontari da rimuovere.");
+	            break;  // Esce dal ciclo
+	        }
+
+	        System.out.println("\nElenco Volontari disponibili:");
+	        for (int i = 0; i < listaVolontari.getVolontari().size(); i++) {
+	            Volontario v = listaVolontari.getVolontari().get(i);
+	            System.out.println((i + 1) + ") " + v.getCredenziali().getUsername());
+	        }
+
+	        // ✅ CONTROLLO 2: Leggi input con validazione
+	        int sceltaVolontario = InputDati.leggiIntero(
+	            "Inserisci il numero del volontario da rimuovere: ",
+	            1,  // minimo
+	            listaVolontari.getVolontari().size()  // massimo
+	        );
+
+	        Volontario volontarioDaRimuovere = listaVolontari.getVolontario(sceltaVolontario - 1);
+	        String username = volontarioDaRimuovere.getNickname();
+
+	        boolean conferma = InputDati.yesOrNo(
+	            "Sei sicuro di voler eliminare il volontario '" + username + "'? "
+	        );
+
+	        if (conferma) {
+	            try {
+	                // PASSO 1: Rimuovi volontario dalle associazioni nel db
+	                //UtenteDAO.rimuoviVolontario(volontarioDaRimuovere);
+	                listaVolontari.rimuoviVolontario(volontarioDaRimuovere);
+
+	                // PASSO 2: Rimuovi volontario da listaTipoVisita in memoria
+	                //rimuoviVolontarioDaTipiVisita(volontarioDaRimuovere);
+	                
+	                // PASSO 3: Trova e gestisci tipi visita orfani
+	                gestisciTipiVisitaOrfani();
+	                
+	                // PASSO 4: Trova e gestisci luoghi orfani
+	                gestisciLuoghiOrfani(); 
+	                
+	                // PASSO 5: SOLO ORA elimina il volontario da credenziali 
+	                UtenteDAO.eliminaDaCredenziali(volontarioDaRimuovere);
+	                
+	                // PASSO 6: Rimuovi dalla lista locale
+	                
+	                System.out.println("Volontario '" + username + "' eliminato con successo!\n");
+	                
+	            } catch (SQLException e) {
+	                System.out.println("Errore durante l'eliminazione: " + e.getMessage());
+	                continue;  // Torna all'inizio del ciclo
+	            }
+	        } else {
+	            System.out.println("Eliminazione annullata.");
+	        }
+
+	        // ✅ CONTROLLO 3: Se non ci sono più volontari, esci
+	        if (listaVolontari.getVolontari().isEmpty()) {
+	            System.out.println("Non ci sono più volontari da rimuovere.");
+	            break;
+	        }
+
+	        continuaVolontario = InputDati.yesOrNo("Vuoi rimuovere un altro Volontario? ");
+
+	    } while (continuaVolontario);
+	    
+	    System.out.println("\nProcedura completata.");
+	}
+	
+	private static void rimuoviVolontarioDaTipiVisita(Volontario volontarioDaRimuovere) {
+	    for (TipoVisita tv : listaTipoVisita.getTipi()) {
+	        ListaVolontari volontariTipoVisita = tv.getListaVolontari();
+	        volontariTipoVisita.rimuoviVolontario(volontarioDaRimuovere);
+	    }
+	    System.out.println("Volontario rimosso dai tipi visita in memoria");
+	}
+	/**
+	 * Associa interattivamente i volontari orfani a un tipo visita durante la creazione del corpo dati.
+	 * @throws SQLException se si verifica un errore durante il salvataggio nel database
+	 */
+	
+	private static void gestisciLuoghiOrfani() throws SQLException {
+	    //LuogoDAO luogoDAO = new LuogoDAO();
+	    
+	    // Trova tutti i luoghi senza tipi visita
+	    ListaLuogo luoghiOrfani = listaLuoghi.trovaLuoghiOrfani();
+	    
+	    if (luoghiOrfani.getListaLuoghi().isEmpty()) {
+	        System.out.println("Nessun luogo orfano trovato.");
+	        return;
+	    }
+	    
+	    System.out.println("Trovati " + luoghiOrfani.getListaLuoghi().size() + " luoghi senza tipi visita:");
+	    for (Luogo l : luoghiOrfani.getListaLuoghi()) {
+	        System.out.println("      - " + l.getNomeLuogo());
+	    }
+	    
+	    /*boolean conferma = InputDati.yesOrNo(
+	        "    Eliminare i luoghi orfani? "
+	    );
+	    
+	    if (conferma) {*/
+	        for (Luogo l : luoghiOrfani.getListaLuoghi()) {
+	        	LuogoDAO.eliminaLuogo(l);
+	            l.setAttivo(false); // Rimuovi anche dalla lista locale
+	            System.out.println("Eliminato luogo: " + l.getNomeLuogo());
+	        }
+	    /*} else {
+	        System.out.println("     Luoghi orfani mantenuti.");
+	    }*/
+	}
+	
+	private static void gestisciTipiVisitaOrfani() throws SQLException {
+	    // Trova tutti i tipi visita attivi senza volontari attivi
+	    ListaTipoVisita tipiOrfani = listaTipoVisita.trovaTipiVisitaOrfani();
+
+	    if (tipiOrfani.getTipi().isEmpty()) {
+	        System.out.println("Nessun tipo visita orfano trovato.");
+	        return;
+	    }
+
+	    System.out.println("Trovati " + tipiOrfani.getTipi().size() + " tipi visita senza volontari attivi:");
+	    for (TipoVisita tv : tipiOrfani.getTipi()) {
 	        System.out.println("      - " + tv.getTitolo());
-	        
-	        // Elimina il tipo visita (dal DB e da tutte le strutture)
-	        eliminaTipoVisitaCompleto(tv);
+	    }
+
+	    // Elimina realmente i tipi visita orfani
+	    for (TipoVisita tv : tipiOrfani.getTipi()) {
+	        TipoVisitaDAO.eliminaTipoVisita(tv);
+	        tv.setAttivo(false); // segna come disattivo (soft delete)
+	        System.out.println("Eliminato tipo visita: " + tv.getTitolo());
 	    }
 	}
 
@@ -526,485 +791,281 @@ public class Menu{
 	        UtenteDAO.eliminaDaCredenziali(v);
 	        
 	        // Rimuovi dalla lista locale
-	        listaVolontari.rimuoviVolontario(v);
-	        
+	        v.setAttivo(false);
+	        		
 	        System.out.println("Eliminato volontario: " + v.getNickname());
 	    }
 	}
+	
+	private static void associaVolontariOrfani() throws SQLException {
 
-	private static void eliminaTipoVisitaCompleto(TipoVisita tipoVisita) throws SQLException {
-	    // 1. Elimina da database (con CASCADE elimina anche da luogo_tipo_visita e tipo_visita_giorni)
-	    TipoVisitaDAO.eliminaTipoVisita(tipoVisita);
-	       
-	    // 2. Rimuovi da listaTipoVisita
-	    listaTipoVisita.rimuovi(tipoVisita);
-	    
-	    // 3. Rimuovi da tutti i luoghi in memoria
-	    for (Luogo l : listaLuoghi.getListaLuoghi()) {
-	        l.getListaTipoVisita().rimuovi(tipoVisita);
+	    List<Volontario> orfani = listaVolontari.trovaVolontariSenzaVisite(listaTipoVisita);
+
+	    if (!orfani.isEmpty()) {
+	        System.out.println("Attenzione: ci sono volontari senza visite associate!");
+	        for (Volontario v : orfani) {
+	            // Guida l'utente ad associarlo
+	            System.out.println("\nScegli una visita per il volontario " + v.getNickname() + ":");
+	            System.out.println(listaTipoVisita.toStringAsList());
+	            int scelta = InputDati.leggiIntero("Numero visita: ", 1, listaTipoVisita.getTipi().size());
+	            
+	            TipoVisita visitaScelta = listaTipoVisita.getTipo(scelta - 1);
+	            visitaScelta.getListaVolontari().aggiungiVolontario(v);
+	            TipoVisitaDAO.gestisciOrfani(visitaScelta, v);
+	            
+	            System.out.println("Il volontario " + v.getNickname() + " è stato associato a \"" + visitaScelta.getTitolo() + "\".");
+	        }
+	    } else {
+	        System.out.println("Tutti i volontari hanno almeno un tipo visita associato.");
 	    }
-	    
-	    System.out.println("Eliminato tipo visita: " + tipoVisita.getTitolo());
 	}
+	
+	
+	public static void aggiungiLuogo(boolean consentiNuoviVol) throws SQLException {
+	    String nomeLuogo = InputDati.leggiStringaNonVuota("Inserisci il nome del luogo: ");
+	    String descrizione = InputDati.leggiStringa("Inserisci una descrizione del luogo: ");
+	    Indirizzo indirizzo = ObjIndirizzo();
 
-	public static void rimuoviVolontario() throws SQLException {
-	    System.out.println("================================================================");
-	    System.out.println("INIZIO PROCEDURA ELIMINAZIONE VOLONTARI, procedere con cautela.");
-	    System.out.println("================================================================");
+	    boolean continuaTipo = false;
+	    int sceltaTipo;
 
-	    boolean continuaVolontario=false;
-	    
+	    ListaTipoVisita listaTipoVisitaToAdd = new ListaTipoVisita();
+
 	    do {
-	        // ✅ CONTROLLO 1: Verifica se ci sono volontari
-	        if (listaVolontari.getVolontari().isEmpty()) {
-	            System.out.println("⚠️  Non ci sono volontari da rimuovere.");
-	            break;  // Esce dal ciclo
-	        }
-
-	        System.out.println("\nElenco Volontari disponibili:");
-	        for (int i = 0; i < listaVolontari.getVolontari().size(); i++) {
-	            Volontario v = listaVolontari.getVolontari().get(i);
-	            System.out.println((i + 1) + ") " + v.getCredenziali().getUsername());
-	        }
-
-	        // ✅ CONTROLLO 2: Leggi input con validazione
-	        int sceltaVolontario = InputDati.leggiIntero(
-	            "Inserisci il numero del volontario da rimuovere: ",
-	            1,  // minimo
-	            listaVolontari.getVolontari().size()  // massimo
-	        );
-
-	        Volontario volontarioDaRimuovere = listaVolontari.getVolontario(sceltaVolontario - 1);
-	        String username = volontarioDaRimuovere.getNickname();
-
-	        boolean conferma = InputDati.yesOrNo(
-	            "Sei sicuro di voler eliminare il volontario '" + username + "'? "
-	        );
-
-	        if (conferma) {
-	            try {
-	                // PASSO 1: Rimuovi volontario dalle associazioni nel db
-	                UtenteDAO.rimuoviVolontario(volontarioDaRimuovere);
-	                
-	                // PASSO 2: Rimuovi volontario da listaTipoVisita in memoria
-	                rimuoviVolontarioDaTipiVisita(volontarioDaRimuovere);
-	                
-	                // PASSO 3: Trova e gestisci tipi visita orfani
-	                gestisciTipiVisitaOrfani();
-	                
-	                // PASSO 4: Trova e gestisci luoghi orfani
-	                gestisciLuoghiOrfani(); 
-	                
-	                // PASSO 5: SOLO ORA elimina il volontario da credenziali 
-	                UtenteDAO.eliminaDaCredenziali(volontarioDaRimuovere);
-	                
-	                // PASSO 6: Rimuovi dalla lista locale
-	                listaVolontari.rimuoviVolontario(volontarioDaRimuovere);
-	                
-	                System.out.println("✓ Volontario '" + username + "' eliminato con successo!\n");
-	                
-	            } catch (SQLException e) {
-	                System.out.println("❌ Errore durante l'eliminazione: " + e.getMessage());
-	                continue;  // Torna all'inizio del ciclo
+	        // Conta tipi attivi totali
+	        int attiviTotali = 0;
+	        for (TipoVisita tv : listaTipoVisita.getTipi()) {
+	            if (tv.isAttivo()) {
+	                attiviTotali++;
 	            }
-	        } else {
-	            System.out.println("Eliminazione annullata.");
 	        }
-
-	        // ✅ CONTROLLO 3: Se non ci sono più volontari, esci
-	        if (listaVolontari.getVolontari().isEmpty()) {
-	            System.out.println("Non ci sono più volontari da rimuovere.");
+	        // Controlla se ci sono tipi attivi non ancora aggiunti
+	        if (attiviTotali == 0 || listaTipoVisitaToAdd.getTipi().size() == attiviTotali) {
+	            System.out.println("Non ci sono Tipi Visita disponibili da associare a questo luogo.");
 	            break;
 	        }
 
-	        continuaVolontario = InputDati.yesOrNo("Vuoi rimuovere un altro Volontario? ");
-
-	    } while (continuaVolontario);
-	    
-	    System.out.println("\nProcedura completata.");
-	}
-
-		
-	private static void rimuoviVolontarioDaTipiVisita(Volontario volontarioDaRimuovere) {
-	    for (TipoVisita tv : listaTipoVisita.getTipi()) {
-	        ListaVolontari volontariTipoVisita = tv.getListaVolontari();
-	        volontariTipoVisita.rimuoviVolontario(volontarioDaRimuovere);
-	    }
-	    System.out.println("Volontario rimosso dai tipi visita in memoria");
-	}
-
-	private static void gestisciTipiVisitaOrfani() throws SQLException {
-	    //TipoVisitaDAO tipoVisitaDAO = new TipoVisitaDAO();
-	    
-	    // Trova tutti i tipi visita senza volontari
-	    ArrayList<TipoVisita> tipiOrfani = TipoVisitaDAO.trovaTipiVisitaOrfani(listaTipoVisita);
-	    
-	    if (tipiOrfani.isEmpty()) {
-	        System.out.println("Nessun tipo visita orfano trovato.");
-	        return;
-	    }
-	    
-	    System.out.println("Trovati " + tipiOrfani.size() + " tipi visita senza volontari:");
-	    for (TipoVisita tv : tipiOrfani) {
-	        System.out.println("      - " + tv.getTitolo());
-	    }
-	    
-	   /* boolean conferma = InputDati.yesOrNo(
-	        "    Eliminare i tipi visita orfani? "
-	    );
-	    
-	    if (conferma) {*/
-	        for (TipoVisita tv : tipiOrfani) {
-	        	TipoVisitaDAO.eliminaTipoVisita(tv);
-	            listaTipoVisita.rimuovi(tv); // Rimuovi anche dalla lista locale
-	            for (Luogo luogo : listaLuoghi.getListaLuoghi()) {
-	                luogo.getListaTipoVisita().rimuovi(tv);
+	        // Costruisci lista tipi attivi disponibili per selezione
+	        List<TipoVisita> tipiAttiviDisponibili = new ArrayList<>();
+	        for (TipoVisita tv : listaTipoVisita.getTipi()) {
+	            if (tv.isAttivo() && !listaTipoVisitaToAdd.getTipi().contains(tv)) {
+	                tipiAttiviDisponibili.add(tv);
 	            }
-	            System.out.println("Eliminato tipo visita: " + tv.getTitolo());
 	        }
-	    /*} else {
-	        System.out.println("     Tipi visita orfani mantenuti.");
-	    }*/
-	}
 
-	private static void gestisciLuoghiOrfani() throws SQLException {
-	    //LuogoDAO luogoDAO = new LuogoDAO();
-	    
-	    // Trova tutti i luoghi senza tipi visita
-	    ArrayList<Luogo> luoghiOrfani = LuogoDAO.trovaLuoghiOrfani(listaLuoghi);
-	    
-	    if (luoghiOrfani.isEmpty()) {
-	        System.out.println("Nessun luogo orfano trovato.");
-	        return;
-	    }
-	    
-	    System.out.println("Trovati " + luoghiOrfani.size() + " luoghi senza tipi visita:");
-	    for (Luogo l : luoghiOrfani) {
-	        System.out.println("      - " + l.getNomeLuogo());
-	    }
-	    
-	    /*boolean conferma = InputDati.yesOrNo(
-	        "    Eliminare i luoghi orfani? "
-	    );
-	    
-	    if (conferma) {*/
-	        for (Luogo l : luoghiOrfani) {
-	        	LuogoDAO.eliminaLuogo(l);
-	            listaLuoghi.rimuovi(l); // Rimuovi anche dalla lista locale
-	            System.out.println("Eliminato luogo: " + l.getNomeLuogo());
+	        // Stampa lista filtrata con numerazione coerente
+	        System.out.println("Elenco Tipi Visite:");
+	        int count = 1;
+	        for (TipoVisita tv : tipiAttiviDisponibili) {
+	            System.out.println(count + ") " + tv.toStringSemplificato());
+	            count++;
 	        }
-	    /*} else {
-	        System.out.println("     Luoghi orfani mantenuti.");
-	    }*/
-	}
-	
-	public static void definizioneLuogo (boolean consentiNuoviVol) throws SQLException {
-		String nomeLuogo = InputDati.leggiStringaNonVuota("Inserisci il nome del luogo: ");
-		String descrizione = InputDati.leggiStringa("Inserisci una descrizione del luogo: ");
-		Indirizzo indirizzo = ObjIndirizzo();
-		
-		//ogni LUOGO dovrebbe contenere al suo interno una LISTA DI TIPI VISITA (pg. 4, "A ciascun luogo � associato almeno un tipo di visita")
-			
-		
-		//mostrare tutti i tipi visita
-		//chiedere quale associare al luogo
-		//chiedere se ne vogliono associare un altro
-					
-		boolean continuaTipo = false;
-		int sceltaTipo;
-		//ArrayList<TipoVisita> tipiToAdd = new ArrayList<>();
-		ListaTipoVisita listaTipoVisitaToAdd = new ListaTipoVisita();
-		
-		do {
-		    // Se non ci sono più visite disponibili da associare → esco subito
-		    if (listaTipoVisita.getTipi().isEmpty() || 
-		        listaTipoVisitaToAdd.getTipi().size() == listaTipoVisita.getTipi().size()) {
-		        System.out.println("Non ci sono piu' Tipi Visita disponibili da associare a questo luogo.");
-		        break;
-		    }
 
-		    // Mostra la lista delle visite disponibili
-		    System.out.println("Elenco Tipi Visite:");
-		    System.out.println(listaTipoVisita.toStringAsList());
+	        // Input scelta da lista filtrata
+	        sceltaTipo = InputDati.leggiIntero(
+	            "Inserisci il numero del Tipo Visita che vuoi associare a questo Luogo: ",
+	            1, tipiAttiviDisponibili.size()
+	        );
+	        TipoVisita visitaSelezionata = tipiAttiviDisponibili.get(sceltaTipo - 1);
 
-		    // Scelta dell'utente
-		    sceltaTipo = InputDati.leggiInteroNonNegativo(
-		        "Inserisci il numero del Tipo Visita che vuoi associare a questo Luogo: "
-		    );
-		    
-		    // Validazione input
-		    if (sceltaTipo < 1 || sceltaTipo > listaTipoVisita.getTipi().size()) {
-		        System.out.println("Scelta non valida. Riprova.");
-		        continue;
-		    }
-		    TipoVisita visitaSelezionata = listaTipoVisita.getTipo(sceltaTipo - 1);
+	        if (listaTipoVisita.isAggiungibile(visitaSelezionata, listaTipoVisitaToAdd)) {
+	            listaTipoVisitaToAdd.add(visitaSelezionata);
+	            System.out.println("Visita aggiunta correttamente.");
+	        }
 
-		    
-		    //NUOVO BLOCCO GESTIONE NUOVE AGGIUNTE V3
-		    if (consentiNuoviVol) {
-		        boolean aggiungiNuoviVolontari = InputDati.yesOrNo("Vuoi aggiungere nuovi volontari per questo tipo di visita?");
-		        if (aggiungiNuoviVolontari) {
-		            boolean continuaAggiunta = true;
-		            do {
-		                Volontario nuovoVol = aggiungiNuovoVolontario();
-		                if (nuovoVol != null) {
-		                    visitaSelezionata.getListaVolontari().aggiungiVolontario(nuovoVol);
-		                    System.out.println("Volontario " + nuovoVol.getCredenziali().getUsername() +
-		                                       " aggiunto al tipo visita \"" + visitaSelezionata.getTitolo() + "\".");
-		                }
-		                continuaAggiunta = InputDati.yesOrNo("Vuoi aggiungere un altro nuovo volontario a questo tipo di visita?");
-		            } while (continuaAggiunta);
-		        }
-		    }
-		    boolean duplicato = false;
-		    boolean sovrapposta = false;
+	        if (consentiNuoviVol) {
+	            boolean aggiungiNuoviVolontari = InputDati.yesOrNo("Vuoi aggiungere nuovi volontari per questo tipo di visita?");
+	            if (aggiungiNuoviVolontari) {
+	                boolean continuaAggiunta = true;
+	                do {
+	                    Volontario nuovoVol = aggiungiNuovoVolontario();
+	                    if (nuovoVol != null) {
+	                        visitaSelezionata.getListaVolontari().aggiungiVolontario(nuovoVol);
+	                        System.out.println("Volontario " + nuovoVol.getCredenziali().getUsername() +
+	                                " aggiunto al tipo visita \"" + visitaSelezionata.getTitolo() + "\".");
+	                    }
+	                    continuaAggiunta = InputDati.yesOrNo("Vuoi aggiungere un altro nuovo volontario a questo tipo di visita?");
+	                } while (continuaAggiunta);
+	            }
+	        }
 
-		    // Controlli su duplicati e sovrapposizioni
-		    for (TipoVisita v : listaTipoVisitaToAdd.getTipi()) {
-		        if (v.equals(visitaSelezionata)) {
-		            System.out.println("Attenzione: hai selezionato lo stesso Tipo Visita già associato!");
-		            duplicato = true;
-		            break;
-		        } else if (v.siSovrappongono(visitaSelezionata)) {
-		            System.out.println("Attenzione: questa visita si sovrappone ad un'altra già programmata per lo stesso giorno!");
-		            sovrapposta = true;
-		            break;
-		        }
-		    }
+	        if (listaTipoVisitaToAdd.getTipi().size() == attiviTotali) {
+	            System.out.println("Hai associato tutti i Tipi Visita disponibili per questo luogo.");
+	            break;
+	        }
 
-		    // Se non è duplicata né sovrapposta, la aggiungo
-		    if (!duplicato && !sovrapposta) {
-		        listaTipoVisitaToAdd.add(visitaSelezionata);
-		        System.out.println("Visita aggiunta correttamente.");
-		    }
+	        // Chiede se continuare
+	        continuaTipo = InputDati.yesOrNo("Vuoi associare un altro Tipo Visita a questo luogo? ");
 
-		    // Se dopo l'aggiunta non ci sono più visite disponibili → esco
-		    if (listaTipoVisitaToAdd.getTipi().size() == listaTipoVisita.getTipi().size()) {
-		        System.out.println("Hai associato tutti i Tipi Visita disponibili a questo luogo.");
-		        break;
-		    }
+	    } while (continuaTipo);
 
-		    // Altrimenti chiedo se continuare
-		    continuaTipo = InputDati.yesOrNo("Vuoi associare un altro Tipo Visita a questo luogo? ");
-
-		} while (continuaTipo);
-
-
-	
-		
-		Luogo luogo = new Luogo(nomeLuogo, descrizione, indirizzo, listaTipoVisitaToAdd);
-		System.out.println(luogo.toString());
-		try {
-		    LuogoDAO.salvaLuogoCompleto(luogo);
-		    		    if (!listaLuoghi.contains(luogo)) {
-		        listaLuoghi.add(luogo);
-		        System.out.println("Luogo creato e salvato con successo.");
-		    } else {
-		        System.out.println("ATTENZIONE: Luogo già presente nella lista!");
-		    }
-		} catch (SQLException e) {
-		    System.out.println("Errore nel salvataggio del luogo: " + e.getMessage());
-		}
-
+	    Luogo luogo = new Luogo(nomeLuogo, descrizione, indirizzo, listaTipoVisitaToAdd);
+	    System.out.println(luogo.toString());
+	    try {
+	        LuogoDAO.salvaLuogoCompleto(luogo);
+	        if (!listaLuoghi.contains(luogo)) {
+	            listaLuoghi.add(luogo);
+	            System.out.println("Luogo creato e salvato con successo.");
+	        } else {
+	            System.out.println("ATTENZIONE: Luogo già presente nella lista!");
+	        }
+	    } catch (SQLException e) {
+	        System.out.println("Errore nel salvataggio del luogo: " + e.getMessage());
+	    }
 	}
 
-	/* ROXY
-	 * Metodo gi� esistente modificato leggermente per gestire i nuovi volontari della v3;
-	 * se il boolean � false, nelle voci della v1 non viene chiesto se si vuole aggiungere un nuovo volontario,
-	 * viene messo a true nelle voci della v3 per permettere l'aggiunta di nuovi volontari
-	 * 
-	 * Se non avessi fatto cos� avrei avuto due metodi praticamente uguali e ridondanza del codice
-	 * (se avete idee migliori aggiornatemi)
-	 */
-	public static void definizioneTipoVisita(boolean consentiNuoviVolontari) throws SQLException {
-		
-		//prima definisco il singolo tipo visita, e poi lo aggiungo alla lista listaTipoVisita 
-		
-		
-		String titolo = InputDati.leggiStringaNonVuota("Inserisci il titolo del tipo visita: ");
-		String descrizione = InputDati.leggiStringaNonVuota("Inserisci una breve descrizione del tipo visita: ");
-		String puntoDiIncontro = InputDati.leggiStringaNonVuota("Inserisci il punto di incontro: ");
-	    ArrayList<Giorni> giorniProgrammabiliSettimana = ObjGiorniSettimana();	    
+
+	public static void aggiungiTipoVisita(boolean consentiNuoviVolontari) throws SQLException {
+
+	    // Acquisizione dati base tipo visita
+	    String titolo = InputDati.leggiStringaNonVuota("Inserisci il titolo del tipo visita: ");
+	    String descrizione = InputDati.leggiStringaNonVuota("Inserisci una breve descrizione del tipo visita: ");
+	    String puntoDiIncontro = InputDati.leggiStringaNonVuota("Inserisci il punto di incontro: ");
+	    ArrayList<Giorni> giorniProgrammabiliSettimana = ObjGiorniSettimana();
 	    LocalTime oraInizio = ObjOraFLT();
 	    int durataVisita = InputDati.leggiInteroPositivo("Inserisci in minuti la durata della visita: ");
-	    //int biglietto = InputDati.leggiIntero("Inserisci 0 se NON serve il biglietto, 1 altrimenti.", 0, 1);
 	    boolean biglietto = InputDati.yesOrNo("Inserisci N se NON serve il biglietto, S altrimenti.");
 	    int sogliaMinPartecipanti = InputDati.leggiInteroNonNegativo("Inserisci soglia MINIMA dei partecipanti: ");
-	    int sogliaMaxPartecipanti = InputDati.leggiIntero("Inserisci soglia MASSIMA dei partecipanti: ",sogliaMinPartecipanti+1, Integer.MAX_VALUE);
-		Periodo periodoProgrammabile = ObjPeriodo();	
-		
-		boolean continuaVolontario = false;
-		ListaVolontari volontariToAdd = new ListaVolontari();
-		int sceltaVolontario;
-		
-		//la modifica � qui all'interno del do while
-		do {
-			Volontario volontarioScelto = null;
-			
-			if(consentiNuoviVolontari) {
-				boolean aggiungiNuovo = InputDati.yesOrNo("Vuoi aggiungere un nuovo volontario? ");
-				
-				if(aggiungiNuovo) {
-					volontarioScelto = aggiungiNuovoVolontario();
-				}
-			}
-			
-			if(volontariToAdd.getVolontari().size()==listaVolontari.getVolontari().size()) {
-				System.out.println("Nessun volontario disponibile");
-				continuaVolontario=false;
-				break;
-			}
-			
+	    int sogliaMaxPartecipanti = InputDati.leggiIntero("Inserisci soglia MASSIMA dei partecipanti: ", sogliaMinPartecipanti + 1, Integer.MAX_VALUE);
+	    Periodo periodoProgrammabile = ObjPeriodo();
+
+	    ListaVolontari volontariToAdd = new ListaVolontari();
+	    boolean continuaVolontario;
+
+	    do {
+	        // Se consenti aggiunta nuovi volontari, chiedi se vogliono crearne uno nuovo
+	        if (consentiNuoviVolontari) {
+	            boolean aggiungiNuovo = InputDati.yesOrNo("Vuoi aggiungere un nuovo volontario? ");
+	            if (aggiungiNuovo) {
+	                Volontario nuovoVol = aggiungiNuovoVolontario();
+	                if (nuovoVol != null) {
+	                    System.out.println("Volontario " + nuovoVol.getCredenziali().getUsername() + " creato. Sarà associato al tipo visita se confermi.");
+	                    // Non aggiunto automaticamente a lista globale qui: si presume sia fatto dentro aggiungiNuovoVolontario()
+	                }
+	            }
+	        }
+
+	        // Costruisci lista volontari disponibili e attivi non ancora associati a questo tipo visita
+	        List<Volontario> volontariDisponibili = new ArrayList<>();
+	        for (Volontario v : listaVolontari.getVolontari()) {
+	            if (v.isAttivo() && !volontariToAdd.getVolontari().contains(v)) {
+	                volontariDisponibili.add(v);
+	            }
+	        }
+
+	        if (volontariDisponibili.isEmpty()) {
+	            System.out.println("Non ci sono volontari attivi disponibili da associare.");
+	            break;
+	        }
+
+	        // Stampa lista volontari disponibili con numerazione
 	        System.out.println("Elenco Volontari disponibili:");
-			for(int i= 0; i < listaVolontari.getVolontari().size();i++) {
-				Volontario v = listaVolontari.getVolontari().get(i);
-				System.out.println((i+1) + ")" + v.getCredenziali().getUsername());
-			}
-			
-			sceltaVolontario = InputDati.leggiInteroNonNegativo("Inserisci il numero del volontario da associare al tipo visita: ");
-			volontariToAdd.aggiungiVolontario(listaVolontari.getVolontario(sceltaVolontario - 1));
-			continuaVolontario = InputDati.yesOrNo("Vuoi associare un altro Volontario a questo Tipo Visita? ");
-			
-		}while(continuaVolontario);
-		
-		/*do {
-			if(volontariToAdd.getVolontari().size()==listaVolontari.getVolontari().size()) {
-				System.out.println("Nessun volontario disponibile");
-				continuaVolontario=false;
-				break;
-			}
-	        System.out.println("Elenco Volontari disponibili:");
-			listaVolontari.visualizzaVolontariDisponibili(volontariToAdd.getVolontari());
-			sceltaVolontario = InputDati.leggiInteroNonNegativo("Inserisci il numero del volontario da associare al tipo visita: ");
-			volontariToAdd.aggiungiVolontario(listaVolontari.getVolontario(sceltaVolontario - 1));
-			continuaVolontario = InputDati.yesOrNo("Vuoi associare un altro Volontario a questo Tipo Visita? ");
-		} while(continuaVolontario);*/
-		
-		TipoVisita tipoVisita = new TipoVisita(titolo, descrizione,  puntoDiIncontro, giorniProgrammabiliSettimana, oraInizio,
-				durataVisita, biglietto, sogliaMinPartecipanti, sogliaMaxPartecipanti, periodoProgrammabile, volontariToAdd);
-		
-		System.out.println(tipoVisita.toString());
-		
-		try {
-		    TipoVisitaDAO.inserisciVisita(tipoVisita);
-		    
-		    // ✅ Verifica duplicati prima di aggiungere
-		    if (!listaTipoVisita.getTipi().contains(tipoVisita)) {
-		        listaTipoVisita.add(tipoVisita);
-		        System.out.println("Tipo Visita creato con successo.");
-		    } else {
-		        System.out.println("ATTENZIONE: Tipo Visita già presente nella lista!");
-		    }
-		} catch (SQLException e) {
-		    System.out.println("Errore nel salvataggio: " + e.getMessage());
-		}
-		
+	        for (int i = 0; i < volontariDisponibili.size(); i++) {
+	            System.out.println((i + 1) + ") " + volontariDisponibili.get(i).getCredenziali().getUsername());
+	        }
+
+	        // Input scelta volontario, con controllo validità
+	        int sceltaVolontario;
+	        do {
+	            sceltaVolontario = InputDati.leggiInteroNonNegativo("Inserisci il numero del volontario da associare al tipo visita: ");
+	            if (sceltaVolontario < 1 || sceltaVolontario > volontariDisponibili.size()) {
+	                System.out.println("Scelta non valida, riprova.");
+	            }
+	        } while (sceltaVolontario < 1 || sceltaVolontario > volontariDisponibili.size());
+
+	        // Aggiungi volontario selezionato alla lista del tipo visita in costruzione
+	        Volontario scelto = volontariDisponibili.get(sceltaVolontario - 1);
+	        volontariToAdd.aggiungiVolontario(scelto);
+
+	        // Chiede se associare un altro volontario, sempre nel contesto di questo tipo visita
+	        continuaVolontario = InputDati.yesOrNo("Vuoi associare un altro Volontario a questo Tipo Visita? ");
+
+	    } while (continuaVolontario);
+
+	    // Crea il nuovo oggetto TipoVisita con i volontari selezionati
+	    TipoVisita tipoVisita = new TipoVisita(titolo, descrizione, puntoDiIncontro,
+	            giorniProgrammabiliSettimana, oraInizio, durataVisita,
+	            biglietto, sogliaMinPartecipanti, sogliaMaxPartecipanti,
+	            periodoProgrammabile, volontariToAdd);
+
+	    System.out.println(tipoVisita.toString());
+
+	    try {
+	        TipoVisitaDAO.inserisciVisita(tipoVisita);
+
+	        // Verifica se tipo visita è già presente, aggiunge se no
+	        if (!listaTipoVisita.getTipi().contains(tipoVisita)) {
+	            listaTipoVisita.add(tipoVisita);
+	            System.out.println("Tipo Visita creato con successo.");
+	        } else {
+	            System.out.println("ATTENZIONE: Tipo Visita già presente nella lista!");
+	        }
+	    } catch (SQLException e) {
+	        System.out.println("Errore nel salvataggio: " + e.getMessage());
+	    }
 	}
 
-	
-	public static void leggiCorpoDati() throws Exception {		
-		listaTipoVisita = TipoVisitaDAO.leggiTuttiTipiVisita(listaVolontari);
-		System.out.println(listaTipoVisita.toString());
-		
-		ambito = AmbitoTerritorialeDAO.leggiTuttiAmbitiTerritoriali();
-		ambito.stampaAmbito();
-		
-		listaLuoghi = LuogoDAO.leggiTuttiLuoghi(listaTipoVisita);
-		listaLuoghi.stampaLuoghiConTipoVisita();
-	
-		
-	}
 
-	public static void modificaNumFruitore() {
-		nMaxPersone = InputDati.leggiInteroPositivo("Inserisci il numero massimo di persone che un fruitore puo' iscrivere a una iniziativa mediante una singola iscrizione: ");
-	}
-	
-	// NUOVO METODO!! PER GENERARE PIANO VISITE
-	public static void generaPianoVisite() {
-		System.out.println("\n===== Generazione del piano delle visite per il mese " + cal.getMeseI1() + " =====\n");
-	    
-		String meseConsiderato = cal.getMeseI1();
-		
-		try {
-			for(Volontario v : listaVolontari.getVolontari()) {
-				ArrayList<Disponibilita> disponibilitaVolontario = DisponibilitaDAO.leggiDisponibilitaVolontario(v.getNickname());
-				
-				for(Disponibilita d : disponibilitaVolontario) {
-					if(d.getMese().equalsIgnoreCase(meseConsiderato)) {
-					
-						ListaTipoVisita tipiVolontario = listaTipoVisita.getTipiPerVolontario(v.getNickname());
-						for(TipoVisita tipo : tipiVolontario.getTipi()) {
-							Data dataVisita = new Data(d.getGiorno(), cal.getMeseNumero(meseConsiderato));
-							Visita nuova = new Visita(tipo, v, StatoVisita.PROPOSTA, dataVisita);
-							listaVisite.aggiungiVisita(nuova);
-							
-							VisitaDAO.salvaVisita(nuova);
-						}
-					}
-				}
-			
-			}
-			
-			//System.out.println("Il piano delle visite e' stato generato con successo!");
-			listaVisite.stampaPianoVisite();
-			
-		}catch(SQLException e) {
-			System.out.println("Errore durante la generazione del piano delle visite: " + e.getMessage());
-		}
-	}
-	
-	
-	private static void raccogliDisponibilitaVolontario(String nickname) throws SQLException {
-	    if (statoSistema != StatoSistema.GESTIONE_RICHIESTE_AGGIUNTA_RIMOZIONE_COMPLETATA) {
-	        System.out.println("Non puoi esprimere disponibilità in questo stato del sistema. (Stato attuale: " + statoSistema + ")");
+	private static void aggiungiTipoVisitaALuogo() throws SQLException {
+	    // Usa selezione solo tra luoghi attivi
+	    Luogo luogoScelto = listaLuoghi.selezionaLuogoAttivo();
+	    if (luogoScelto == null) {
+	        System.out.println("Nessun luogo attivo disponibile o operazione annullata.");
 	        return;
 	    }
-	    statoSistema = StatoSistema.RACCOLTA_DISPONIBILITA_I_2;   
-	    ListaTipoVisita tipoVisitaPerVolontario = listaTipoVisita.getTipiPerVolontario(nickname);
-	    
-	    for (TipoVisita t : tipoVisitaPerVolontario.getTipi()) {
-	        assert t != null : "Invariante violata: TipoVisita null";
 
-	        boolean continua = true;
-	        do {
-	            Data dataScelta = cal.scegliDataPerTipo(t, 2);
-
-	            if (dataScelta != null) {
-	                Volontario v = listaVolontari.cercaPerNickname(nickname);
-	                assert v != null : "Invariante violata: volontario non trovato";
-
-	                Visita nuovaVisita = new Visita(t, v, StatoVisita.PROPOSTA, dataScelta);
-
-	                // Metodo aggiungiVisita deve garantire:
-	                // - se esiste già una Visita con stesso tipo+data, aggiunge solo il volontario
-	                // - altrimenti crea una nuova Visita
-	                listaVisite.aggiungiVisita(nuovaVisita);
-	                
-	               
-	                    DisponibilitaDAO.salvaDisponibilita(nickname, dataScelta.getGiorno(), cal.getMeseI2());
-	                    
-	                    // Stampa le disponibilità inserite
-	                    ArrayList<Disponibilita> mie = DisponibilitaDAO.leggiDisponibilitaVolontario(nickname);
-	                    System.out.println("==== Le tue disponibilità per " + cal.getMeseI2() + " ====");
-	                    for (Disponibilita d : mie) {
-	                        if (d.getMese().equalsIgnoreCase(cal.getMeseI2())) {
-	                            System.out.println("- " + d.getGiorno() + " " + d.getMese());
-	                        }
-	                    }
-	                    System.out.println("==============================================");
-	                
-	            	}
-	            
-	            continua = InputDati.yesOrNo("Vuoi esprimere un'altra disponibilità per il mese di " + cal.getMeseI2() + "? ");
-	        } while (continua);
+	    // Filtra tipi visita attivi non ancora associati al luogo
+	    ListaTipoVisita tipiDisponibili = new ListaTipoVisita();
+	    for (TipoVisita t : listaTipoVisita.getTipi()) {
+	        if (t.isAttivo() && !luogoScelto.getListaTipoVisita().getTipi().contains(t)) {
+	            tipiDisponibili.add(t);
+	        }
 	    }
-	    // POSTCONDIZIONE: tutte le visite in listaVisite rispettano l'unicità (tipo+data)
-	    assert listaVisite.visiteUnichePerTipoEData() : "Postcondizione violata: visite duplicate presenti";
-	    statoSistema = StatoSistema.RACCOLTA_DISPONIBILITA_I_2_COMPLETATA;
+
+	    if (tipiDisponibili.getTipi().isEmpty()) {
+	        System.out.println("Tutti i tipi di visita disponibili sono già associati a questo luogo.");
+	        return;
+	    }
+
+	    boolean continuaAggiunta = true;
+	    do {
+	        System.out.println("Tipi di visita disponibili da aggiungere:");
+	        System.out.println(tipiDisponibili.toStringAsList());
+
+	        int sceltaTipo = InputDati.leggiIntero("Scegli il tipo di visita da aggiungere: ",
+	                                               1, tipiDisponibili.getTipi().size());
+	        TipoVisita tipoScelto = tipiDisponibili.getTipo(sceltaTipo - 1);
+
+	        boolean aggiungiVolontari = InputDati.yesOrNo(
+	            "Vuoi aggiungere volontari (nuovi o esistenti) per questo tipo di visita?");
+	        if (aggiungiVolontari) {
+	            boolean continuaAggiungiVol = true;
+	            do {
+	                Volontario nuovoVol = aggiungiNuovoVolontario();
+	                if (nuovoVol != null) {
+	                    tipoScelto.getListaVolontari().aggiungiVolontario(nuovoVol);
+
+	                    // Aggiorna anche il database e gestisce orfani
+	                    TipoVisitaDAO tipoVisitaDAO = new TipoVisitaDAO();
+	                    tipoVisitaDAO.gestisciOrfani(tipoScelto, nuovoVol);
+
+	                    System.out.println("Volontario aggiunto al tipo visita.");
+	                }
+	                continuaAggiungiVol = InputDati.yesOrNo("Vuoi aggiungere un altro volontario?");
+	            } while (continuaAggiungiVol);
+	        }
+
+	        // Aggiungi il tipo visita selezionato al luogo e salva modifiche
+	        luogoScelto.getListaTipoVisita().add(tipoScelto);
+	        LuogoDAO.salvaLuogoCompleto(luogoScelto);
+
+	        continuaAggiunta = InputDati.yesOrNo("Vuoi aggiungere un altro tipo di visita a questo luogo?");
+	    } while (continuaAggiunta);
+
+	    System.out.println("Il luogo è stato correttamente modificato.");
 	}
 
 
-	//NUOVO METODO PER CREARE NUOVO VOLONTARIO PER V3	
 	public static Volontario aggiungiNuovoVolontario() throws SQLException {
 	    
 	    String username = InputDati.leggiStringaNonVuota("Inserisci username per il nuovo volontario: ");
@@ -1012,8 +1073,8 @@ public class Menu{
 	    // ✅ CONTROLLO 1: Verifica se esiste già nella lista globale
 	    Volontario volontarioEsistente = listaVolontari.cercaPerNickname(username);
 	    if (volontarioEsistente != null) {
-	        System.out.println("Il volontario '" + username + "' esiste già nella lista globale.");
-	        return volontarioEsistente;  // ✅ Ritorna il riferimento esistente
+	        System.out.println("Il volontario '" + username + "' esiste già.");
+	        return volontarioEsistente;  // 
 	    }
 	    
 	    // ✅ CONTROLLO 2: Verifica se esiste nel database (ma non nella lista)
@@ -1023,13 +1084,13 @@ public class Menu{
 	    
 	    if (credEsistente != null) {
 	        // Il volontario esiste nel DB ma non nella lista globale
-	        System.out.println("⚠Il volontario '" + username + "' esiste già nel database.");
+	        System.out.println("Il volontario '" + username + "' esiste già nel database.");
 	        System.out.println("Lo aggiungo alla lista globale...");
 	        
 	        Volontario volRecuperato = new Volontario(credEsistente);
 	        listaVolontari.aggiungiVolontario(volRecuperato);
 	        
-	        System.out.println("✓ Volontario recuperato con successo!");
+	        System.out.println("Volontario recuperato con successo!");
 	        return volRecuperato;
 	    }
 	    
@@ -1046,7 +1107,7 @@ public class Menu{
 	        // POI aggiungi alla lista globale (solo se salvataggio OK)
 	        listaVolontari.aggiungiVolontario(nuovoVolontario);
 
-	        System.out.println("\n✓ Nuovo volontario aggiunto con successo!");
+	        System.out.println("\nNuovo volontario aggiunto con successo!");
 	        System.out.println("Username: " + username);
 	        System.out.println("Password predefinita: " + passwordPredefinita);
 	        System.out.println("------------------------------------------");
@@ -1054,124 +1115,85 @@ public class Menu{
 	        return nuovoVolontario;
 	        
 	    } catch (SQLException e) {
-	        System.out.println("❌ Errore durante l'inserimento del nuovo volontario: " + e.getMessage());
+	        System.out.println("Errore durante l'inserimento del nuovo volontario: " + e.getMessage());
 	        return null;  //  Non crasha, ritorna null
 	    }
 	}
 
-	
-	//NUOVO METODO V3 PER AGGIUNGERE TIPO VISITA A LUOGO ESISTENTE 
-	//+ VOLONTARI NUOVI O GIA' ESISTENTI
-	private static void aggiungiTipoVisitaALuogo() throws SQLException{
+	private static void aggiungiVolontarioATipoVisita() throws SQLException {
 
-		Luogo luogoScelto = listaLuoghi.selezionaLuogo();
-		
-		//fa vedere i tipi visita non ancora associati al luogo
-	    
-	    ListaTipoVisita tipiDisponibili = new ListaTipoVisita();
+	    // Prepara lista solo con tipi visita attivi
+	    List<TipoVisita> tipiAttivi = new ArrayList<>();
 	    for (TipoVisita t : listaTipoVisita.getTipi()) {
-	        if (!luogoScelto.getListaTipoVisita().getTipi().contains(t)) {
-	            tipiDisponibili.add(t);
+	        if (t.isAttivo()) {
+	            tipiAttivi.add(t);
 	        }
 	    }
 
-	    if (tipiDisponibili.getTipi().isEmpty()) {
-	        System.out.println("Tutti i tipi di visita sono gia' associati a questo luogo.");
-	        return;
-	    }
-	    
-	    boolean continuaAggiunta = true;
-	    do {
-	        System.out.println("Tipi di visita disponibili da aggiungere:");
-	        System.out.println(tipiDisponibili.toStringAsList());
-
-	        int sceltaTipo = InputDati.leggiIntero("Scegli il tipo di visita da aggiungere: ",
-	                                               1, tipiDisponibili.getTipi().size());
-	        TipoVisita tipoScelto = tipiDisponibili.getTipo(sceltaTipo - 1);
-
-	        // gestisce i volontari (nuovi o gi� esistenti)
-	        boolean aggiungiVolontari = InputDati.yesOrNo(
-	            "Vuoi aggiungere volontari (nuovi o esistenti) per questo tipo di visita?");
-	        if (aggiungiVolontari) {
-	            // Aggiungi volontari al tipo visita già selezionato
-	            boolean continuaAggiungiVol = true;
-	            do {
-	                Volontario nuovoVol = aggiungiNuovoVolontario();
-	                if (nuovoVol != null) {
-	                    tipoScelto.getListaVolontari().aggiungiVolontario(nuovoVol);
-	                    // Aggiorna anche il database
-	                    TipoVisitaDAO tipoVisitaDAO = new TipoVisitaDAO();
-	                    tipoVisitaDAO.gestisciOrfani(tipoScelto, nuovoVol);
-	                    System.out.println("Volontario aggiunto al tipo visita.");
-	                }
-	                continuaAggiungiVol = InputDati.yesOrNo("Vuoi aggiungere un altro volontario?");
-	            } while (continuaAggiungiVol);
-	        }
-
-	        // aggiungi il tipo al luogo e salva le modifiche
-	        luogoScelto.getListaTipoVisita().add(tipoScelto);
-	        LuogoDAO.salvaLuogoCompleto(luogoScelto);
-
-	        continuaAggiunta = InputDati.yesOrNo("Vuoi aggiungere un altro tipo di visita a questo luogo?");
-	    } while (continuaAggiunta);
-
-	    System.out.println("Il luogo  stato correttamente modificato.");
-	    
-	}
-	
-	//NUOVO METODO V3 PER AGGIUNGERE VOLONTARIO NUOVO O ESISTENTE A TIPO VISITA ESISTENTE
-	private static void aggiungiVolontarioATipoVisita() throws SQLException{
-		
-		if (listaTipoVisita.getTipi().isEmpty()) {
-	        System.out.println("Non ci sono tipi di visita disponibili.");
+	    if (tipiAttivi.isEmpty()) {
+	        System.out.println("Non ci sono tipi di visita attivi disponibili.");
 	        return;
 	    }
 
-	    // mostra elenco tipi visita
-	    System.out.println("Elenco tipi di visita:");
-	    for (int i = 0; i < listaTipoVisita.getTipi().size(); i++) {
-	        System.out.println((i + 1) + ") " + listaTipoVisita.getTipo(i).getTitolo());
+	    // Mostra elenco tipi visita attivi
+	    System.out.println("Elenco tipi di visita attivi:");
+	    for (int i = 0; i < tipiAttivi.size(); i++) {
+	        System.out.println((i + 1) + ") " + tipiAttivi.get(i).getTitolo());
 	    }
 
-	    int scelta = InputDati.leggiIntero("Scegli il numero del tipo visita: ", 1, listaTipoVisita.getTipi().size());
-	    TipoVisita tipoScelto = listaTipoVisita.getTipo(scelta - 1);
-
+	    int scelta = InputDati.leggiIntero("Scegli il numero del tipo visita: ", 1, tipiAttivi.size());
+	    TipoVisita tipoScelto = tipiAttivi.get(scelta - 1);
 	    System.out.println("Hai selezionato: " + tipoScelto.getTitolo() + "\n");
+
+	    // Costruisci lista volontari attivi disponibili e non già associati a tipoScelto
+	    ListaVolontari volontariDisponibili = new ListaVolontari();
+	    for (Volontario vol : listaVolontari.getVolontari()) {
+	        if (vol.isAttivo() && !tipoScelto.getListaVolontari().getVolontari().contains(vol)) {
+	            volontariDisponibili.aggiungiVolontario(vol);
+	        }
+	    }
 
 	    boolean continua = true;
 	    do {
-	        // Chiedo se aggiungere nuovo volontario o uno gi� esistente
-	        boolean nuovo = InputDati.yesOrNo("Vuoi aggiungere un volontario ancora non registrato?");
+	        boolean nuovo = InputDati.yesOrNo("Vuoi aggiungere un volontario non ancora registrato?");
 	        Volontario v;
 
 	        if (nuovo) {
 	            v = aggiungiNuovoVolontario(); // uso il metodo creato apposta
+	            if (v != null && v.isAttivo() && !tipoScelto.getListaVolontari().getVolontari().contains(v)) {
+	                tipoScelto.getListaVolontari().aggiungiVolontario(v);
+	                TipoVisitaDAO.gestisciOrfani(tipoScelto, v);
+	                System.out.println("Volontario \"" + v.getCredenziali().getUsername() + "\" aggiunto a \"" + tipoScelto.getTitolo() + "\".");
+	            } else if (v != null && !v.isAttivo()) {
+	                System.out.println("Il volontario appena creato NON è attivo, quindi non verrà associato.");
+	            }
 	        } else {
-	            if (listaVolontari.getVolontari().isEmpty()) {
-	                System.out.println("Nessun volontario disponibile.");
+	            if (volontariDisponibili.getVolontari().isEmpty()) {
+	                System.out.println("Tutti i volontari attivi disponibili sono già associati al tipo visita selezionato.");
 	                return;
 	            }
-
-	            System.out.println("Elenco volontari esistenti:");
-	            for (int i = 0; i < listaVolontari.getVolontari().size(); i++) {
-	                System.out.println((i + 1) + ") " + listaVolontari.getVolontari().get(i).getCredenziali().getUsername());
+	            // Mostra solo volontari attivi ancora disponibili
+	            System.out.println("Elenco volontari attivi disponibili:");
+	            for (int i = 0; i < volontariDisponibili.getVolontari().size(); i++) {
+	                System.out.println((i + 1) + ") " + volontariDisponibili.getVolontari().get(i).getCredenziali().getUsername());
 	            }
+	            int sceltaVol = InputDati.leggiIntero("Scegli il numero del volontario: ", 1, volontariDisponibili.getVolontari().size());
+	            v = volontariDisponibili.getVolontario(sceltaVol - 1);
 
-	            int sceltaVol = InputDati.leggiIntero("Scegli il numero del volontario: ", 1, listaVolontari.getVolontari().size());
-	            v = listaVolontari.getVolontario(sceltaVol - 1);
-	        }
-
-	        //salva nel db
-	        if (v != null) {
-	            tipoScelto.getListaVolontari().aggiungiVolontario(v);
-	            TipoVisitaDAO.gestisciOrfani(tipoScelto, v); 
-	            System.out.println("Volontario \"" + v.getCredenziali().getUsername() + "\" aggiunto a \"" + tipoScelto.getTitolo() + "\".");
+	            if (v != null && v.isAttivo()) {
+	                tipoScelto.getListaVolontari().aggiungiVolontario(v);
+	                TipoVisitaDAO.gestisciOrfani(tipoScelto, v);
+	                System.out.println("Volontario \"" + v.getCredenziali().getUsername() + "\" aggiunto a \"" + tipoScelto.getTitolo() + "\".");
+	            }
 	        }
 
 	        continua = InputDati.yesOrNo("Vuoi aggiungerne un altro?");
 	    } while (continua);
-		
+
 	}
+
+	
+
 	
 	public static Data ObjData (String descrizioneGiorno, String descrizioneMese) {
 		int giorno = InputDati.leggiIntero(descrizioneGiorno,1,31);

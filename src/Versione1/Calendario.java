@@ -254,7 +254,9 @@ public class Calendario {
 
         return dataScelta;
     }
-
+    public boolean isGiornoEscluso(int giorno, int mese) {
+        return getDatePreclusePerMese(mese).contains(giorno);
+    }
     /**
      * Verifica l'invariante di classe
      */

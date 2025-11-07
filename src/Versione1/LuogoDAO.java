@@ -5,7 +5,7 @@ import java.util.*;
 public class LuogoDAO {
 
     // Salva un Luogo con Indirizzo e TipiVisita
-    public void salvaLuogoCompleto(Luogo luogo) throws SQLException {
+    public  void salvaLuogoCompleto(Luogo luogo) throws SQLException {
         try (Connection conn = ConnessioneDB.startConnection()) {
             conn.setAutoCommit(false);
             try {
@@ -25,16 +25,14 @@ public class LuogoDAO {
 
     // Salva un indirizzo e restituisce l'ID generato
     private int salvaIndirizzo(Connection conn, Indirizzo indirizzo) throws SQLException {
-        // 1. Prima salva (o recupera) l'ambito territoriale e ottieni il suo ID
         int idAmbito = salvaORecuperaAmbito(conn, indirizzo.getAmbitoTerritoriale());
         
-        // 2. Ora inserisci l'indirizzo con FK_AMBITO
         String sql = "INSERT INTO indirizzo (TIPO_STRADA, NOME_STRADA, NUM_CIVICO, FK_AMBITO) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, indirizzo.getTipoStrada().name());
             ps.setString(2, indirizzo.getNomeStrada());
             ps.setString(3, indirizzo.getNumeroCivico());
-            ps.setInt(4, idAmbito); // Usa l'ID dell'ambito
+            ps.setInt(4, idAmbito);
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
@@ -46,11 +44,7 @@ public class LuogoDAO {
         }
     }
 
-    /**
-     * Salva un ambito territoriale se non esiste già, altrimenti restituisce l'ID esistente.
-     */
     private int salvaORecuperaAmbito(Connection conn, AmbitoTerritoriale ambito) throws SQLException {
-        // Prima controlla se esiste già
         String checkSql = "SELECT ID FROM ambito_territoriale WHERE CAP = ? AND PROVINCIA = ? AND COMUNE = ?";
         try (PreparedStatement psCheck = conn.prepareStatement(checkSql)) {
             psCheck.setInt(1, ambito.getCap());
@@ -59,12 +53,11 @@ public class LuogoDAO {
             
             try (ResultSet rs = psCheck.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt("ID"); // Ambito già esistente
+                    return rs.getInt("ID");
                 }
             }
         }
         
-        // Se non esiste, inseriscilo
         String insertSql = "INSERT INTO ambito_territoriale (CAP, PROVINCIA, COMUNE) VALUES (?, ?, ?)";
         try (PreparedStatement psInsert = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
             psInsert.setInt(1, ambito.getCap());
@@ -84,11 +77,12 @@ public class LuogoDAO {
 
     // Salva un luogo e restituisce l'ID generato
     private int salvaLuogo(Connection conn, String nome, String descrizione, int idIndirizzo) throws SQLException {
-        String sql = "INSERT INTO luogo (NOME, DESCRIZIONE, FK_INDIRIZZO) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO luogo (NOME, DESCRIZIONE, FK_INDIRIZZO, ISATTIVO) VALUES (?, ?, ?, ?)";  // ✅ Aggiunto ISATTIVO
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, nome);
             ps.setString(2, descrizione);
             ps.setInt(3, idIndirizzo);
+            ps.setBoolean(4, true);  // ✅ Default: attivo quando viene creato
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
@@ -105,6 +99,7 @@ public class LuogoDAO {
         String sql = "SELECT l.ID, l.NOME, l.DESCRIZIONE " +
                      "FROM luogo l " +
                      "WHERE l.ID NOT IN (SELECT DISTINCT FK_LUOGO FROM luogo_tipo_visita) " +
+                     "AND l.ISATTIVO = true " +  // ✅ Solo attivi
                      "ORDER BY l.NOME";
         try (Connection conn = ConnessioneDB.startConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -120,26 +115,24 @@ public class LuogoDAO {
         return luoghiOrfani;
     }
 
-    public void eliminaLuogo(Luogo l) throws SQLException {
-        String deleteIndirizzoSql = "DELETE FROM indirizzo " +
-                                    "WHERE ID = (SELECT FK_INDIRIZZO FROM luogo WHERE NOME = ?)";
-        String deleteLuogoSql = "DELETE FROM luogo WHERE NOME = ?";
-        try (Connection conn = ConnessioneDB.startConnection()) {
-            conn.setAutoCommit(false);
-            try {
-                try (PreparedStatement ps = conn.prepareStatement(deleteLuogoSql)) {
-                    ps.setString(1, l.getNomeLuogo());
-                    ps.executeUpdate();
-                }
-                try (PreparedStatement ps = conn.prepareStatement(deleteIndirizzoSql)) {
-                    ps.setString(1, l.getNomeLuogo());
-                    ps.executeUpdate();
-                }
-                conn.commit();
-            } catch (SQLException e) {
-                conn.rollback();
-                throw e;
+    public static void eliminaLuogo(Luogo luogo) throws SQLException {
+        String updateSql = "UPDATE luogo SET ISATTIVO = false WHERE NOME = ?";  // ✅ Corretto con ISATTIVO
+        
+        try (Connection conn = ConnessioneDB.startConnection();
+             PreparedStatement ps = conn.prepareStatement(updateSql)) {
+            
+            ps.setString(1, luogo.getNomeLuogo());
+            
+            int righe = ps.executeUpdate();
+            
+            if (righe > 0) {
+                System.out.println("Luogo disattivato");
+            } else {
+                System.out.println("Luogo non trovato");
             }
+        } catch (SQLException e) {
+            System.out.println("Errore: " + e.getMessage());
+            throw e;
         }
     }
 
@@ -175,7 +168,8 @@ public class LuogoDAO {
             "a.CAP, a.COMUNE, a.PROVINCIA " +
             "FROM luogo l " +
             "JOIN indirizzo i ON l.FK_INDIRIZZO = i.ID " +
-            "JOIN ambito_territoriale a ON i.FK_AMBITO = a.ID";
+            "JOIN ambito_territoriale a ON i.FK_AMBITO = a.ID " +
+            "WHERE l.ISATTIVO = true";  // ✅ Solo attivi
         
         try (Connection conn = ConnessioneDB.startConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -201,14 +195,13 @@ public class LuogoDAO {
         return listaLuoghi;
     }
 
-
     // Metodo ausiliario per leggere i tipi visita associati a un luogo
     private ListaTipoVisita leggiTipiVisitaPerLuogo(Connection conn, int idLuogo, ListaTipoVisita listaTV) throws SQLException {
         ListaTipoVisita listaTipi = new ListaTipoVisita();
         ArrayList<String> titoliList = new ArrayList<>();
         String sql = "SELECT tv.TITOLO FROM tipo_visita tv " +
                      "JOIN luogo_tipo_visita ltv ON tv.ID = ltv.FK_TIPO_VISITA " +
-                     "WHERE ltv.FK_LUOGO = ?";
+                     "WHERE ltv.FK_LUOGO = ? AND tv.ISATTIVO = true";  // ✅ Solo tipi visita attivi
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idLuogo);
             try (ResultSet rs = ps.executeQuery()) {

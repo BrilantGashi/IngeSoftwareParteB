@@ -36,7 +36,7 @@ public class ListaVolontari {
     }
     
     public void rimuoviVolontario (Volontario v) {
-    	volontari.remove(v);
+    	v.setAttivo(false);
     }
     
     /**
@@ -129,22 +129,18 @@ public class ListaVolontari {
             return;
         }
         for (Volontario v : volontari) {
+            if (!v.isAttivo()) continue; // STAMPA SOLO VOLONTARI ATTIVI
             System.out.println("Volontario: " + v.getNickname());
             ArrayList<TipoVisita> visiteAssociate = new ArrayList<>();
-            //System.out.println("VOLONTARIO IN ESAME: " + v.getNickname());
             for (TipoVisita visita : tutteLeVisite) {
-            	//System.out.println("VISITA: "+ visita.getTitolo());
-            	//System.out.println("VOLONTARI VISITA: "+ visita.getListaVolontari().stampaVolontari());
-            	//visita.getListaVolontari().stampaVolontari();
-            	//boolean tmpCheck = visita.getListaVolontari().getVolontari().contains(v);
-            	boolean tmpCheck = visita.getListaVolontari().contienePerNickname(v.getNickname());
+                boolean tmpCheck = visita.getListaVolontari().contienePerNickname(v.getNickname());
                 if (tmpCheck) {
                     visiteAssociate.add(visita);
                 }
             }
             if (visiteAssociate.isEmpty()) {
                 System.out.println("   Nessuna visita associata.");
-            } else {
+            } else  {
                 System.out.println("   Visite associate:");
                 for (TipoVisita visita : visiteAssociate) {
                     System.out.println("      - " + visita.getTitolo());
@@ -154,23 +150,36 @@ public class ListaVolontari {
         }
     }
 
+
     public void visualizzaVolontari() {
         System.out.println("Elenco Volontari disponibili:");
-        for (int i = 0; i < volontari.size(); i++) {
-            System.out.println((i+1) + ". " + volontari.get(i).getCredenziali().getUsername());
+        int count = 1;
+        for (Volontario v : volontari) { // Meglio usare for-each e non per indice
+            if (v.isAttivo()) {
+                System.out.println(count + ". " + v.getCredenziali().getUsername());
+                count++;
+            }
+        }
+        if (count == 1) {
+            System.out.println("Nessun volontario presente");
         }
     }
+
     
     public void visualizzaVolontariDisponibili(ArrayList<Volontario> volontariScelti) {
         Objects.requireNonNull(volontariScelti, "La lista dei volontari scelti non può essere null");
-        for (int i = 0; i < volontari.size(); i++) {
-            if (!volontariScelti.contains(volontari.get(i))) {
-                System.out.println((i+1) + ". " + volontari.get(i).getCredenziali().getUsername());
-            } else if (volontariScelti.size() == volontari.size()) {
-                break;
+        int count = 1;
+        for (Volontario v : volontari) {
+            if (v.isAttivo() && !volontariScelti.contains(v)) {
+                System.out.println(count + ". " + v.getCredenziali().getUsername());
+                count++;
             }
         }
+        if (count == 1) {
+            System.out.println("(Nessun volontario disponibile)");
+        }
     }
+
 
     // ================== INVARIANTE ==================
     private boolean invClass() {

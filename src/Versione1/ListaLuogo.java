@@ -1,5 +1,6 @@
 package Versione1;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -24,13 +25,16 @@ public class ListaLuogo {
      * PRECONDIZIONE: luogo != null
      * POSTCONDIZIONE: listaLuoghi contiene luogo
      */
-    public void add(Luogo luogo) {
-        Objects.requireNonNull(luogo, "Il luogo non puo' essere null");
-        listaLuoghi.add(luogo);
-        assert listaLuoghi.contains(luogo) : "Postcondizione violata: luogo non aggiunto";
-        assert invClass() : "Invariante violato in add";
+    public void aggiungiLuogo(Luogo luogo) {
+        // Puoi rafforzare il controllo se vuoi evitare duplicati:
+        if (luogo == null || contains(luogo)) {
+            throw new IllegalArgumentException("Luogo non valido o già presente");
+        }
+        listaLuoghi.add(luogo); 
     }
 
+    
+    
     /**
      * Restituisce la lista dei luoghi.
      * POSTCONDIZIONE: ritorna una lista non null (può essere vuota).
@@ -70,16 +74,55 @@ public class ListaLuogo {
     public void rimuovi (Luogo l) {
     	listaLuoghi.remove(l);
     }
+    public void add(Luogo luogo) {
+    	listaLuoghi.add(luogo);
+	}
     
-    public Luogo selezionaLuogo() {
+    public Luogo selezionaLuogoAttivo() {
         if (listaLuoghi == null || listaLuoghi.isEmpty()) {
             System.out.println("Nessun luogo disponibile.");
             return null;
         }
 
-        stampaElencoNumerato();
-        int scelta = InputDati.leggiIntero("Scegli un luogo: ", 1, listaLuoghi.size());
-        return listaLuoghi.get(scelta - 1);
+        // Prepara lista solo con luoghi attivi
+        ListaLuogo luoghiAttivi = new ListaLuogo();
+        for (Luogo l : listaLuoghi) {
+            if (l.isAttivo()) {
+                luoghiAttivi.add(l);
+            }
+        }
+
+        if (luoghiAttivi.getListaLuoghi().isEmpty()) {
+            System.out.println("Nessun luogo attivo disponibile.");
+            return null;
+        }
+
+        // Stampa elenco numerato per scelta
+        for (int i = 0; i < luoghiAttivi.getListaLuoghi().size(); i++) {
+            System.out.println((i + 1) + ") " + luoghiAttivi.getListaLuoghi().get(i).getNomeLuogo());
+        }
+
+        int scelta = InputDati.leggiIntero("Scegli un luogo: ", 1, luoghiAttivi.getListaLuoghi().size());
+        return luoghiAttivi.getListaLuoghi().get(scelta - 1);
+    }
+
+    public ListaLuogo trovaLuoghiOrfani() {
+        ListaLuogo orfani = new ListaLuogo();
+        for (Luogo l : listaLuoghi) { // supponendo che l'attributo interno sia "luoghi"
+            if (l.isAttivo()) {
+                boolean haTipoVisitaAttivo = false;
+                for (TipoVisita tv : l.getListaTipoVisita().getTipi()) {
+                    if (tv.isAttivo()) {
+                        haTipoVisitaAttivo = true;
+                        break;
+                    }
+                }
+                if (!haTipoVisitaAttivo) {
+                    orfani.add(l);
+                }
+            }
+        }
+        return orfani;
     }
 
     // ================== METODI DI STAMPA ==================
@@ -98,13 +141,20 @@ public class ListaLuogo {
         StringBuilder sb = new StringBuilder();
         sb.append("Elenco luoghi\n");
         sb.append("-----------------------------------------------\n");
-
+        boolean almenoUnoStampato = false;
         for (Luogo l : listaLuoghi) {
-            sb.append(stampaLuogo(l, true));
-            sb.append("-----------------------------------------------\n"); // Separatore dopo ogni luogo
+            if (l.isAttivo()) {
+                sb.append(stampaLuogo(l, true));
+                sb.append("-----------------------------------------------\n");
+                almenoUnoStampato = true;
+            }
+        }
+        if (!almenoUnoStampato) {
+            sb.append("Nessun luogo disponibile.");
         }
         System.out.println(sb.toString());
     }
+
 
     
     
@@ -119,17 +169,23 @@ public class ListaLuogo {
             System.out.println("Nessun luogo disponibile.");
             return;
         }
-
         StringBuilder sb = new StringBuilder();
         sb.append("Elenco luoghi\n");
         sb.append("-----------------------------------------------\n");
-
+        boolean almenoUnoStampato = false;
         for (Luogo l : listaLuoghi) {
-            sb.append(stampaLuogo(l, false));
-            sb.append("-----------------------------------------------\n");  // Separatore dopo ogni luogo
+            if (l.isAttivo()) {
+                sb.append(stampaLuogo(l, false));
+                sb.append("-----------------------------------------------\n");
+                almenoUnoStampato = true;
+            }
+        }
+        if (!almenoUnoStampato) {
+            sb.append("Nessun luogo disponibile.\n");
         }
         System.out.println(sb.toString());
     }
+
 
 
 
@@ -200,4 +256,6 @@ public class ListaLuogo {
     public boolean contains(Luogo luogo) {
         return listaLuoghi.contains(luogo);
     }
+
+	
 }
