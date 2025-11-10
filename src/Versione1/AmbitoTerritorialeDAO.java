@@ -31,7 +31,6 @@ public class AmbitoTerritorialeDAO {
                 }
 
                 conn.commit();
-                System.out.println("Ambito territoriale salvato con ID: " + idAmbitoGenerato);
             } catch (SQLException e) {
                 conn.rollback();
                 throw e;

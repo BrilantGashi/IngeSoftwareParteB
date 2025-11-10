@@ -45,7 +45,6 @@ public class DisponibilitaDAO {
 	            psIns.executeUpdate();
 	        }
 	        
-	        System.out.println("Disponibilità inserita con successo per volontario ID " + idVolontario);
 	    } catch (SQLException e) {
 	        System.out.println("Errore nell'inserimento disponibilità: " + e.getMessage());
 	        throw e;

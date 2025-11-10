@@ -102,6 +102,68 @@ public class VisitaDAO {
 	    return 0; // non trovato
 	}
 	
+	public static void leggiVisiteDaDB(ListaVisite listaVisite, ListaTipoVisita listaTipoVisita, ListaVolontari listaVolontari) throws SQLException {
+	    String sql = "SELECT ID, DATA_GIORNO, DATA_MESE, STATO, TITOLO_TIPO_VISITA FROM visita";
+	    String sqlPonte = "SELECT FK_CREDENZIALI FROM visita_volontario WHERE FK_VISITA = ?";
+
+	    try (Connection conn = ConnessioneDB.startConnection();
+	         PreparedStatement ps = conn.prepareStatement(sql);
+	         ResultSet rs = ps.executeQuery()) {
+
+	        while (rs.next()) {
+	            int idVisita = rs.getInt("ID");
+	            int giorno = rs.getInt("DATA_GIORNO");
+	            int mese = rs.getInt("DATA_MESE");
+	            String statoStr = rs.getString("STATO");
+	            String titoloTipo = rs.getString("TITOLO_TIPO_VISITA");
+
+	            // 1. Ottieni il TipoVisita dalla lista globale cercando per titolo
+	            TipoVisita tipo = null;
+	            for (TipoVisita t : listaTipoVisita.getTipi()) {
+	                if (t.getTitolo().equals(titoloTipo)) {
+	                    tipo = t;
+	                    break;
+	                }
+	            }
+	            if (tipo == null) continue; // Se non trovato, ignora questa visita
+
+	            // 2. Crea la Data
+	            Data data = new Data(giorno, mese);
+
+	            // 3. StatoVisita
+	            StatoVisita stato = StatoVisita.valueOf(statoStr);
+
+	            // 4. Lista volontari effettivi (prendi dalla tabella ponte)
+	            ListaVolontari volontariEffettivi = new ListaVolontari();
+	            try (PreparedStatement psPonte = conn.prepareStatement(sqlPonte)) {
+	                psPonte.setInt(1, idVisita);
+	                try (ResultSet rsVol = psPonte.executeQuery()) {
+	                    while (rsVol.next()) {
+	                        int idCred = rsVol.getInt("FK_CREDENZIALI");
+	                        // Trova username tramite ID dalla tabella credenziali
+	                        String usernameVol = UtenteDAO.trovaUsernameFruitoreDaId(idCred); // anche per volontari
+	                        // Ora trova l'istanza di volontario nella lista globale
+	                        Volontario volontario = null;
+	                        for (Volontario v : listaVolontari.getVolontari()) {
+	                            if (v.getCredenziali().getUsername().equals(usernameVol)) {
+	                                volontario = v;
+	                                break;
+	                            }
+	                        }
+	                        if (volontario != null) {
+	                            volontariEffettivi.aggiungiVolontario(volontario);
+	                        }
+	                    }
+	                }
+	            }
+	            // Crea la visita e aggiungi in lista
+	            Visita visita = new Visita(tipo, volontariEffettivi, stato, data);
+	            listaVisite.aggiungiVisita(visita);
+	        }
+	    }
+	}
+
+	
 	public static Visita trovaVisitaDaId(int id, ListaVisite listaVisite) throws SQLException {
 	    String query = "SELECT DATA_GIORNO, DATA_MESE, TITOLO_TIPO_VISITA FROM visita WHERE id = ?";
 	    int giorno = -1, mese = -1;

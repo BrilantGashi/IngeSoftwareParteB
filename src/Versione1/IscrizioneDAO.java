@@ -61,15 +61,40 @@ public class IscrizioneDAO {
 		    return listaIscrizioniFruitore;
 		}
 		
-		public void disdiciIscrizione(String codicePrenotazione) throws SQLException {
+		public boolean disdiciIscrizione(String codicePrenotazione) throws SQLException {
 		    String sql = "DELETE FROM Iscrizione WHERE CODICE_PRENOTAZIONE = ?";
 		    try (Connection conn = ConnessioneDB.startConnection();
 		         PreparedStatement ps = conn.prepareStatement(sql)) {
 		        ps.setString(1, codicePrenotazione);
 		        int affectedRows = ps.executeUpdate();
-		        if (affectedRows == 0) {
-		            throw new SQLException("Nessuna iscrizione trovata con codice prenotazione: " + codicePrenotazione);
+		        return affectedRows > 0;
+		    }
+		}
+		
+		public int countIscrittiPerVisita(int visitaId) throws SQLException {
+		    String sql = "SELECT COUNT(*) FROM Iscrizione WHERE ID_VISITA = ?";
+		    try (Connection conn = ConnessioneDB.startConnection();
+		         PreparedStatement ps = conn.prepareStatement(sql)) {
+		        ps.setLong(1, visitaId);
+		        try (ResultSet rs = ps.executeQuery()) {
+		            if (rs.next()) {
+		                return rs.getInt(1);
+		            }
+		            return 0;
 		        }
 		    }
 		}
+
+		public int trovaIdVisitaPerCodicePrenotazione(String codicePrenotazione) throws SQLException {
+		    String sql = "SELECT ID_VISITA FROM Iscrizione WHERE CODICE_PRENOTAZIONE = ?";
+		    try (Connection conn = ConnessioneDB.startConnection();
+		         PreparedStatement ps = conn.prepareStatement(sql)) {
+		        ps.setString(1, codicePrenotazione);
+		        try (ResultSet rs = ps.executeQuery()) {
+		            if (rs.next()) return rs.getInt(1);
+		            return 0;
+		        }
+		    }
+		}
+
 }

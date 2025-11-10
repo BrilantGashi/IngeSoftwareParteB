@@ -193,7 +193,7 @@ public class TipoVisita {
         sb.append("|                   TIPO VISITA                   |\n");
         sb.append("|=================================================|\n");
 
-        sb.append("Titolo: ").append(titolo);
+        sb.append("Titolo: ").append(titolo).append("\n");
         
         sb.append("Descrizione: ").append(descrizione).append("\n");
         sb.append("Biglietto richiesto: ").append(biglietto ? "Sì" : "No").append("\n");

@@ -23,10 +23,9 @@ public class CalendarioDAO {
             ps.setInt(2, meseNumero);
             
             ps.executeUpdate();
-            System.out.println("✓ Data esclusa salvata: " + giorno + "/" + meseNumero);
             
         } catch (SQLException e) {
-            System.out.println("❌ Errore durante il salvataggio: " + e.getMessage());
+            System.out.println("Errore durante il salvataggio: " + e.getMessage());
             throw e;
         }
     }
@@ -53,11 +52,10 @@ public class CalendarioDAO {
                 salvaDatePrecluseMese(conn, calendario.getDatePreclusePerMese(3), meseNumero3);
                 
                 conn.commit();
-                System.out.println("✓ Tutte le date escluse sono state salvate con successo!");
                 
             } catch (SQLException e) {
                 conn.rollback();
-                System.out.println("❌ Errore durante il salvataggio: " + e.getMessage());
+                System.out.println("Errore durante il salvataggio: " + e.getMessage());
                 throw e;
             } finally {
                 conn.setAutoCommit(true);
@@ -75,7 +73,6 @@ public class CalendarioDAO {
         try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
             ps.setInt(1, meseNumero);
             int righeEliminate = ps.executeUpdate();
-            System.out.println("Eliminate " + righeEliminate + " date esistenti per il mese " + meseNumero);
         }
         
         // 2. Inserisci le nuove date
@@ -88,7 +85,6 @@ public class CalendarioDAO {
                     ps.addBatch();
                 }
                 int[] risultati = ps.executeBatch();
-                System.out.println("✓ Salvate " + risultati.length + " date per il mese " + meseNumero);
             }
         }
     }
@@ -133,9 +129,7 @@ public class CalendarioDAO {
                     System.out.println("Valore del mese di riferimento non valido: " + meseGenerale);
                 }
             }
-            
-            System.out.println("Calendario caricato dal database");
-            
+                        
         } catch (SQLException e) {
             System.out.println("Errore durante la lettura del calendario: " + e.getMessage());
             throw e;
@@ -162,11 +156,9 @@ public class CalendarioDAO {
                     dateEscluse.add(rs.getInt("GIORNO"));
                 }
             }
-            
-            System.out.println("✓ Letti " + dateEscluse.size() + " giorni esclusi per il mese " + meseNumero);
-            
+                       
         } catch (SQLException e) {
-            System.out.println("❌ Errore durante la lettura: " + e.getMessage());
+            System.out.println("Errore durante la lettura: " + e.getMessage());
             throw e;
         }
         
@@ -193,14 +185,8 @@ public class CalendarioDAO {
             
             int righe = ps.executeUpdate();
             
-            if (righe > 0) {
-                System.out.println("✓ Data esclusa eliminata: " + giorno + "/" + meseNumero);
-            } else {
-                System.out.println("⚠️  Nessuna data trovata da eliminare");
-            }
-            
         } catch (SQLException e) {
-            System.out.println("❌ Errore durante l'eliminazione: " + e.getMessage());
+            System.out.println("Errore durante l'eliminazione: " + e.getMessage());
             throw e;
         }
     }
@@ -217,11 +203,9 @@ public class CalendarioDAO {
             
             ps.setInt(1, meseNumero);
             
-            int righe = ps.executeUpdate();
-            System.out.println("✓ Eliminate " + righe + " date per il mese " + meseNumero);
-            
+            int righe = ps.executeUpdate();            
         } catch (SQLException e) {
-            System.out.println("❌ Errore durante l'eliminazione: " + e.getMessage());
+            System.out.println("Errore durante l'eliminazione: " + e.getMessage());
             throw e;
         }
     }
@@ -236,10 +220,9 @@ public class CalendarioDAO {
              PreparedStatement ps = conn.prepareStatement(deleteSql)) {
             
             int righe = ps.executeUpdate();
-            System.out.println("✓ Eliminate tutte le " + righe + " date escluse dal database");
             
         } catch (SQLException e) {
-            System.out.println("❌ Errore durante l'eliminazione: " + e.getMessage());
+            System.out.println("Errore durante l'eliminazione: " + e.getMessage());
             throw e;
         }
     }

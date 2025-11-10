@@ -13,7 +13,6 @@ public class LuogoDAO {
                 int idLuogo = salvaLuogo(conn, luogo.getNomeLuogo(), luogo.getDescrizione(), idIndirizzo);
                 associaTipiVisita(conn, idLuogo, luogo.getListaTipoVisita());
                 conn.commit();
-                System.out.println("Luogo e associazioni salvati correttamente.");
             } catch (Exception e) {
                 conn.rollback();
                 throw e;
@@ -46,7 +45,6 @@ public class LuogoDAO {
                 }
             }
             psInsert.executeBatch();
-            System.out.println("Associazioni tra luogo e tipi visita salvate correttamente.");
         }
     }
 
@@ -152,11 +150,6 @@ public class LuogoDAO {
             
             int righe = ps.executeUpdate();
             
-            if (righe > 0) {
-                System.out.println("Luogo disattivato");
-            } else {
-                System.out.println("Luogo non trovato");
-            }
         } catch (SQLException e) {
             System.out.println("Errore: " + e.getMessage());
             throw e;
@@ -205,7 +198,6 @@ public class LuogoDAO {
             psInsert.setInt(1, idLuogo);
             psInsert.setInt(2, idTipoVisita);
             psInsert.executeUpdate();
-            System.out.println("✓ Tipo visita '" + tipoVisita.getTitolo() + "' associato al luogo '" + luogo.getNomeLuogo() + "'");
         }
     }
     
@@ -266,7 +258,7 @@ public class LuogoDAO {
             if (tv != null) {
                 listaTipi.add(tv);
             } else {
-                System.out.println("ATTENZIONE: TipoVisita con titolo '" + titolo + "' NON trovato nella lista globale!");
+                System.out.println("Attenzione: TipoVisita con titolo '" + titolo + "' non trovato nella lista globale!");
             }
         }
         return listaTipi;

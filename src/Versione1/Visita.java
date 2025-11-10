@@ -51,6 +51,18 @@ public class Visita {
         assert this.volontariEffettivi.getVolontari().contains(volontario) : "Postcondizione violata: volontario non aggiunto";
         assert invClass() : "Invariante violato nel costruttore completo";
     }
+    
+    public Visita(TipoVisita tipoVisita, ListaVolontari listaVolontari, StatoVisita statoVisita, Data dataVisita) {
+        Objects.requireNonNull(tipoVisita, "TipoVisita non può essere null");
+        Objects.requireNonNull(listaVolontari, "Il primo volontario non può essere null");
+        Objects.requireNonNull(statoVisita, "StatoVisita non può essere null");
+        Objects.requireNonNull(dataVisita, "DataVisita non può essere null");
+
+        this.tipoVisita = tipoVisita;
+        this.volontariEffettivi = listaVolontari;
+        this.statoVisita = statoVisita;
+        this.dataVisita = dataVisita;
+    }
 
     /**
      * Aggiorna lo stato della visita

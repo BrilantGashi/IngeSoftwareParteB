@@ -42,13 +42,11 @@ public class TipoVisitaDAO {
                     try (ResultSet keys = ps.getGeneratedKeys()) {
                         if (keys.next()) {
                             idTipoVisitaGenerato = keys.getInt(1);
-                            System.out.println("ID generato: " + idTipoVisitaGenerato);
 
                             collegaGiorniATipoVisita(conn, idTipoVisitaGenerato, visita.getGiorniSettimanaProgrammabile());
                             collegaVolontariATipoVisita(conn, idTipoVisitaGenerato, visita.getListaVolontari());
 
                             conn.commit();
-                            System.out.println("Tipo Visita inserito con successo!");
                         } else {
                             System.out.println("Nessun ID restituito.");
                             conn.rollback();
@@ -84,7 +82,6 @@ public class TipoVisitaDAO {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
                     if (keys.next()) {
                         idGenerato = keys.getInt(1);
-                        System.out.println("ID generato per periodo: " + idGenerato);
                     }
                 }
             }
@@ -114,7 +111,6 @@ public class TipoVisitaDAO {
                 }
             }
             conn.commit();
-            System.out.println("Associazioni giorni-tipo visita inserite con successo.");
         } catch (SQLException e) {
             conn.rollback();
             throw e;
@@ -147,12 +143,7 @@ public class TipoVisitaDAO {
                                 psInsert.setInt(2, idVolontario);
                                 psInsert.executeUpdate();
 
-                                System.out.println("Collegato volontario " + volontario.getNickname() + 
-                                        " (ID: " + idVolontario + ") al tipo visita " + idTipoVisita);
-                            } else {
-                                System.out.println("Volontario " + volontario.getNickname() +
-                                        " già collegato a tipo visita " + idTipoVisita);
-                            }
+                            } 
                         }
                     } else {
                         System.out.println("Nessun volontario trovato per username: " + volontario.getNickname());
@@ -161,7 +152,6 @@ public class TipoVisitaDAO {
             }
                 
             conn.commit();
-            System.out.println("Tutti i volontari sono stati collegati con successo!");
         } catch (SQLException e) {
             conn.rollback();
             System.out.println("Errore durante l'inserimento volontari: " + e.getMessage());
@@ -193,7 +183,6 @@ public class TipoVisitaDAO {
                 collegaVolontariATipoVisita(conn, idTipoVisita, listaV);
 
                 conn.commit();
-                System.out.println("Volontario " + v.getNickname() + " associato correttamente alla visita \"" + visita.getTitolo() + "\".");
             } catch (SQLException e) {
                 conn.rollback();
                 throw e;
@@ -347,11 +336,6 @@ public class TipoVisitaDAO {
             
             int righe = ps.executeUpdate();
             
-            if (righe > 0) {
-                System.out.println("Tipo visita disattivato");
-            } else {
-                System.out.println("Tipo visita non trovato");
-            }
         } catch (SQLException e) {
             System.out.println("Errore: " + e.getMessage());
             throw e;

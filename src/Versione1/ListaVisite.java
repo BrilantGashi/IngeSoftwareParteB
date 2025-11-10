@@ -1,5 +1,6 @@
 package Versione1;
 
+import java.sql.SQLException;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -220,7 +221,65 @@ public class ListaVisite {
         return false;
     }
 
+    public void aggiornaStatoVisite(ListaIscrizioni listaIscrizioniFruitore, VisitaDAO listaVisiteDB) throws SQLException {
+        for (Visita visita : listaVisite) { // listaVisite è la lista interna della classe dove sei
+            int sogliaMinima = visita.getTipoVisita().getSogliaMinPartecipanti();
+            // Ottieni tutte le iscrizioni associate a questa visita
+            int numeroIscritti = listaIscrizioniFruitore.getTotaleIscrittiPerVisita(visita);
+            if (numeroIscritti >= sogliaMinima) {
+                visita.setStatoVisita(StatoVisita.CONFERMATA);
+                listaVisiteDB.aggiornaStatoVisitaDB(visita, StatoVisita.CONFERMATA);
+            } else {
+                visita.setStatoVisita(StatoVisita.CANCELLATA);
+                listaVisiteDB.aggiornaStatoVisitaDB(visita, StatoVisita.CANCELLATA);
+            }
+        }
+    }
 
+
+
+    public void stampaVisiteConfermateVolontario(String username, ListaIscrizioni listaIscrizioni) {
+        System.out.println("Visite confermate: \n");
+        boolean trovato = false;
+        for (Visita visita : listaVisite) { // usa direttamente il campo interno
+            if (visita.getStatoVisita() == StatoVisita.CONFERMATA) {
+                for (Volontario v : visita.getVolontariEffettivi().getVolontari()) {
+                    if (v.getCredenziali().getUsername().equals(username)) {
+                        TipoVisita tipo = visita.getTipoVisita();
+                        System.out.println("-------------------------");
+                        System.out.println("Titolo: " + tipo.getTitolo());
+                        System.out.println("Descrizione: " + tipo.getDescrizione());
+                        System.out.println("Punto di incontro: " + tipo.getPuntoDiIncontro());
+                        System.out.println("Data: " + visita.getDataVisita().toString());
+                        System.out.println("Ora di inizio: " + tipo.getOraInizio());
+                        String bigliettoMsg = tipo.isBiglietto() ? "Sì, necessario all'ingresso" : "No";
+                        System.out.println("Necessità biglietto: " + bigliettoMsg);
+                        
+                        // Elenco codici prenotazione
+                        System.out.println("Elenco codici prenotazione e partecipanti:");
+                        boolean codiciTrovati = false;
+                        for (Iscrizione iscr : listaIscrizioni.getIscrizioni()) {
+                            if (iscr.getVisitaEffettiva().equals(visita)) {
+                                System.out.println("  Codice: " + iscr.getCodicePrenotazione()
+                                    + " | Partecipanti: " + iscr.getTotalePartecipanti());
+                                codiciTrovati = true;
+                            }
+                        }
+                        if (!codiciTrovati) {
+                            System.out.println("  Nessuna iscrizione associata a questa visita.");
+                        }
+                        System.out.println("-------------------------");
+                        trovato = true;
+                    }
+                }
+            }
+        }
+        if (!trovato) {
+            System.out.println("Nessuna visita confermata associata a questo volontario!");
+        }
+    }
+
+   
       
     public void stampaTitoloEStato() {
         if (listaVisite == null || listaVisite.isEmpty()) {
@@ -328,5 +387,7 @@ public class ListaVisite {
         }
         return visiteUnichePerTipoEData();
     }
+
+	
 	
 }

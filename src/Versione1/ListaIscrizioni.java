@@ -36,9 +36,9 @@ public class ListaIscrizioni {
     // Trova iscrizione tramite codice di prenotazione
     public Iscrizione trovaPerCodicePrenotazione(String codice) {
         for (Iscrizione i : iscrizioni) {
-            if (i.getCodicePrenotazione().equals(codice)) {
-                return i;
-            }
+        	if (i.getCodicePrenotazione().trim().equalsIgnoreCase(codice.trim())) {
+        	    return i;
+        	}
         }
         return null;
     }
@@ -54,39 +54,57 @@ public class ListaIscrizioni {
         return totale;
     }
 
-    public boolean disdiciIscrizione(String codicePrenotazione, String usernameFruitore) {
+    public boolean disdiciIscrizione(String codicePrenotazione, String usernameFruitore, IscrizioneDAO listaIscrizioniFruitoreDAO) {
+        if (codicePrenotazione == null || codicePrenotazione.isBlank()
+                || usernameFruitore == null || usernameFruitore.isBlank()) {
+            return false;
+        }
+
         Iscrizione iscrizione = trovaPerCodicePrenotazione(codicePrenotazione);
         if (iscrizione == null) {
-            System.out.println("Iscrizione non trovata.");
             return false;
         }
-        if (!iscrizione.getFruitore().getCredenziali().getUsername().equals(usernameFruitore)) {
-            System.out.println("Non puoi disdire una iscrizione che non ti appartiene.");
+
+        String owner = null;
+        if (iscrizione.getFruitore() != null && iscrizione.getFruitore().getCredenziali() != null) {
+            owner = iscrizione.getFruitore().getCredenziali().getUsername();
+        }
+        if (!usernameFruitore.equals(owner)) {
             return false;
         }
+
         Visita visita = iscrizione.getVisitaEffettiva();
-        StatoVisita stato = visita.getStatoVisita();
+        StatoVisita stato = (visita != null) ? visita.getStatoVisita() : null;
         if (!(stato == StatoVisita.PROPOSTA || stato == StatoVisita.COMPLETA)) {
-            System.out.println("Puoi disdire solo iscrizioni a visite proposte o complete.");
             return false;
         }
+        try {
+            // 1) Cancella su DB
+            boolean removedDb = listaIscrizioniFruitoreDAO.disdiciIscrizione(codicePrenotazione);
+            if (!removedDb) {
+                return false;
+            }
+            // 2) Rimuovi dalla struttura in memoria
+            iscrizioni.remove(iscrizione);
+            // 3) Se era COMPLETA, verifica capienza e aggiorna stato su DB e in memoria
+            if (stato == StatoVisita.COMPLETA && visita != null && visita.getTipoVisita() != null) {
+                int capienza = visita.getTipoVisita().getSogliaMaxPartecipanti();
+                int visitaId = listaIscrizioniFruitoreDAO.trovaIdVisitaPerCodicePrenotazione(codicePrenotazione);
 
-        // Rimuovi dal sistema
-        iscrizioni.remove(iscrizione);
-
-        // Aggiorna lo stato della visita se necessario (se era completa e si libera posto)
-        int capienza = visita.getTipoVisita().getSogliaMaxPartecipanti();
-        int nuovoTotale = getTotaleIscrittiPerVisita(visita);
-        if (stato == StatoVisita.COMPLETA && nuovoTotale < capienza) {
-            visita.setStatoVisita(StatoVisita.PROPOSTA);
-            try {
-                VisitaDAO.aggiornaStatoVisitaDB(visita, StatoVisita.PROPOSTA);
-            } catch (Exception e) { System.err.println("Errore aggiornamento DB: " + e.getMessage()); }
-            System.out.println("La visita è tornata nello stato PROPOSTA.");
+                if (visitaId != 0) {
+                    int totaleDb = listaIscrizioniFruitoreDAO.countIscrittiPerVisita(visitaId);
+                    if (totaleDb < capienza) {
+                        VisitaDAO.aggiornaStatoVisitaDB(visita, StatoVisita.PROPOSTA);
+                        visita.setStatoVisita(StatoVisita.PROPOSTA);
+                    }
+                } 
+            } 
+            return true;
+        } catch (Exception e) {
+            return false;
         }
-        System.out.println("Iscrizione disdetta con successo.");
-        return true;
     }
+
 
     public void visualizzaIscrizioniFruitore(String nickname) {
         Set<StatoVisita> statiAmmessi = EnumSet.of(
@@ -95,14 +113,12 @@ public class ListaIscrizioni {
             StatoVisita.CANCELLATA
         );
         boolean trovata = false;
-        System.out.println("[DEBUG] Cerco iscrizioni per fruitore=" + nickname);
         for (Iscrizione isc : this.iscrizioni) {
             Visita v = isc.getVisitaEffettiva();
             if (!statiAmmessi.contains(v.getStatoVisita())) continue;
 
             // Ora Iscrizione ha SOLO UN fruitore
             String userIscrizione = isc.getFruitore().getCredenziali().getUsername();
-            System.out.println("[DEBUG] Controllo iscrizione di: " + userIscrizione);
             if (userIscrizione.equals(nickname)) {
                 StatoVisita stato = v.getStatoVisita();
                 String titolo = (v.getTipoVisita() != null) ? v.getTipoVisita().getTitolo() : "Senza titolo";

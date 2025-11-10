@@ -26,114 +26,97 @@ public class Menu{
     private static VisitaDAO VisitaDAO = new VisitaDAO();
 	private static ListaIscrizioni listaIscrizioniFruitore = new ListaIscrizioni();
 	private static IscrizioneDAO listaIscrizioniFruitoreDAO = new IscrizioneDAO();
-    private static int nMaxPersone = 5;
+    private static int nMaxPersone = 15;
     private static String[] voci = {"Login come Configuratore/Volontario", "Login come Fruitore"};
     
     public static void login(boolean isFruitore) throws Exception {
-    	String username;
-		String password;
-		String utenza = "";
-		if(!isFruitore) {
-		System.out.println("Inserisci lo username :");
-		username = InputDati.leggiStringaNonVuota("Username: ").trim();
+        String ruolo = null;
+        int okCred = 0;
+        String username = null;
+
+        if (!isFruitore) {
+            username = InputDati.leggiStringaNonVuota("Username: ").trim();
+            while (UtenteDAO.leggiSingolaCredenziale(username) == null) {
+                username = InputDati.leggiStringaNonVuota("Username inserito non esistente, riprovare: ");
+            }
+            Credenziali credenziali = UtenteDAO.leggiSingolaCredenziale(username);
+            String password = InputDati.leggiStringaNonVuota("Password: ");
+            okCred = credenziali.controllaCredenziali(username, password);
+            while (okCred == -1) {
+                password = InputDati.leggiStringaNonVuota("Password errata, riprovare: ");
+                okCred = credenziali.controllaCredenziali(username, password);
+            }
+            ruolo = credenziali.getUtenza();
+
+            if ("FRUITORE".equals(ruolo)) {
+                System.out.println("Attenzione stai cercando di accedere come fruitore!");
+                return;
+            }
+            // Routing menu ruoli
+            if ("CONFIGURATORE".equals(ruolo)) {
+                configuratore(okCred);
+            }
+            else if ("VOLONTARIO".equals(ruolo)) {
+                volontario( credenziali.getUsername());
+            }
+        } else {
+            username = InputDati.leggiStringaNonVuota("Username: ").trim();
+            Credenziali credenziali = UtenteDAO.leggiSingolaCredenziale(username);
+
+            if (credenziali == null) {
+                String password = InputDati.leggiStringaNonVuota("Password: ");
+                Credenziali nuoveCredenziali = new Credenziali("FRUITORE", username, password);
+                Fruitore nuovoFruitore = new Fruitore(nuoveCredenziali);
+
+                listaFruitori.add(nuovoFruitore);
+                UtenteDAO.aggiungiNuovoFruitore(nuovoFruitore);
+
+                System.out.println("Nuovo fruitore creato con successo! Effettuato accesso.");
+                fruitore(username);
+            } else if ("FRUITORE".equals(credenziali.getUtenza())) {
+                String password = InputDati.leggiStringaNonVuota("Password: ");
+                okCred = credenziali.controllaCredenziali(username, password);
+                while (okCred == -1) {
+                    password = InputDati.leggiStringaNonVuota("Password errata, riprovare: ");
+                    okCred = credenziali.controllaCredenziali(username, password);
+                }
+                System.out.println("Accesso effettuato!");
+                fruitore(username);
+            } else {
+                System.out.println("Username già assegnato a un'altra tipologia di utenza. Impossibile accedere/creare fruitore.");
+            }
+        }
+    }
 		
-		while (UtenteDao.leggiSingolaCredenziale(username) == null) {
-			username = InputDati.leggiStringaNonVuota("Username inserito non esistente, riprovare: ");
-			}
-		Credenziali credenziali = UtenteDAO.leggiSingolaCredenziale(username);	
-		password = InputDati.leggiStringaNonVuota("Password: ");
-	
-		/*
-		 	okCred restituisce: 
-		 	- -1 se credenziali sbagliate
-		 	- 0 se non � il primo accesso
-		 	- 1 se � il primo accesso
-		 	
-		 	 questa info la devo mandare al metodo configuratore che, se � il primo accesso, deve fare determinate cose
-		 */
-		int okCred = 0;
-		okCred = credenziali.controllaCredenziali(username, password);
-		
-		while (okCred == -1) {
-			password = InputDati.leggiStringaNonVuota("Password errata, riprovare: ");
-			okCred = credenziali.controllaCredenziali(username, password);
-		}
-		utenza = credenziali.getUtenza();
-		if(utenza == "FRUITORE") {
-			System.out.println("Attenzione stai cercando di accedere come fruitore!");
-			return;
-		}
-		switch (utenza) {
-		case "CONFIGURATORE":
-			configuratore(okCred);
-			break;
-		case "VOLONTARIO":
-			volontario(okCred, credenziali.getUsername());
-			break;
-		default:						
-			break;			
-		}
-		} else {
-		        System.out.println("Inserisci lo username :");
-		        username = InputDati.leggiStringaNonVuota("Username: ").trim();
+    public static boolean menuPrincipale() throws Exception {
+        boolean continua = true;
+        UtenteDao.leggiUtentiDaDB(listaConfiguratore, listaVolontari, listaFruitori);
+        CalendarioDAO.leggiCalendarioDaDB(cal);
+        while (continua) {
+                        MyMenu menu = new MyMenu("Menu", voci);
+            int sceltaMenu = menu.scegli();
 
-		        // Controllo se username esistente tra i fruitori (puoi usare UtenteDAO o listaFruitori)
-		        Credenziali credenziali = UtenteDAO.leggiSingolaCredenziale(username);
-
-		        if (credenziali == null) {
-		            // Username NON esiste → creazione nuovo fruitore
-		            password = InputDati.leggiStringaNonVuota("Password: ");
-		            Credenziali nuoveCredenziali = new Credenziali("FRUITORE", username, password);
-		            Fruitore nuovoFruitore = new Fruitore(nuoveCredenziali);
-
-		            listaFruitori.add(nuovoFruitore); // aggiungi a lista in memoria
-		            UtenteDAO.aggiungiNuovoFruitore(nuovoFruitore); // aggiungi a DB
-
-		            System.out.println("Nuovo fruitore creato con successo! Effettuato accesso.");
-		            fruitore(username); // login diretto
-		        } else if (credenziali.getUtenza().equals("FRUITORE")) {
-		            // Username esiste ed è di tipo FRUITORE → login classico
-		            password = InputDati.leggiStringaNonVuota("Password: ");
-		            int okCred = credenziali.controllaCredenziali(username, password);
-
-		            while (okCred == -1) {
-		                password = InputDati.leggiStringaNonVuota("Password errata, riprovare: ");
-		                okCred = credenziali.controllaCredenziali(username, password);
-		            }
-
-		            System.out.println("Accesso effettuato!");
-		            fruitore(username); // login classico
-		        } else {
-		            // Username esistente MA non fruitore (caso teorico: collisione con admin/volontario)
-		            System.out.println("Username già assegnato a un'altra tipologia di utenza. Impossibile accedere/creare fruitore.");
-		        }
-		    }
-	}
-		
-  	public static boolean menuPrincipale() throws Exception{
-  		
-  		int sceltaMenu;
-  		UtenteDao.leggiUtentiDaDB(listaConfiguratore, listaVolontari, listaFruitori);
-  		CalendarioDAO.leggiCalendarioDaDB(cal);
-  		MyMenu menu = new MyMenu("Menu", voci);
-  		sceltaMenu = menu.scegli();
-  		
-  		switch (sceltaMenu) {
-  		case 0:
-  			return InputDati.yesOrNo("Vuoi veramente uscire?");			
-  		case 1:
-  			login(false);
-  			break;
-  		case 2:
-  			login(true);
-  		}
-  		return false;		
-  	}
+            switch (sceltaMenu) {
+                case 0:
+                    continua = !InputDati.yesOrNo("Vuoi veramente uscire?");
+                    break;
+                case 1:
+                    login(false);
+                    break;
+                case 2:
+                    login(true);
+                    break;
+                default:
+                    // nessuna azione
+                    break;
+            }
+        }
+        return continua;
+    }
   	
   	public static void configuratore(int okCred) throws Exception {
-    int sceltaMenuConfig = 0;
-    String[] vociConfig = {
-        "Creazione Corpo Dati",
+  	String[] vociConfig = {
+        "Creazione/Lettura Corpo Dati",
         "Inserimento date precluse e apertura raccolta disponibilita' dei volontari",
         "Chiusura raccolta disponibilità volontari/date precluse",
         "Modifica num max per fruitore",
@@ -156,23 +139,19 @@ public class Menu{
 
     MyMenu menu = new MyMenu("Menu configuratore", vociConfig);
     MyMenu menuModifica = new MyMenu("Menu di modifica", vociConfigModifica);
-
-    if (okCred == 1) sceltaMenuConfig = 1;
-    else sceltaMenuConfig = menu.scegli();
+	int sceltaMenuConfig = menu.scegli();
 
     do {
         switch (sceltaMenuConfig) {
         case 0:
             boolean indietro = InputDati.yesOrNo("Vuoi veramente tornare indietro?");
-            if (indietro) return;
+            if (indietro) menuPrincipale();
             break;
 
         case 1:
-            if (statoSistema != StatoSistema.PRODUZIONE_VISITE_PROPONIBILI_I_1 ) {
+            if (okCred==1) {
                 creazioneCorpoDati();
-                statoSistema = StatoSistema.PRODUZIONE_VISITE_PROPONIBILI_I_1;
             } else {
-                System.out.println("Corpo Dati già definito.");
                 leggiCorpoDati();
             }
             break;
@@ -240,12 +219,13 @@ public class Menu{
                 if (chiudiIscr) {
                     statoSistema = StatoSistema.RACCOLTA_DISPONIBILITA_I_2_DATE_PRECLUSE_I_3;
                     System.out.println("Raccolta iscrizioni chiusa.");
+                    listaVisite.aggiornaStatoVisite(listaIscrizioniFruitore, VisitaDAO);
                 }
             }
             break;
 
         case 11: // Modifiche al corpo dati
-            if (statoSistema != StatoSistema.PRODUZIONE_VISITE_PROPONIBILI_I_1_COMPLETATA) {
+            if (statoSistema != StatoSistema.PRODUZIONE_VISITE_PROPONIBILI_I_1_COMPLETATA && statoSistema != StatoSistema.GESTIONE_RICHIESTE_AGGIUNTA_RIMOZIONE) {
                 System.out.println("Non puoi procedere alla modifica del corpo dati in questo stato.\n" +
                     "Stato attuale: " + statoSistema.stampaStatoSistema());
             } else {
@@ -257,7 +237,7 @@ public class Menu{
                         boolean indietroMod = InputDati.yesOrNo("Proseguendo, non potrai più apportare modifiche al Corpo Dati. Confermi di voler uscire dal menu?");
                         if (indietroMod) {
                             statoSistema = StatoSistema.RACCOLTA_ISCRIZIONI_VISITE_FRUITORE_I1;
-                            return;
+                            configuratore(okCred);
                         }
                         break;
                     case 1:
@@ -289,11 +269,12 @@ public class Menu{
   	}
 
   	
-  	public static void volontario(int okCred, String nickname) throws Exception {
+  	public static void volontario( String nickname) throws Exception {
   	    ListaTipoVisita tipoVisitaPerVolontario = listaTipoVisita.getTipiPerVolontario(nickname);
   	    String[] vociVolontario = {
-  	        "Visualizza tipi di visita associati",
-  	        "Esprimi la disponibilita' per il mese: " + cal.getMeseI2()
+  	        "Visualizza miei tipi di visita associati",
+  	        "Esprimi la disponibilita' per il mese: " + cal.getMeseI2(),
+  	        "Visualizza le mie visite confermate"
   	    };
   	    MyMenu menu = new MyMenu("Menu volontario", vociVolontario);
   	    int sceltaMenuVolontario = menu.scegli();
@@ -318,6 +299,10 @@ public class Menu{
   	                raccogliDisponibilitaVolontario(nickname);
   	            }
   	            break;
+  	            
+  	        case 3:
+  	        	listaVisite.stampaVisiteConfermateVolontario(nickname, listaIscrizioniFruitore);
+  	            break;
   	        }
   	        sceltaMenuVolontario = menu.scegli();
   	    } while (sceltaMenuVolontario != 0);
@@ -325,7 +310,6 @@ public class Menu{
 
     
   	public static void fruitore(String nickname) throws Exception {
-  		IscrizioneDAO.leggiIscrizioniDaDB(listaIscrizioniFruitore, listaFruitori, listaVisite);
   	    String[] vociFruitore = {
   	        "Visualizzare le visite attualmente nello stato di visita proposta/confermata/cancellata",
   	        "Effettuare l’iscrizione a una visita proposta",
@@ -353,7 +337,6 @@ public class Menu{
   	            } else {
   	                aggiungiIscrizioneFruitore(nickname);
   	                statoSistema = StatoSistema.RACCOLTA_ISCRIZIONI_VISITE_FRUITORE_I1;
-  	                
   	            }
   	            break;
   	        case 3: 
@@ -400,7 +383,7 @@ public class Menu{
 		boolean continuoTipoVisita;
 		do {
 			System.out.println();
-			aggiungiTipoVisita(); //false perche' nella V1 non si possono creare nuovi volontari
+			aggiungiTipoVisita(false); //false perche' nella V1 non si possono creare nuovi volontari
 			continuoTipoVisita = InputDati.yesOrNo("Vuoi inserire un altro Tipo Visita?");
 		} while (continuoTipoVisita);
 		
@@ -426,13 +409,15 @@ public class Menu{
 		ambito.stampaAmbito();
 		
 		listaTipoVisita = TipoVisitaDAO.leggiTuttiTipiVisita(listaVolontari);
-		System.out.println(listaTipoVisita.toString());
 		
 		listaLuoghi = LuogoDAO.leggiTuttiLuoghi(listaTipoVisita);
 		listaLuoghi.stampaLuoghiConTipoVisita();
 		
-		CalendarioDAO.leggiCalendarioDaDB(cal);
+		Versione1.VisitaDAO.leggiVisiteDaDB(listaVisite,listaTipoVisita,listaVolontari);
 		
+		CalendarioDAO.leggiCalendarioDaDB(cal);
+  		IscrizioneDAO.leggiIscrizioniDaDB(listaIscrizioniFruitore, listaFruitori, listaVisite);
+
 		
 	}
   	
@@ -500,9 +485,7 @@ public class Menu{
 								    if (volontarioGiaAssegnatoQuelGiorno) {
 								        continue; // salta questa assegnazione
 								    }
-							        if (listaVisite.visitaSovrapposta(tipo, dataVisita, listaLuoghi)) {
-							            continue; 
-							        }							       
+							        						       
 							        Visita visitaEsistente = null;
 							        for (Visita vExist : listaVisite.getListaVisite()) {
 							        	
@@ -518,19 +501,24 @@ public class Menu{
 							            if (!visitaEsistente.getVolontariEffettivi().getVolontari().contains(v)) {
 							                visitaEsistente.getVolontariEffettivi().aggiungiVolontario(v);
 							                // Se serve, aggiorna anche nel database la tabella relazione visita-volontario
+							                System.out.println("STo andando ad aggiungere il volontario: "+v.getNickname()+"alla visita: "+ visitaEsistente.toString());
 							                VisitaDAO.collegaVolontarioAVisitaDB(visitaEsistente, v);							            }
 							        } else {
-							            // Non esiste, creala nuova
-							            Visita nuova = new Visita(tipo, v, StatoVisita.PROPOSTA, dataVisita);
-							            listaVisite.aggiungiVisita(nuova);
-							            VisitaDAO.salvaVisita(nuova, v);
+							            // La visita non esiste: PRIMA controlla sovrapposizione
+							            if (listaVisite.visitaSovrapposta(tipo, dataVisita, listaLuoghi)) {
+							                System.out.println("Visita sovrapposta, NON la creo (giorno/luogo).");
+							            } else {
+							                Visita nuova = new Visita(tipo, v, StatoVisita.PROPOSTA, dataVisita);
+							                listaVisite.aggiungiVisita(nuova);
+							                VisitaDAO.salvaVisita(nuova, v);
+							            }
 							        }
-							    }
 							}
 
 							}
 						}
 					}
+				}
 				listaVisite.stampaPianoVisite();
 	}
 	
@@ -540,9 +528,19 @@ public class Menu{
 	    Data dataScelta = new Data();
 	    boolean continua;
 	    
+	    ArrayList<Disponibilita> disponibilitaInserite = new ArrayList<>();
+
 	    do {
 	        dataScelta.scegliDataPerMese(numeroMese);
 	        boolean dataValida = cal.isGiornoEscluso(dataScelta.getGiorno(), 2);
+	        boolean giaPresente = false;
+	        for (Disponibilita d : disponibilitaInserite) {
+	            if (d.getGiorno() == dataScelta.getGiorno() && d.getMese() == 2) {
+	                giaPresente = true;
+	                System.out.println("Disponibilità gia inserita precedentemente");
+	                break;
+	            }
+	        }
 	        if (dataScelta != null && !dataValida) {
 	            Disponibilita nuova = new Disponibilita(
 	                nickname, dataScelta.getGiorno(), 2
@@ -585,19 +583,20 @@ public class Menu{
 	        System.out.println("Fruitore non trovato, registralo prima!");
 	        return;
 	    }
-
-	    System.out.println("Visita selezionata: " + visitaEffettiva.getTipoVisita().getTitolo() + 
-	        " del " + visitaEffettiva.getDataVisita().toString());
-	    System.out.println("Quanti accompagnatori vuoi iscrivere (Compresa la propria iscrizione)? (massimo " 
-	        + nMaxPersone + ") ");
-	    int quotaTotale = InputDati.leggiIntero("Numero di accompagnatori: ", 0, nMaxPersone);
-
 	    // Controlla che il fruitore non sia già iscritto a questa visita
 	    Iscrizione giaPresente = listaIscrizioniFruitore.trovaPerFruitoreEVisita(fruitore, visitaEffettiva);
 	    if (giaPresente != null) {
 	        System.out.println("Sei già iscritto a questa visita.");
 	        return;
 	    }
+	    
+	    System.out.println("Visita selezionata: " + visitaEffettiva.getTipoVisita().getTitolo() + 
+	        " del " + visitaEffettiva.getDataVisita().toString());
+	    System.out.println("Quanti accompagnatori vuoi iscrivere (Compresa la propria iscrizione)? (massimo " 
+	        + nMaxPersone + ") ");
+	    int quotaTotale = InputDati.leggiIntero("Numero di accompagnatori: ", 1, nMaxPersone);
+
+	   
 
 	    // Calcolo posti totali in seguito all'iscrizione
 	    int capienzaMassima = visitaEffettiva.getTipoVisita().getSogliaMaxPartecipanti();
@@ -615,8 +614,8 @@ public class Menu{
 	    // Aggiorna lo stato della visita se si raggiunge la capienza
 	    int nuovoTotale = listaIscrizioniFruitore.getTotaleIscrittiPerVisita(visitaEffettiva);
 	    if (nuovoTotale == capienzaMassima) {
-	        visitaEffettiva.setStatoVisita(StatoVisita.CONFERMATA);
-	        Versione1.VisitaDAO.aggiornaStatoVisitaDB(visitaEffettiva, StatoVisita.CONFERMATA);
+	        visitaEffettiva.setStatoVisita(StatoVisita.COMPLETA);
+	        Versione1.VisitaDAO.aggiornaStatoVisitaDB(visitaEffettiva, StatoVisita.COMPLETA);
 	    }
 	    System.out.println("Iscrizione registrata. Codice prenotazione: " 
 	        + nuovaIscrizione.getCodicePrenotazione());
@@ -632,20 +631,22 @@ public class Menu{
 	}
 
 	public static void disdiciIscrizione(String usernameFruitore) throws SQLException {
-	    // 1. Visualizza all'utente tutte le sue iscrizioni valide (con codici prenotazione)
+		Scanner scanner = new Scanner(System.in); // Crea l'oggetto di input locale
 	    System.out.println("\nLe tue iscrizioni:");
 	    listaIscrizioniFruitore.visualizzaIscrizioniFruitore(usernameFruitore);
 
-	    // 2. Chiedi il codice prenotazione della iscrizione che vuole disdire
-	    String codicePrenotazione = InputDati.leggiStringaNonVuota("Inserisci il codice prenotazione che vuoi disdire (oppure lascia vuoto per annullare");;
-	    if (codicePrenotazione == null || codicePrenotazione.trim().isEmpty()) {
-	        System.out.println("Operazione annullata.");
-	        return;
-	    }
+	    String codicePrenotazione = "";
+	    do {
+	        System.out.print("Inserisci il codice prenotazione che vuoi disdire (oppure lascia vuoto per annullare): ");
+	        codicePrenotazione = scanner.nextLine().trim();
+	        if (codicePrenotazione.isEmpty()) {
+	            System.out.println("Operazione annullata.");
+	            return;
+	        }
+	    } while (codicePrenotazione.isEmpty());
 
 	    // 3. Chiamata al metodo di disdetta vera e propria
-	    listaIscrizioniFruitoreDAO.disdiciIscrizione(codicePrenotazione);
-	    boolean successo = listaIscrizioniFruitore.disdiciIscrizione(codicePrenotazione, usernameFruitore);
+	    boolean successo = listaIscrizioniFruitore.disdiciIscrizione(codicePrenotazione, usernameFruitore, listaIscrizioniFruitoreDAO);
 	    
 	    // 4. Esito
 	    if (successo) {
@@ -1017,7 +1018,7 @@ public class Menu{
 	    }
 	}
 
-	public static void aggiungiTipoVisita() throws SQLException {
+	public static void aggiungiTipoVisita(boolean consentiNuoviVolontari) throws SQLException {
 		String titolo = InputDati.leggiStringaNonVuota("Inserisci il titolo del tipo visita: ").trim();
 		// Descrizione: non vuota
 		String descrizione = InputDati.leggiStringaNonVuota("Inserisci una breve descrizione del tipo visita: ").trim();
@@ -1033,9 +1034,8 @@ public class Menu{
 	    Periodo periodoProgrammabile = ObjPeriodo();
 
 	    ListaVolontari volontariToAdd = new ListaVolontari();
-	    boolean continuaVolontario;
-
-	    /*do {
+	    boolean continuaVolontario = false;
+	    do {
 	        // Se consenti aggiunta nuovi volontari, chiedi se vogliono crearne uno nuovo
 	        if (consentiNuoviVolontari) {
 	            boolean aggiungiNuovo = InputDati.yesOrNo("Vuoi aggiungere un nuovo volontario non presente nei registri? ");
@@ -1078,7 +1078,7 @@ public class Menu{
 	        volontariToAdd.aggiungiVolontario(scelto);
 	        // Chiede se associare un altro volontario, sempre nel contesto di questo tipo visita
 	        continuaVolontario = InputDati.yesOrNo("Vuoi associare un altro volontario a questo Tipo Visita? ");
-	    } while (continuaVolontario);*/
+	    } while (continuaVolontario);
 	    // Crea il nuovo oggetto TipoVisita con i volontari selezionati
 	    TipoVisita tipoVisita = new TipoVisita(titolo, descrizione, puntoDiIncontro,
 	            giorniProgrammabiliSettimana, oraInizio, durataVisita,
@@ -1090,14 +1090,13 @@ public class Menu{
 	        // Verifica se tipo visita è già presente, aggiunge se no
 	        if (!listaTipoVisita.getTipi().contains(tipoVisita)) {
 	            listaTipoVisita.add(tipoVisita);
-	            System.out.println("Tipo Visita creato con successo.");
 	        } else {
-	            System.out.println("ATTENZIONE: Tipo Visita già presente nella lista!");
+	            System.out.println("Attenzione! Tipo Visita già presente nella lista!");
 	        }
 	    } catch (SQLException e) {
 	        System.out.println("Errore nel salvataggio: " + e.getMessage());
 	    }
-	}
+}
 
 	private static void aggiungiTipoVisitaALuogo() throws SQLException {
 	    // Usa selezione solo tra luoghi attivi
