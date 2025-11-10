@@ -19,47 +19,41 @@ public class DisponibilitaDAO {
      * @param giorno Il giorno (1-31)
      * @param mese Il mese (1=i+1, 2=i+2, 3=i+3)
      */
-    public void salvaDisponibilita(String username, int giorno, int mese) throws SQLException {
-        
-        // Controlla se esiste già una disponibilità
-        String checkSql = "SELECT COUNT(*) FROM disponibilita WHERE username = ? AND giorno = ? AND mese = ?";
-        
-        // Inserisce nuova disponibilità dopo aver verificato che non esiste già
-        String insertSql = "INSERT INTO disponibilita (username, giorno, mese) VALUES (?, ?, ?)";
-    
-        try (Connection conn = ConnessioneDB.startConnection();
-             PreparedStatement checkPs = conn.prepareStatement(checkSql);
-             PreparedStatement insertPs = conn.prepareStatement(insertSql)) {
-            
-            // Sostituisce i ? con i valori
-            checkPs.setString(1, username);
-            checkPs.setInt(2, giorno);
-            checkPs.setInt(3, mese); // ✅ Cambiato da setString a setInt
-             
-            // Esegue la query e restituisce il risultato
-            ResultSet rs = checkPs.executeQuery();
-            
-            // Sposta il cursore alla prima riga e prende la prima colonna (count)
-            rs.next();
-            int count = rs.getInt(1);
-            
-            // Inserisce la nuova disponibilità solo se non esiste
-            if (count == 0) {
-                insertPs.setString(1, username);
-                insertPs.setInt(2, giorno);
-                insertPs.setInt(3, mese); // ✅ Cambiato da setString a setInt
-                
-                insertPs.executeUpdate();
-                System.out.println("✓ Disponibilità salvata per " + username + " (giorno " + giorno + ", mese i+" + mese + ")");
-            } else {
-                System.out.println("⚠️  La disponibilità per " + username + " nel mese i+" + mese + " esiste già.");
-            }
-            
-        } catch (SQLException e) {
-            System.out.println("❌ Errore durante il salvataggio della disponibilità: " + e.getMessage());
-            throw e;
-        }
-    }
+	public void salvaDisponibilita(Disponibilita disponibilita) throws SQLException {
+	    // Prima trovi l'ID (PK) del volontario nella tabella credenziali
+	    String queryId = "SELECT ID FROM credenziali WHERE USERNAME = ? AND ID_TIPOUTENTE = 2";
+	    int idVolontario = -1;
+
+	    try (Connection conn = ConnessioneDB.startConnection();
+	         PreparedStatement psId = conn.prepareStatement(queryId)) {
+	        psId.setString(1, disponibilita.getUsername());
+	        try (ResultSet rs = psId.executeQuery()) {
+	            if (rs.next()) {
+	                idVolontario = rs.getInt("ID");
+	            } else {
+	                System.out.println("Volontario non trovato per username: " + disponibilita.getUsername());
+	                throw new SQLException("Volontario non trovato");
+	            }
+	        }
+	        
+	        // Poi inserisci la disponibilità
+	        String queryIns = "INSERT INTO disponibilita (FK_VOLONTARIO, GIORNO, MESE) VALUES (?, ?, ?)";
+	        try (PreparedStatement psIns = conn.prepareStatement(queryIns)) {
+	            psIns.setInt(1, idVolontario);
+	            psIns.setInt(2, disponibilita.getGiorno());
+	            psIns.setInt(3, disponibilita.getMese());
+	            psIns.executeUpdate();
+	        }
+	        
+	        System.out.println("Disponibilità inserita con successo per volontario ID " + idVolontario);
+	    } catch (SQLException e) {
+	        System.out.println("Errore nell'inserimento disponibilità: " + e.getMessage());
+	        throw e;
+	    }
+	}
+
+
+
     
     /**
      * Legge tutte le disponibilità di un volontario.
@@ -94,7 +88,7 @@ public class DisponibilitaDAO {
             }
             
         } catch (SQLException e) {
-            System.out.println("❌ Errore durante la lettura delle disponibilità: " + e.getMessage());
+            System.out.println("Errore durante la lettura delle disponibilità: " + e.getMessage());
             throw e;
         }
         

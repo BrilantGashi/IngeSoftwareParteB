@@ -46,20 +46,11 @@ public class Luogo {
         assert invClass() : "Invariante violato nel costruttore";
     }
 
-    // ================== GETTERS ==================
     public String getDescrizione() { return descrizione; }
     public Indirizzo getIndirizzo() { return indirizzo; }
     public ListaTipoVisita getListaTipoVisita() { return listaTipoVisita; }
     public String getNomeLuogo() { return nomeLuogo; }
-    
-    // ✅ AGGIUNTO getter per isAttivo
-    /**
-     * Restituisce lo stato di attivazione del luogo.
-     * POSTCONDIZIONE: ritorna true se attivo, false se disattivato
-     */
     public boolean isAttivo() { return isAttivo; }
-
-    // ================== SETTERS ==================
 
     /**
      * PRECONDIZIONE: descrizione != null && !descrizione.isBlank()
@@ -107,7 +98,6 @@ public class Luogo {
         assert invClass() : "Invariante violato in setNomeLuogo";
     }
 
-    // ✅ AGGIUNTO setter per isAttivo
     /**
      * Imposta lo stato di attivazione del luogo.
      * POSTCONDIZIONE: this.isAttivo == attivo
@@ -117,7 +107,6 @@ public class Luogo {
         assert this.isAttivo == attivo : "Postcondizione violata in setAttivo";
     }
 
-    // ================== METODI DI UTILITÀ ==================
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -146,7 +135,6 @@ public class Luogo {
         return sb.toString();
     }
 
-    // ================== INVARIANTE ==================
     private boolean invClass() {
         if (nomeLuogo == null || nomeLuogo.isBlank()) return false;
         if (descrizione == null || descrizione.isBlank()) return false;

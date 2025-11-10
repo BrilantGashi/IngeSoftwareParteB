@@ -11,7 +11,7 @@ public class LuogoDAO {
             try {
                 int idIndirizzo = salvaIndirizzo(conn, luogo.getIndirizzo());
                 int idLuogo = salvaLuogo(conn, luogo.getNomeLuogo(), luogo.getDescrizione(), idIndirizzo);
-                associaTipiVisita(conn, idLuogo, luogo.getListaTipoVisita().getTipi());
+                associaTipiVisita(conn, idLuogo, luogo.getListaTipoVisita());
                 conn.commit();
                 System.out.println("Luogo e associazioni salvati correttamente.");
             } catch (Exception e) {
@@ -20,6 +20,33 @@ public class LuogoDAO {
             } finally {
                 conn.setAutoCommit(true);
             }
+        }
+    }
+    
+    private void associaTipiVisita(Connection conn, int idLuogo, ListaTipoVisita tipiVisita) throws SQLException {
+        String selectIdSql = "SELECT ID FROM tipo_visita WHERE TITOLO = ? AND DESCRIZIONE = ?";
+        String insertSql = "INSERT INTO luogo_tipo_visita (FK_LUOGO, FK_TIPO_VISITA) VALUES (?, ?)";
+
+        try (PreparedStatement psSelect = conn.prepareStatement(selectIdSql);
+             PreparedStatement psInsert = conn.prepareStatement(insertSql)) {
+            for (TipoVisita tv : tipiVisita.getTipi()) {
+                // Cerca per titolo + descrizione
+                psSelect.setString(1, tv.getTitolo());
+                psSelect.setString(2, tv.getDescrizione());
+                try (ResultSet rs = psSelect.executeQuery()) {
+                    if (rs.next()) {
+                        int idTipoVisita = rs.getInt("ID");
+                        psInsert.setInt(1, idLuogo);
+                        psInsert.setInt(2, idTipoVisita);
+                        psInsert.addBatch();
+                    } else {
+                        System.out.println("Tipo Visita non trovato per titolo: " + tv.getTitolo() +
+                                           ", descrizione: " + tv.getDescrizione());
+                    }
+                }
+            }
+            psInsert.executeBatch();
+            System.out.println("Associazioni tra luogo e tipi visita salvate correttamente.");
         }
     }
 
@@ -136,29 +163,52 @@ public class LuogoDAO {
         }
     }
 
-    // Associa i tipi visita al luogo
-    private void associaTipiVisita(Connection conn, int idLuogo, List<TipoVisita> tipiVisita) throws SQLException {
-        String selectIdSql = "SELECT ID FROM tipo_visita WHERE TITOLO = ?";
-        String insertSql = "INSERT INTO luogo_tipo_visita (FK_LUOGO, FK_TIPO_VISITA) VALUES (?, ?)";
-        try (PreparedStatement psSelect = conn.prepareStatement(selectIdSql);
-             PreparedStatement psInsert = conn.prepareStatement(insertSql)) {
-            for (TipoVisita tv : tipiVisita) {
-                psSelect.setString(1, tv.getTitolo());
-                try (ResultSet rs = psSelect.executeQuery()) {
-                    if (rs.next()) {
-                        int idTipoVisita = rs.getInt("ID");
-                        psInsert.setInt(1, idLuogo);
-                        psInsert.setInt(2, idTipoVisita);
-                        psInsert.addBatch();
-                    } else {
-                        System.out.println("Tipo Visita non trovato per titolo: " + tv.getTitolo());
-                    }
+ // Modifica: passa la connessione a trovaIdPerLuogo!
+    public static int trovaIdPerLuogo(Connection conn, Luogo luogo) throws SQLException {
+        String sql = "SELECT ID FROM luogo WHERE NOME = ? AND DESCRIZIONE = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, luogo.getNomeLuogo());
+            ps.setString(2, luogo.getDescrizione());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("ID");
                 }
             }
-            psInsert.executeBatch();
         }
+        return -1; // oppure gestisci eccezioni
     }
 
+    // Associa i tipi visita al luogo
+    public void aggiungiTipoVisitaALuogo(Luogo luogo, TipoVisita tipoVisita) throws SQLException {
+        String selectIdSql = "SELECT ID FROM tipo_visita WHERE TITOLO = ? AND DESCRIZIONE = ?";
+        String insertSql = "INSERT INTO luogo_tipo_visita (FK_LUOGO, FK_TIPO_VISITA) VALUES (?, ?)";
+
+        try (Connection conn = ConnessioneDB.startConnection();
+             PreparedStatement psSelect = conn.prepareStatement(selectIdSql);
+             PreparedStatement psInsert = conn.prepareStatement(insertSql)) {
+
+            psSelect.setString(1, tipoVisita.getTitolo());
+            psSelect.setString(2, tipoVisita.getDescrizione());
+
+            int idTipoVisita = -1;
+            try (ResultSet rs = psSelect.executeQuery()) {
+                if (rs.next()) {
+                    idTipoVisita = rs.getInt("ID");
+                } else {
+                    System.out.println("Tipo visita non trovato per titolo: " + tipoVisita.getTitolo() +
+                                       " e descrizione: " + tipoVisita.getDescrizione());
+                    return;
+                }
+            }
+
+            int idLuogo = trovaIdPerLuogo(conn, luogo); // usa la stessa connessione!
+            psInsert.setInt(1, idLuogo);
+            psInsert.setInt(2, idTipoVisita);
+            psInsert.executeUpdate();
+            System.out.println("✓ Tipo visita '" + tipoVisita.getTitolo() + "' associato al luogo '" + luogo.getNomeLuogo() + "'");
+        }
+    }
+    
     // Legge tutti i Luoghi dal database
     public ListaLuogo leggiTuttiLuoghi(ListaTipoVisita listaTV) throws SQLException {
         ListaLuogo listaLuoghi = new ListaLuogo();

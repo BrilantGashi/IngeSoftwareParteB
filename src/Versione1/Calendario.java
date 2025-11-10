@@ -1,5 +1,6 @@
 package Versione1;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -30,28 +31,6 @@ public class Calendario {
         setMesi();
         assert invClass() : "Invariante violato nel costruttore";
     }
-
-    /**
-     * Aggiunge un giorno alla lista delle date precluse per il mese specificato (1, 2 o 3).
-     * PRECONDIZIONE: giornoEscluso deve essere compreso tra 1 e giorni del mese target.
-     * POSTCONDIZIONE: la lista corrispondente contiene giornoEscluso.
-     */
-    public void aggiungiDataPreclusa(int giornoEscluso, int mese) {
-        LocalDate meseTarget = dataCorrente.plusMonths(mese);
-        int giorniNelMese = meseTarget.lengthOfMonth();
-
-        if (giornoEscluso < 1 || giornoEscluso > giorniNelMese) {
-            throw new IllegalArgumentException(
-                "Giorno non valido per il mese di " + meseTarget.getMonth() + ": " + giornoEscluso
-            );
-        }
-
-        getDatePreclusePerMese(mese).add(giornoEscluso);
-
-        assert getDatePreclusePerMese(mese).contains(giornoEscluso) : "Postcondizione violata: giorno non aggiunto";
-        assert invClass() : "Invariante violato in aggiungiDataPreclusa";
-    }
-
     /**
      * Setter per le date precluse del mese specificato (1, 2 o 3).
      */
@@ -119,13 +98,6 @@ public class Calendario {
         return oggi;
     }
 
-    public void printMesi() {
-        System.out.println("Mese i: " + meseCorrente);
-        System.out.println("Mese i+1: " + meseI1);
-        System.out.println("Mese i+2: " + meseI2);
-        System.out.println("Mese i+3: " + meseI3);
-    }
-
     public void setMeseI3(String meseI3) {
         if (meseI3 == null || meseI3.isBlank()) {
             throw new IllegalArgumentException("Il mese i+3 non può essere null o vuoto");
@@ -181,7 +153,6 @@ public class Calendario {
         return sb.toString();
     }
 
-
     public String getMeseI1() {
         return meseI1;
     }
@@ -189,7 +160,65 @@ public class Calendario {
     public String getMeseI2() {
         return meseI2;
     }
+    /**
+     * Trasforma la stringa del mese nel corrispondente numero
+     */
+    public int getMeseNumero(String nomeMese) {
+        for (Mesi m : Mesi.values()) {              
+            if (m.name().equalsIgnoreCase(nomeMese)) {  
+                return m.ordinal() + 1;            
+            }
+        }
+        return -1; // se non trovato
+    }
+    
+    /**
+     * Restituisce il nome del mese i+n in base al parametro mese.
+     * @param mese 1 per i+1, 2 per i+2, 3 per i+3
+     * @return il nome del mese corrispondente
+     */
+    public String getNomeMeseI(int mese) {
+        switch (mese) {
+            case 1:
+                return meseI1;
+            case 2:
+                return meseI2;
+            case 3:
+                return meseI3;
+            default:
+                throw new IllegalArgumentException("Mese non valido: deve essere 1, 2 o 3");
+        }
+    }
+    
+    public int giorniDelMese(int mese) {
+        switch (mese) {
+            case 2: return 28; // semplificazione: non gestiamo bisestili
+            case 4: case 6: case 9: case 11: return 30;
+            default: return 31;
+        }
+    }
+    
+    /**
+     * Aggiunge un giorno alla lista delle date precluse per il mese specificato (1, 2 o 3).
+     * PRECONDIZIONE: giornoEscluso deve essere compreso tra 1 e giorni del mese target.
+     * POSTCONDIZIONE: la lista corrispondente contiene giornoEscluso.
+     */
+    public void aggiungiDataPreclusa(int giornoEscluso, int mese) {
+        LocalDate meseTarget = dataCorrente.plusMonths(mese);
+        int giorniNelMese = meseTarget.lengthOfMonth();
 
+        if (giornoEscluso < 1 || giornoEscluso > giorniNelMese) {
+            throw new IllegalArgumentException(
+                "Giorno non valido per il mese di " + meseTarget.getMonth() + ": " + giornoEscluso
+            );
+        }
+
+        getDatePreclusePerMese(mese).add(giornoEscluso);
+
+        assert getDatePreclusePerMese(mese).contains(giornoEscluso) : "Postcondizione violata: giorno non aggiunto";
+        assert invClass() : "Invariante violato in aggiungiDataPreclusa";
+    }
+    
     /**
      * Metodo che permette di scegliere una data disponibile per un certo tipo di visita.
      * PRECONDIZIONI:
@@ -201,6 +230,20 @@ public class Calendario {
      * - ritorna null se non ci sono date disponibili
      * - ritorna Data non null con giorno disponibile e mese = meseNumero
      */
+    public  boolean isGiornoProgrammabilePerTipoVisita(int giornoDelMese, TipoVisita tipoVisita) {
+        LocalDate date = LocalDate.of(dataCorrente.getYear(), getMeseNumero(meseI1), giornoDelMese);
+        DayOfWeek dow = date.getDayOfWeek(); // 1=LUNEDI ... 7=DOMENICA
+
+        Giorni listaGiorni = Giorni.values()[dow.getValue() - 1]; // enum Giorni
+
+        ArrayList<Giorni> giorniProgrammabili = tipoVisita.getGiorniSettimanaProgrammabile();
+        if (giorniProgrammabili == null || giorniProgrammabili.isEmpty()) {
+            return false;
+        }
+
+        return giorniProgrammabili.contains(listaGiorni);
+    }
+    
     public Data scegliDataPerTipo(TipoVisita tipoVisita, int mese) {
         Objects.requireNonNull(tipoVisita, "tipoVisita non può essere null");
         assert dataCorrente != null : "Precondizione violata: dataCorrente null";
@@ -254,9 +297,18 @@ public class Calendario {
 
         return dataScelta;
     }
+    
     public boolean isGiornoEscluso(int giorno, int mese) {
         return getDatePreclusePerMese(mese).contains(giorno);
     }
+    
+    public void printMesi() {
+        System.out.println("Mese i: " + meseCorrente);
+        System.out.println("Mese i+1: " + meseI1);
+        System.out.println("Mese i+2: " + meseI2);
+        System.out.println("Mese i+3: " + meseI3);
+    }
+    
     /**
      * Verifica l'invariante di classe
      */
@@ -278,35 +330,5 @@ public class Calendario {
         }
         return true;
     }
-    
-    /**
-     * Trasforma la stringa del mese nel corrispondente numero
-     */
-    public int getMeseNumero(String nomeMese) {
-        for (Mesi m : Mesi.values()) {              
-            if (m.name().equalsIgnoreCase(nomeMese)) {  
-                return m.ordinal() + 1;            
-            }
-        }
-        return -1; // se non trovato
-    }
-    
-    /**
-     * Restituisce il nome del mese i+n in base al parametro mese.
-     * @param mese 1 per i+1, 2 per i+2, 3 per i+3
-     * @return il nome del mese corrispondente
-     */
-    private String getNomeMeseI(int mese) {
-        switch (mese) {
-            case 1:
-                return meseI1;
-            case 2:
-                return meseI2;
-            case 3:
-                return meseI3;
-            default:
-                throw new IllegalArgumentException("Mese non valido: deve essere 1, 2 o 3");
-        }
-    }
-
+  
 }

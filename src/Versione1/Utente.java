@@ -27,15 +27,4 @@ public class Utente {
 		return credenziali.getUsername();
 	}
 	
-	//devo popolare credenziali leggendo dal file
-
-	//******************************************
-	//PRIMA DI FARE QUALSIASI COSA, devo creare un metodo che dal file mi legga utente, username e password, 
-	//e lo setti come variabili in questa classe
-	//DOMANDA: lo devo fare qui?
-	//*****************************************************************s
-	
-	
-	
-	
 }

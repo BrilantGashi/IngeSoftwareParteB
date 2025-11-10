@@ -80,7 +80,6 @@ public class TipoVisita {
         assert invClass() : "Invariante violato nel costruttore";
     }
 
-    // ================== GETTERS ==================
     public String getDescrizione() { return descrizione; }
     public int getDurataVisita() { return durataVisita; }
     public ArrayList<Giorni> getGiorniSettimanaProgrammabile() { return giorniSettimanaProgrammabile; }
@@ -94,9 +93,8 @@ public class TipoVisita {
     public boolean isBiglietto() { return biglietto; }
     public boolean isAttivo() { return isAttivo; }
 
-    // ================== SETTERS ==================
-
-    public void setBiglietto(boolean biglietto) { this.biglietto = biglietto; }
+    public void setBiglietto(boolean biglietto) { this.biglietto = biglietto; 
+    }
 
     public void setDescrizione(String descrizione) {
         if (descrizione == null || descrizione.isBlank()) throw new IllegalArgumentException("Descrizione non valida");
@@ -162,7 +160,6 @@ public class TipoVisita {
         assert invClass() : "Invariante violato in setTitolo";
     }
 
-    // ✅ AGGIUNTO setter per isAttivo
     /**
      * Imposta lo stato di attivazione del tipo visita.
      * POSTCONDIZIONE: this.isAttivo == attivo
@@ -186,44 +183,6 @@ public class TipoVisita {
                 return true;
             }
         }
-        return false;
-    }
-
-    /**
-     * Determina se due visite si sovrappongono nello stesso giorno della settimana
-     * e nello stesso periodo programmabile.
-     */
-    public boolean siSovrappongono(TipoVisita altra) {
-        Objects.requireNonNull(altra, "Il TipoVisita di confronto non può essere null");
-        Objects.requireNonNull(this.oraInizio, "Ora inizio non può essere null");
-        Objects.requireNonNull(altra.oraInizio, "Ora inizio dell'altro TipoVisita non può essere null");
-        Objects.requireNonNull(this.periodoProgrammabile, "Periodo programmabile non può essere null");
-        Objects.requireNonNull(altra.periodoProgrammabile, "Periodo programmabile dell'altro TipoVisita non può essere null");
-
-        // 1. Controllo periodo programmabile
-        if (!this.periodoProgrammabile.siIntersecaCon(altra.periodoProgrammabile)) {
-            return false; // periodi non compatibili → non si sovrappongono
-        }
-
-        // 2. Controllo giorni programmabili
-        for (Giorni g : this.giorniSettimanaProgrammabile) {
-            if (altra.giorniSettimanaProgrammabile.contains(g)) {
-                // Giorno in comune trovato → controlliamo gli orari
-                LocalTime fineQuesta = this.oraInizio.plusMinutes(this.durataVisita);
-                LocalTime fineAltra  = altra.oraInizio.plusMinutes(altra.durataVisita);
-
-                // condizione di NON sovrapposizione:
-                // una finisce prima (o esattamente quando) l'altra inizia
-                boolean nonSovrapposte = fineQuesta.isBefore(altra.oraInizio)
-                                       || fineQuesta.equals(altra.oraInizio)
-                                       || fineAltra.isBefore(this.oraInizio)
-                                       || fineAltra.equals(this.oraInizio);
-
-                return !nonSovrapposte;
-            }
-        }
-
-        // Nessun giorno in comune → non si sovrappongono
         return false;
     }
     
@@ -281,8 +240,7 @@ public class TipoVisita {
         sb.append("=================================================\n");
         return sb.toString();
     }
-
-    
+  
     public String toStringSemplificato() {
         StringBuilder sb = new StringBuilder();
 
@@ -315,8 +273,6 @@ public class TipoVisita {
         return sb.toString();
     }
 
-
-    // ================== INVARIANTE ==================
     private boolean invClass() {
         if (titolo == null || titolo.isBlank()) return false;
         if (durataVisita <= 0) return false;
@@ -329,14 +285,12 @@ public class TipoVisita {
         return true;
     }
     
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        TipoVisita that = (TipoVisita) obj;
-        return Objects.equals(titolo, that.titolo) &&
-               Objects.equals(descrizione, that.descrizione) &&
-               Objects.equals(puntoDiIncontro, that.puntoDiIncontro);
+    public boolean equals(TipoVisita tipo) {
+        if (this == tipo) return true;
+        if (tipo == null || getClass() != tipo.getClass()) return false;
+        return Objects.equals(titolo, tipo.getTitolo()) &&
+               Objects.equals(descrizione, tipo.getDescrizione()) &&
+               Objects.equals(puntoDiIncontro, tipo.getPuntoDiIncontro());
     }
 
     @Override

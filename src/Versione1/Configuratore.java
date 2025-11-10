@@ -23,7 +23,6 @@ public class Configuratore extends Utente {
         assert invClass() : "Invariante violato nel costruttore di Configuratore";
     }
 
-    // ================== INVARIANTE ==================
     private boolean invClass() {
         if (credenziali == null) return false;
         if (credenziali.getUsername() == null || credenziali.getUsername().isBlank()) return false;

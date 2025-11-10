@@ -63,7 +63,6 @@ public class Indirizzo {
         this.ambitoTerritoriale = ambitoTerritoriale;
     }
 
-    // Stampa
     public void stampaIndirizzo() {
         System.out.println("Tipo strada   : " + tipoStrada);
         System.out.println("Nome strada   : " + nomeStrada);

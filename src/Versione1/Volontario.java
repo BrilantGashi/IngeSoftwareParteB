@@ -82,7 +82,6 @@ public class Volontario extends Utente {
         return result;
     }
 
-    // ================== INVARIANTE ==================
     private boolean invClass() {
         if (credenziali == null) return false;
         if (credenziali.getUsername() == null || credenziali.getUsername().isBlank()) return false;

@@ -2,6 +2,8 @@ package Versione1;
 
 import java.util.Objects;
 
+import it.unibs.fp.mylib.InputDati;
+
 public class Data {
     private int giorno;
     private int mese;
@@ -101,10 +103,44 @@ public class Data {
 
         return result;
     }
+    
+    public void scegliDataPerMese(int mese) {
+		if (mese < 1 || mese > 12) {
+			throw new IllegalArgumentException("Mese non valido: " + mese);
+		}
+		int giorniNelMese = giorniDelMese(mese);
+		int giornoScelto = InputDati.leggiIntero("Scegli il giorno relativo a(1-" + giorniNelMese + "): ", 1, giorniNelMese);
+		this.giorno = giornoScelto;
+		this.mese = mese;
+    }
 
+    /**
+     * Restituisce il numero di giorni del mese (non considera anni bisestili).
+     */
+    public int giorniDelMese(int mese) {
+        switch (mese) {
+            case 2: return 28; // semplificazione: non gestiamo bisestili
+            case 4: case 6: case 9: case 11: return 30;
+            default: return 31;
+        }
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if(this == obj) return true;
+        if(obj == null || getClass() != obj.getClass()) return false;
+        Data other = (Data) obj;
+        return giorno == other.giorno && mese == other.mese; // aggiungi anno se serve
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(giorno, mese); // aggiungi anno se serve
+    }
+    
     @Override
     public String toString() {
-        return giorno + "/" + mese;
+        return giorno + "/" + Mesi.getNomeMese(mese);
     }
 
     private boolean invClass() {
@@ -114,14 +150,4 @@ public class Data {
         return true;
     }
 
-    /**
-     * Restituisce il numero di giorni del mese (non considera anni bisestili).
-     */
-    private int giorniDelMese(int mese) {
-        switch (mese) {
-            case 2: return 28; // semplificazione: non gestiamo bisestili
-            case 4: case 6: case 9: case 11: return 30;
-            default: return 31;
-        }
-    }
 }

@@ -13,29 +13,16 @@ public class Disponibilita {
      * @param mese Il mese di disponibilità (1=i+1, 2=i+2, 3=i+3)
      */
     public Disponibilita(String username, int giorno, int mese) {
-        super();
         this.username = username;
         this.giorno = giorno;
         this.mese = mese;
     }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("===== DISPONIBILITA' VOLONTARIO =====\n");
-        sb.append("Volontario: ").append(username).append("\n");
-        sb.append("Mese i+").append(mese).append("\n"); // ✅ Mostra come i+1, i+2, i+3
-        sb.append("Giorno disponibile: ").append(giorno).append("\n");
-        sb.append("=====================================\n");
-
-        return sb.toString();
-    }
-
-    //**************************************************************//
-    //                    GETTERS & SETTERS                         //
-    //**************************************************************//
-
+    
+    public String getNomeMese() {
+    	Calendario calendario = new Calendario();
+		return calendario.getNomeMeseI(this.mese);
+	}
+  
     public String getUsername() {
         return username;
     }
@@ -58,5 +45,17 @@ public class Disponibilita {
 
     public void setMese(int mese) { // ✅ Cambiato da String a int
         this.mese = mese;
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("===== DISPONIBILITA' VOLONTARIO =====\n");
+        sb.append("Volontario: ").append(username).append("\n");
+        sb.append("Mese: ").append(getNomeMese()).append("\n"); // ✅ Mostra come i+1, i+2, i+3
+        sb.append("Giorno disponibile: ").append(giorno).append("\n");
+        sb.append("=====================================\n");
+
+        return sb.toString();
     }
 }

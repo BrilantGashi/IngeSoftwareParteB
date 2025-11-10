@@ -37,6 +37,24 @@ public class UtenteDAO {
         }
         return null;
     }
+    public static int trovaIdFruitoreDaNickname(String nickname) throws SQLException {
+        String query = "SELECT ID FROM credenziali WHERE USERNAME = ? AND ISATTIVO = true";
+        int idFruitore = -1;
+
+        try (Connection conn = ConnessioneDB.startConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, nickname);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                	idFruitore = rs.getInt("ID");
+                } else {
+                    System.out.println("Fruitore non trovato per username: " + nickname);
+                }
+            }
+        }
+        return idFruitore; // -1 se non trovato
+    }
     
     public static int trovaIdVolontarioDaNickname(String nickname) throws SQLException {
         String query = "SELECT ID FROM credenziali WHERE USERNAME = ? AND ISATTIVO = true";
@@ -56,8 +74,7 @@ public class UtenteDAO {
         }
         return idVolontario; // -1 se non trovato
     }
-
-
+  
     public void stampaCredenziale(String username) {
         Credenziali dati = leggiSingolaCredenziale(username);
 
@@ -96,7 +113,7 @@ public class UtenteDAO {
         return trovato;
     }
 
-    public void leggiUtentiDaDB(ArrayList<Configuratore> configuratori, ListaVolontari volontari) throws SQLException, FileNotFoundException, IOException {
+    public void leggiUtentiDaDB(ArrayList<Configuratore> configuratori, ListaVolontari volontari, ArrayList<Fruitore> fruitori) throws SQLException, FileNotFoundException, IOException {
         String sql = "SELECT id, username, password, id_tipoutente FROM credenziali WHERE ISATTIVO = true";  // ✅ Solo attivi
 
         ArrayList<DatiUtente> datiUtenti = new ArrayList<>();
@@ -124,6 +141,7 @@ public class UtenteDAO {
                     volontari.aggiungiVolontario(new Volontario(cred));
                     break;
                 case 3:
+                	fruitori.add(new Fruitore(cred));
                     // gestisci fruitore se serve
                     break;
                 default:
@@ -210,7 +228,7 @@ public class UtenteDAO {
         }
     }
 
-    public static void eliminaDaCredenziali(Volontario volontario) throws SQLException {
+    public static void disattivaDaCredenziali(Volontario volontario) throws SQLException {
         String updateSql = "UPDATE credenziali SET ISATTIVO = false WHERE USERNAME = ?";  // ✅ Corretto con ISATTIVO
         
         try (Connection conn = ConnessioneDB.startConnection();

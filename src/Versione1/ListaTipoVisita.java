@@ -34,7 +34,6 @@ public class ListaTipoVisita {
         assert invClass() : "Invariante violato in add";
     }
 
-    
     /**
      * Restituisce la lista dei tipi di visita.
      * POSTCONDIZIONE: ritorna una lista non null (può essere vuota).
@@ -115,11 +114,7 @@ public class ListaTipoVisita {
 		            System.out.println("Attenzione: hai selezionato un Tipo Visita già associato!");
 		            duplicato = true;
 		            break;
-		        } else if (v.siSovrappongono(visitaSelezionata)) {
-		            System.out.println("Attenzione: questa visita si sovrappone ad un'altra già programmata per lo stesso giorno!");
-		            sovrapposta = true;
-		            break;
-		        }
+		        } 
 		    }
 		    
 		    // Se non è duplicata né sovrapposta, la aggiungo
@@ -128,7 +123,6 @@ public class ListaTipoVisita {
 		    }
 		    return false;
     }
-
     
     public TipoVisita cercaPerTitolo(String titolo) {
         if (titolo == null || titolo.isBlank()) {
@@ -171,19 +165,13 @@ public class ListaTipoVisita {
         int scelta = InputDati.leggiIntero("Seleziona il numero del tipo visita: ", 1, tipiAttivi.size());
         return tipiAttivi.get(scelta - 1);
     }
-
-
-
-    
-    
-    
     
     public String toString() {
         if (tipi == null || tipi.isEmpty()) {
             return "Nessun tipo di visita disponibile.";
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("===== ELENCO TIPI DI VISITA ATTIVI =====\n");
+        sb.append("----- ELENCO TIPI DI VISITA -----\n");
         int i = 1;
         boolean almenoUnoStampato = false;
         for (TipoVisita tv : tipi) {
@@ -211,12 +199,13 @@ public class ListaTipoVisita {
                     sb.append("   Periodo: ").append(tv.getPeriodoProgrammabile().toString()).append("\n");
                 }
                 if (tv.getListaVolontari() != null && !tv.getListaVolontari().getVolontari().isEmpty()) {
-                    sb.append("   Volontari:\n");
+                    sb.append("   Volontari:");
                     for (Volontario v : tv.getListaVolontari().getVolontari()) {
-                        sb.append("      - ").append(v.getNickname()).append("\n");
+                        sb.append(v.getNickname()).append(", ");
                     }
+                    sb.append("\n");
                 }
-                sb.append("-----------------------------------\n");
+                sb.append("---------------------------------\n");
                 almenoUnoStampato = true;
             }
         }
@@ -225,7 +214,6 @@ public class ListaTipoVisita {
         }
         return sb.toString();
     }
-
 
     public String toStringAsList() {
         StringBuilder returnString = new StringBuilder();
@@ -265,8 +253,6 @@ public class ListaTipoVisita {
         }
     }
 
-
-    // ================== INVARIANTE ==================
     private boolean invClass() {
         if (tipi == null) return false;
         for (TipoVisita t : tipi) {
@@ -276,7 +262,4 @@ public class ListaTipoVisita {
         return true;
     }
     
-   
-
-
 }

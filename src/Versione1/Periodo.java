@@ -130,14 +130,12 @@ public class Periodo {
         // Non dovrebbe mai arrivare qui
         return false;
     }
-
-    
+ 
     @Override
     public String toString() {
         return "Periodo valido: " + dataInizio.toString() + " a " + dataFine.toString();
     }
 
-    // ================== INVARIANTE ==================
     private boolean invClass() {
         if (dataInizio == null || dataFine == null) return false;
         return true;

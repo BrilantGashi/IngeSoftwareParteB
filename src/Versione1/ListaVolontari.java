@@ -26,6 +26,10 @@ public class ListaVolontari {
      * PRECONDIZIONE: v != null
      * POSTCONDIZIONE: se non era già presente, v ∈ volontari
      */
+    
+    public void addVolontario(Volontario v) {
+		this.volontari.add(v);
+	}
     public void aggiungiVolontario(Volontario v) {
         Objects.requireNonNull(v, "Il volontario non può essere null");
         if (!volontari.contains(v)) {
@@ -109,8 +113,6 @@ public class ListaVolontari {
         return orfani;
     }
 
-    // ================== METODI DI STAMPA ==================
-
     public void stampaVolontari() {
         if (volontari.isEmpty()) {
             System.out.println("Nessun volontario presente.");
@@ -150,7 +152,6 @@ public class ListaVolontari {
         }
     }
 
-
     public void visualizzaVolontari() {
         System.out.println("Elenco Volontari disponibili:");
         int count = 1;
@@ -164,7 +165,6 @@ public class ListaVolontari {
             System.out.println("Nessun volontario presente");
         }
     }
-
     
     public void visualizzaVolontariDisponibili(ArrayList<Volontario> volontariScelti) {
         Objects.requireNonNull(volontariScelti, "La lista dei volontari scelti non può essere null");
@@ -180,8 +180,6 @@ public class ListaVolontari {
         }
     }
 
-
-    // ================== INVARIANTE ==================
     private boolean invClass() {
         if (volontari == null) return false;
         for (Volontario v : volontari) {

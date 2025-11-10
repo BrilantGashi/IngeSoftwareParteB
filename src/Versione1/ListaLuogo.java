@@ -32,9 +32,7 @@ public class ListaLuogo {
         }
         listaLuoghi.add(luogo); 
     }
-
-    
-    
+ 
     /**
      * Restituisce la lista dei luoghi.
      * POSTCONDIZIONE: ritorna una lista non null (può essere vuota).
@@ -56,8 +54,7 @@ public class ListaLuogo {
         this.listaLuoghi = new ArrayList<>(listaLuoghi);
         assert invClass() : "Invariante violato in setListaLuoghi";
     }
-    
-    
+       
     public Luogo cercaPerNome(String titolo) {
         if (titolo == null || titolo.isBlank()) {
             throw new IllegalArgumentException("Username non valido");
@@ -125,8 +122,6 @@ public class ListaLuogo {
         return orfani;
     }
 
-    // ================== METODI DI STAMPA ==================
-
     /**
      * Stampa i luoghi con i tipi di visita associati.
      * PRECONDIZIONE: listaLuoghi != null
@@ -155,10 +150,6 @@ public class ListaLuogo {
         System.out.println(sb.toString());
     }
 
-
-    
-    
-
     /**
      * Stampa i luoghi senza i tipi di visita.
      * PRECONDIZIONE: listaLuoghi != null
@@ -185,9 +176,6 @@ public class ListaLuogo {
         }
         System.out.println(sb.toString());
     }
-
-
-
 
     // Metodo privato di supporto
     private String stampaLuogo(Luogo l, boolean conVisite) {
@@ -217,7 +205,6 @@ public class ListaLuogo {
         return sb.toString();
     }
 
-    
     /**
      * Stampa l'elenco dei luoghi in formato numerato.
      * PRECONDIZIONE: listaLuoghi != null
@@ -236,15 +223,6 @@ public class ListaLuogo {
         }
     }
     
-    /**
-     * Stampa l'elenco numerato e permette la selezione di un luogo.
-     * PRECONDIZIONE: listaLuoghi non vuota
-     * POSTCONDIZIONE: ritorna il Luogo selezionato o null se lista vuota
-     */
-    
-
-
-    // ================== INVARIANTE ==================
     private boolean invClass() {
         if (listaLuoghi == null) return false;
         for (Luogo l : listaLuoghi) {
@@ -256,6 +234,5 @@ public class ListaLuogo {
     public boolean contains(Luogo luogo) {
         return listaLuoghi.contains(luogo);
     }
-
 	
 }

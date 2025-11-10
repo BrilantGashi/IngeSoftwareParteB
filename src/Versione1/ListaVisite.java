@@ -3,6 +3,8 @@ package Versione1;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import it.unibs.fp.mylib.InputDati;
+
 public class ListaVisite {
     
     private ArrayList<Visita> listaVisite;
@@ -25,13 +27,12 @@ public class ListaVisite {
      * POSTCONDIZIONE: se non era già presente, v ∈ listaVisite
      */
     public void aggiungiVisita(Visita v) {
-        Objects.requireNonNull(v, "La visita non può essere null");
-        if (!listaVisite.contains(v)) {
-            listaVisite.add(v);
-        }
+    	Objects.requireNonNull(v, "La visita non può essere null");
+        listaVisite.add(v);
         assert listaVisite.contains(v) : "Postcondizione violata: visita non aggiunta";
         assert invClass() : "Invariante violato in aggiungiVisita";
     }
+    
     
     /**
      * Filtra le visite per stato.
@@ -41,7 +42,7 @@ public class ListaVisite {
     public ArrayList<Visita> filtraPerStato(StatoVisita stato) {
         Objects.requireNonNull(stato, "Lo stato non può essere null");
         ArrayList<Visita> risultato = new ArrayList<>();
-        for (Visita v : listaVisite) {
+        for (Visita v : this.listaVisite) {
             if (v.getStatoVisita() == stato) {
                 risultato.add(v);
             }
@@ -61,18 +62,18 @@ public class ListaVisite {
         Objects.requireNonNull(v, "Il volontario non può essere null");
         ArrayList<Visita> risultato = new ArrayList<>();
         for(Visita visita: listaVisite) {
-            if(visita.getVolontariEffettivi().contains(v)) {
+            if(visita.getVolontariEffettivi().getVolontari().contains(v)) {
                 risultato.add(visita);
             }
         }
         for (Visita visita : risultato) {
-            assert visita.getVolontariEffettivi().contains(v) : "Postcondizione violata in filtraPerVolontario";
+            assert visita.getVolontariEffettivi().getVolontari().contains(v) : "Postcondizione violata in filtraPerVolontario";
         }
         return risultato;
     }
       
     public ArrayList<Visita> getListaVisite() {
-        return new ArrayList<>(listaVisite); // copia difensiva
+        return listaVisite; // copia difensiva
     }
 
     /**
@@ -135,7 +136,51 @@ public class ListaVisite {
         }
         return null;
     }
-        
+    
+    public Visita selezionaVisitaProposta(String meseNome, Fruitore fruitore, ListaIscrizioni listaIscrizioniFruitore) {
+        Objects.requireNonNull(meseNome, "Il nome del mese non può essere null");
+        Objects.requireNonNull(fruitore, "Fruitore non può essere null");
+
+        ArrayList<Visita> proposte = filtraPerStato(StatoVisita.PROPOSTA);
+        ArrayList<Visita> proposteNelMeseDisponibili = new ArrayList<>();
+
+        for (Visita v : proposte) {
+            Data data = v.getDataVisita();
+            if (data != null && meseNome.equalsIgnoreCase(Mesi.getNomeMese(data.getMese()))) {
+                // Exclude se fruitore già iscritto o visita piena
+                boolean giaIscritto = listaIscrizioniFruitore.trovaPerFruitoreEVisita(fruitore, v) != null;
+                int tot = listaIscrizioniFruitore.getTotaleIscrittiPerVisita(v);
+                int max = v.getTipoVisita().getSogliaMaxPartecipanti();
+                if (!giaIscritto && tot < max) {
+                    proposteNelMeseDisponibili.add(v);
+                }
+            }
+        }
+
+        if (proposteNelMeseDisponibili.isEmpty()) {
+            System.out.println("Nessuna visita disponibile per iscrizione per il mese di " + meseNome + ".");
+            return null;
+        }
+
+        // Stampa elenco
+        System.out.println("===== Visite disponibili per " + meseNome + " =====");
+        for (int i = 0; i < proposteNelMeseDisponibili.size(); i++) {
+            Visita v = proposteNelMeseDisponibili.get(i);
+            String titolo = (v.getTipoVisita() != null) ? v.getTipoVisita().getTitolo() : "Senza titolo";
+            int max = v.getTipoVisita().getSogliaMaxPartecipanti();
+            int tot = listaIscrizioniFruitore.getTotaleIscrittiPerVisita(v);
+            int postiRimasti = max - tot;
+            System.out.println((i + 1) + ") " + titolo + " - " + v.getDataVisita() + " | Posti rimasti: " + postiRimasti);
+        }
+
+        int scelta = InputDati.leggiIntero(
+            "Seleziona una visita (1-" + proposteNelMeseDisponibili.size() + "): ",
+            1, proposteNelMeseDisponibili.size()
+        );
+
+        return proposteNelMeseDisponibili.get(scelta - 1);
+    }
+    
     /**
      * Verifica che non ci siano visite duplicate (stesso TipoVisita + stessa Data).
      * POSTCONDIZIONE: ritorna true sse non ci sono duplicati
@@ -154,64 +199,105 @@ public class ListaVisite {
         return true;
     }
       
-    
-   /* public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("===== LISTA VISITE =====\n");
-
-        if (listaVisite.isEmpty()) {
-            sb.append("Non ci sono visite programmate.\n");
-        } else {
-            for (int i = 0; i < listaVisite.size(); i++) {
-                sb.append((i + 1)).append(". ").append(listaVisite.get(i).toString()).append("\n");
-            }
-        }
-
-        sb.append("========================\n");
-        return sb.toString();
-    }*/
-    
-    //METODO PER LA STAMPA DELLO STATO DELLE VISITE
     public void stampaTitoloEStato() {
         if (listaVisite == null || listaVisite.isEmpty()) {
             System.out.println("Non ci sono visite registrate al momento.");
             return;
         }
 
-        System.out.println("===== ELENCO VISITE E STATI =====");
-        for (Visita v : listaVisite) {
-            String titolo = (v.getTipoVisita() != null) ? v.getTipoVisita().getTitolo() : "Senza titolo";
-            String stato = (v.getStatoVisita() != null) ? v.getStatoVisita().name() : "N/D";
-            System.out.println("- " + titolo + " | Stato: " + stato);
+        for (Visita visita : listaVisite) {
+            String titolo = (visita.getTipoVisita() != null) ? visita.getTipoVisita().getTitolo() : "Senza titolo";
+            Data data = visita.getDataVisita();
+            String dataStr = (data != null) ? data.toString() : "Data N/D";
+
+            // Volontari associati
+            String volontariStr = "Volontari: ";
+            if (visita.getVolontariEffettivi() != null && !visita.getVolontariEffettivi().getVolontari().isEmpty()) {
+                ArrayList<String> nomiVol = new ArrayList<>();
+                for (Volontario vol : visita.getVolontariEffettivi().getVolontari()) {
+                    nomiVol.add(vol.getCredenziali().getUsername());
+                }
+                volontariStr += String.join(", ", nomiVol);
+            } else {
+                volontariStr += "nessuno";
+            }
+
+            System.out.println("- " + titolo 
+                + " | Data: " + dataStr
+                + " | " + volontariStr);
         }
-        System.out.println("=================================");
     }
 
-   //STAMPA PIANO
-    public void stampaPianoVisite() {
-        System.out.println("\n===== PIANO DELLE VISITE =====");
-
+    public void stampaVisitaPerFruitore() {
         if (listaVisite == null || listaVisite.isEmpty()) {
-            System.out.println("Nessuna visita pianificata per questo mese.");
-            System.out.println("====================================\n");
+            System.out.println("Non ci sono visite registrate al momento.");
             return;
         }
 
-        for (Visita v : listaVisite) {
-            System.out.println("Titolo visita   : " + v.getTipoVisita().getTitolo());
-            System.out.println("Data            : " + v.getDataVisita().toString());
-            System.out.println("Stato           : " + v.getStatoVisita());
-            if (!v.getVolontariEffettivi().isEmpty()) {
-                System.out.println("Volontario      : " + v.getVolontariEffettivi().get(0).getNickname());
-            } else {
-                System.out.println("Volontario      : Nessuno assegnato");
-            }
-            System.out.println("------------------------------------");
-        }
+        for (Visita visita : listaVisite) {
+            StatoVisita stato = visita.getStatoVisita();
+            // Mostra solo PROPOSTA, CONFERMATA, CANCELLATA
+            if (stato == StatoVisita.PROPOSTA || stato == StatoVisita.CONFERMATA) {
+                TipoVisita tipo = visita.getTipoVisita();
+                String titolo = (tipo != null) ? tipo.getTitolo() : "Senza titolo";
+                String descrizione = (tipo != null) ? tipo.getDescrizione() : "N/D";
+                String puntoIncontro = (tipo != null) ? tipo.getPuntoDiIncontro() : "N/D";
+                String oraInizio = (tipo != null && tipo.getOraInizio() != null) ? tipo.getOraInizio().toString() : "Orario N/D";
+                boolean bigliettoRichiesto = (tipo != null) && tipo.isBiglietto();
+                Data data = visita.getDataVisita();
+                String dataStr = (data != null) ? data.toString() : "Data N/D";
 
+                System.out.println("- " + titolo
+                    + "\n  Descrizione: " + descrizione
+                    + "\n  Punto di incontro: " + puntoIncontro
+                    + "\n  Data: " + dataStr
+                    + "\n  Ora inizio: " + oraInizio
+                    + "\n  Biglietto da acquistare: " + (bigliettoRichiesto ? "SI" : "NO")
+                    + "\n  Stato: " + stato.name());
+            } else if (stato == StatoVisita.CANCELLATA) {
+                TipoVisita tipo = visita.getTipoVisita();
+                String titolo = (tipo != null) ? tipo.getTitolo() : "Senza titolo";
+                Data data = visita.getDataVisita();
+                String dataStr = (data != null) ? data.toString() : "Data N/D";
+
+                System.out.println("- " + titolo
+                    + "\n  Data del mancato svolgimento: " + dataStr
+                    + "\n  Stato: " + stato.name());
+            }
+            // Puoi aggiungere altri else if per altri stati, oppure ignorarli
+        }
     }
     
-    
+    public void stampaPianoVisite() {
+        if (listaVisite == null || listaVisite.isEmpty()) {
+            System.out.println("Non ci sono visite registrate al momento.");
+            return;
+        }
+
+        System.out.println("===== PIANO DELLE VISITE =====");
+        for (Visita v : listaVisite) {
+            String titolo = (v.getTipoVisita() != null) ? v.getTipoVisita().getTitolo() : "Senza titolo";
+            Data data = v.getDataVisita();
+            String stato = (v.getStatoVisita() != null) ? v.getStatoVisita().name() : "N/D";
+
+            String volontariString = "";
+            if (v.getVolontariEffettivi() != null && !v.getVolontariEffettivi().getVolontari().isEmpty()) {
+                ArrayList<String> nomiVol = new ArrayList<>();
+                for (Volontario vol : v.getVolontariEffettivi().getVolontari()) {
+                    nomiVol.add(vol.getCredenziali().getUsername());
+                }
+                volontariString = String.join(", ", nomiVol);
+            } else {
+                volontariString = "Nessuno";
+            }
+            System.out.println("Titolo visita   : " + titolo);
+            System.out.println("Data            : " + data.toString());
+            System.out.println("Stato           : " + stato);
+            System.out.println("Volontario/i    : " + volontariString);
+            System.out.println("------------------------------------");
+        }
+    }
+  
     private boolean invClass() {
         if (listaVisite == null) return false;
         for (Visita v : listaVisite) {
@@ -219,4 +305,5 @@ public class ListaVisite {
         }
         return visiteUnichePerTipoEData();
     }
+	
 }

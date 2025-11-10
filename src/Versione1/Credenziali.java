@@ -8,7 +8,6 @@ import it.unibs.fp.mylib.InputDati;
 
 public class Credenziali {
     
-    private GestioneFile g = new GestioneFile();
     private String password;
     private String username;
     private String utenza;
@@ -23,25 +22,6 @@ public class Credenziali {
 
     // Costruttore vuoto (non garantisce subito l'invariante, da usare con cautela)
     public Credenziali(){ }
-
-    /**
-     * Costruttore con caricamento da file.
-     * PRECONDIZIONE: username != null && !username.isBlank()
-     * POSTCONDIZIONE: this.username == username letto da file
-     *                 this.password != null
-     *                 this.utenza != null
-     */
-    /*public Credenziali(String username) throws FileNotFoundException, IOException { 
-        if (username == null || username.isBlank()) {
-            throw new IllegalArgumentException("Username non valido");
-        }
-        //String[] credenziali = g.leggiSingolaCredenziale(username);
-        String[] credenziali = UtenteDao.leggiSingolaCredenziale(username);
-        this.utenza = credenziali[0];
-        this.username = credenziali[1];
-        this.password = credenziali[2]; 
-        assert invClass() : "Invariante violato nel costruttore Credenziali";
-    }*/
     
  	// Costruttore che NON accede al database
     public Credenziali(String utenza, String username, String password) {
@@ -62,14 +42,6 @@ public class Credenziali {
         assert invClass() : "Invariante violato nel costruttore Credenziali";
     }
 
-    /**
-     * Controlla se le credenziali inserite sono corrette.
-     * PRECONDIZIONE: usernameP != null && passwordP != null
-     * POSTCONDIZIONE: ritorna -1 se password errata,
-     *                 1 se primo accesso,
-     *                 0 se credenziali corrette
-     * @throws SQLException 
-     */
     public int controllaCredenziali(String usernameP, String passwordP) throws FileNotFoundException, IOException, SQLException {
         Objects.requireNonNull(usernameP, "Username non pu� essere null");
         Objects.requireNonNull(passwordP, "Password non pu� essere null");
@@ -104,7 +76,7 @@ public class Credenziali {
      * POSTCONDIZIONE: this.password == password
      * @throws SQLException 
      */
-    public void setPassword(String password) throws FileNotFoundException, IOException, SQLException {
+    private void setPassword(String password) throws FileNotFoundException, IOException, SQLException {
         if (password == null || password.isBlank()) {
             throw new IllegalArgumentException("Password non valida");
         }

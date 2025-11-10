@@ -14,8 +14,6 @@ public enum Mesi {
 	Novembre,
 	Dicembre;
 	
-	
-	
 	//metodo che ritorna il mese corrispondente
     public static String getNomeMese(int mese) {
         return Mesi.values()[mese - 1].name();

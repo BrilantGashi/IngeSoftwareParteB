@@ -7,10 +7,6 @@ import java.time.*;
 import java.util.*;
 
 public class TipoVisitaDAO {
-
-    //=======================================================================
-    //*********************** INSERIMENTO ***********************************
-    //=======================================================================
     
     public void inserisciVisita(TipoVisita visita) throws SQLException {
 
@@ -95,10 +91,7 @@ public class TipoVisitaDAO {
         }
         return idGenerato;
     }
-
-    
-   
-    
+  
     public void collegaGiorniATipoVisita(Connection conn, int idTipoVisita, ArrayList<Giorni> giorniList) throws SQLException {
         String selectIdGiorni = "SELECT id FROM giorni WHERE nome = ?";
         String insertPonte = "INSERT INTO tipo_visita_giorni (fk_tipovisita, fk_giorni) VALUES (?, ?)";
@@ -209,10 +202,6 @@ public class TipoVisitaDAO {
             }
         }
     }
-
-    //=======================================================================
-    //*********************** LETTURA ****************************************
-    //=======================================================================
     
     public ListaTipoVisita leggiTuttiTipiVisita(ListaVolontari listaV) throws SQLException, FileNotFoundException, IOException {
     	ListaTipoVisita listaTipi = new ListaTipoVisita();
@@ -315,10 +304,6 @@ public class TipoVisitaDAO {
         return giorniList;
     }
 
-    //=======================================================================
-    //*********************** ELIMINAZIONE **********************************
-    //=======================================================================
-    
     public ArrayList<TipoVisita> trovaTipiVisitaOrfani(ListaTipoVisita listaTipoVisita) throws SQLException {
         ArrayList<TipoVisita> tipiOrfani = new ArrayList<>();
         
