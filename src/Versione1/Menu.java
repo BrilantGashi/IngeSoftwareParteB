@@ -168,8 +168,7 @@ public class Menu{
             break;
 
         case 1:
-            if (statoSistema != StatoSistema.PRODUZIONE_VISITE_PROPONIBILI_I_1 &&
-                statoSistema != StatoSistema.PRODUZIONE_VISITE_PROPONIBILI_I_1_COMPLETATA) {
+            if (statoSistema != StatoSistema.PRODUZIONE_VISITE_PROPONIBILI_I_1 ) {
                 creazioneCorpoDati();
                 statoSistema = StatoSistema.PRODUZIONE_VISITE_PROPONIBILI_I_1;
             } else {
@@ -194,13 +193,15 @@ public class Menu{
             } else {
                 boolean chiudi = InputDati.yesOrNo("Vuoi veramente chiudere la raccolta delle disponibilità e delle date precluse?");
                 if (chiudi) {
-                    statoSistema = StatoSistema.RACCOLTA_DISPONIBILITA_I_2_DATE_PRECLUSE_I_3_COMPLETATA;
                     System.out.println("Raccolta chiusa con successo.");
+                    statoSistema = StatoSistema.RACCOLTA_DISPONIBILITA_I_2_DATE_PRECLUSE_I_3_COMPLETATA;
                 }
             }
             break;
 
         case 4:
+        	if(statoSistema == StatoSistema.PRODUZIONE_VISITE_PROPONIBILI_I_1 || statoSistema == StatoSistema.PRODUZIONE_VISITE_PROPONIBILI_I_1_COMPLETATA
+        			|| statoSistema == StatoSistema.GESTIONE_RICHIESTE_AGGIUNTA_RIMOZIONE || statoSistema == StatoSistema.GESTIONE_RICHIESTE_AGGIUNTA_RIMOZIONE_COMPLETATA);
             modificaNumFruitore();
             break;
 
@@ -237,7 +238,7 @@ public class Menu{
             } else {
                 boolean chiudiIscr = InputDati.yesOrNo("Vuoi davvero chiudere la raccolta iscrizioni fruitori?");
                 if (chiudiIscr) {
-                    statoSistema = StatoSistema.RACCOLTA_ISCRIZIONI_VISITE_FRUITORE_I1_COMPLETATA;
+                    statoSistema = StatoSistema.RACCOLTA_DISPONIBILITA_I_2_DATE_PRECLUSE_I_3;
                     System.out.println("Raccolta iscrizioni chiusa.");
                 }
             }
@@ -255,7 +256,7 @@ public class Menu{
                     case 0:
                         boolean indietroMod = InputDati.yesOrNo("Proseguendo, non potrai più apportare modifiche al Corpo Dati. Confermi di voler uscire dal menu?");
                         if (indietroMod) {
-                            statoSistema = StatoSistema.GESTIONE_RICHIESTE_AGGIUNTA_RIMOZIONE_COMPLETATA;
+                            statoSistema = StatoSistema.RACCOLTA_ISCRIZIONI_VISITE_FRUITORE_I1;
                             return;
                         }
                         break;
@@ -280,7 +281,6 @@ public class Menu{
                     }
                     sceltaModifica = menuModifica.scegli();
                 } while (sceltaModifica != 0);
-                statoSistema = StatoSistema.GESTIONE_RICHIESTE_AGGIUNTA_RIMOZIONE_COMPLETATA;
             }
             break;
         }
@@ -347,11 +347,12 @@ public class Menu{
   	            break;
 
   	        case 2: 
-  	            if (statoSistema != StatoSistema.RACCOLTA_ISCRIZIONI_VISITE_FRUITORE_I1) {
+  	            if (statoSistema != StatoSistema.GESTIONE_RICHIESTE_AGGIUNTA_RIMOZIONE_COMPLETATA && statoSistema != StatoSistema.RACCOLTA_ISCRIZIONI_VISITE_FRUITORE_I1) {
   	                System.out.println("Non puoi effettuare iscrizioni in questo stato del sistema.\nStato attuale: "
   	                    + statoSistema.stampaStatoSistema());
   	            } else {
   	                aggiungiIscrizioneFruitore(nickname);
+  	                statoSistema = StatoSistema.RACCOLTA_ISCRIZIONI_VISITE_FRUITORE_I1;
   	                
   	            }
   	            break;
@@ -484,13 +485,25 @@ public class Menu{
 							for(TipoVisita tipo : tipiVolontario.getTipi()) {
 								
 								if(cal.isGiornoProgrammabilePerTipoVisita(d.getGiorno(), tipo)) {
-							        int numero_mese = cal.getMeseNumero(cal.getMeseI1());
-							        Data dataVisita = new Data(d.getGiorno(), numero_mese);
+								    int numero_mese = cal.getMeseNumero(cal.getMeseI1());
+								    Data dataVisita = new Data(d.getGiorno(), numero_mese);
+
+								    // 1. Controllo: il volontario NON deve avere altre visite in quella giornata
+								    boolean volontarioGiaAssegnatoQuelGiorno = false;
+								    for (Visita vExist : listaVisite.getListaVisite()) {
+								        if (vExist.getDataVisita().equals(dataVisita)
+								            && vExist.getVolontariEffettivi().getVolontari().contains(v)) {
+								            volontarioGiaAssegnatoQuelGiorno = true;
+								            break;
+								        }
+								    }
+								    if (volontarioGiaAssegnatoQuelGiorno) {
+								        continue; // salta questa assegnazione
+								    }
 							        if (listaVisite.visitaSovrapposta(tipo, dataVisita, listaLuoghi)) {
 							            continue; 
 							        }							       
 							        Visita visitaEsistente = null;
-					                System.out.println("Livello 3.1 ");
 							        for (Visita vExist : listaVisite.getListaVisite()) {
 							        	
 							            if (vExist.getTipoVisita().equals(tipo)
@@ -564,7 +577,6 @@ public class Menu{
 	    	}
 	}
 
-	@SuppressWarnings({ "static-access", "static-access" })
 	private static void aggiungiIscrizioneFruitore(String nickname) throws SQLException {
 	    Fruitore fruitore = cercaFruitoreNellaLista(nickname);
 	    Visita visitaEffettiva = listaVisite.selezionaVisitaProposta(cal.getMeseI1(),fruitore,listaIscrizioniFruitore);
