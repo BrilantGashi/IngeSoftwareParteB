@@ -37,28 +37,47 @@ public class UtenteDAO {
         }
         return null;
     }
-    public static int trovaIdFruitoreDaNickname(String nickname) throws SQLException {
-        String query = "SELECT ID FROM credenziali WHERE USERNAME = ? AND ISATTIVO = true";
-        int idFruitore = -1;
-
+    
+    public static String trovaUsernameFruitoreDaId(int id) throws SQLException {
+        String query = "SELECT USERNAME FROM credenziali WHERE ID = ? AND ISATTIVO = true";
+        String username = null;
         try (Connection conn = ConnessioneDB.startConnection();
              PreparedStatement ps = conn.prepareStatement(query)) {
-            ps.setString(1, nickname);
+        	ps.setInt(1, id);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                	idFruitore = rs.getInt("ID");
+                	username = rs.getString("USERNAME");
                 } else {
-                    System.out.println("Fruitore non trovato per username: " + nickname);
+                    System.out.println("Fruitore non trovato per Id: " + id);
                 }
             }
         }
-        return idFruitore; // -1 se non trovato
+        return username; 
     }
     
-    public static int trovaIdVolontarioDaNickname(String nickname) throws SQLException {
+    public static void aggiungiNuovoFruitore(Fruitore fruitore) throws SQLException {
+        String sql = "INSERT INTO credenziali (USERNAME, PASSWORD, ID_TIPOUTENTE, ISATTIVO) VALUES (?, ?, ?, ?)";
+        try (Connection conn = ConnessioneDB.startConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, fruitore.getCredenziali().getUsername());
+            ps.setString(2, fruitore.getCredenziali().getPassword());
+            ps.setInt(3, 3); // 3 = fruitore (come da mappatura dei tuoi ID_TIPOUTENTE)
+            ps.setBoolean(4, true); // ISATTIVO = true
+
+            ps.executeUpdate();
+
+            System.out.println("Nuovo fruitore salvato: " + fruitore.getCredenziali().getUsername());
+        } catch (SQLException e) {
+            System.out.println("Errore durante l'inserimento del nuovo fruitore: " + e.getMessage());
+            throw e;
+        }
+    }
+    
+    public static int trovaIdUtenteDaNickname(String nickname, String tipoMessaggio) throws SQLException {
         String query = "SELECT ID FROM credenziali WHERE USERNAME = ? AND ISATTIVO = true";
-        int idVolontario = -1;
+        int idUtente = -1;
 
         try (Connection conn = ConnessioneDB.startConnection();
              PreparedStatement ps = conn.prepareStatement(query)) {
@@ -66,15 +85,23 @@ public class UtenteDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    idVolontario = rs.getInt("ID");
+                    idUtente = rs.getInt("ID");
                 } else {
-                    System.out.println("Volontario non trovato per username: " + nickname);
+                    System.out.println(tipoMessaggio + " non trovato per username: " + nickname);
                 }
             }
         }
-        return idVolontario; // -1 se non trovato
+        return idUtente; // -1 se non trovato
     }
-  
+    
+    public static int trovaIdFruitoreDaNickname(String nickname) throws SQLException {
+        return trovaIdUtenteDaNickname(nickname, "Fruitore");
+    }
+
+    public static int trovaIdVolontarioDaNickname(String nickname) throws SQLException {
+        return trovaIdUtenteDaNickname(nickname, "Volontario");
+    }
+
     public void stampaCredenziale(String username) {
         Credenziali dati = leggiSingolaCredenziale(username);
 
@@ -114,7 +141,7 @@ public class UtenteDAO {
     }
 
     public void leggiUtentiDaDB(ArrayList<Configuratore> configuratori, ListaVolontari volontari, ArrayList<Fruitore> fruitori) throws SQLException, FileNotFoundException, IOException {
-        String sql = "SELECT id, username, password, id_tipoutente FROM credenziali WHERE ISATTIVO = true";  // ✅ Solo attivi
+        String sql = "SELECT ID, USERNAME, PASSWORD, ID_TIPOUTENTE FROM credenziali WHERE ISATTIVO = true";  // ✅ Solo attivi
 
         ArrayList<DatiUtente> datiUtenti = new ArrayList<>();
 
@@ -183,8 +210,8 @@ public class UtenteDAO {
     public static void rimuoviVolontario(Volontario v) throws SQLException {
 
         String selectIdSql = "SELECT ID FROM credenziali WHERE USERNAME = ?";
-        String deleteVisiteSql = "DELETE FROM tipovisita_volontario WHERE fk_volontario = ?";
-        String deleteDisponibilitaSql = "DELETE FROM disponibilita WHERE fk_volontario = ?";
+        String deleteVisiteSql = "DELETE FROM tipovisita_volontario WHERE FK_VOLONTARIO = ?";
+        String deleteDisponibilitaSql = "DELETE FROM disponibilita WHERE FK_VOLONTARIO = ?";
 
         try (Connection conn = ConnessioneDB.startConnection()) {
             conn.setAutoCommit(false);

@@ -25,15 +25,16 @@ public class Menu{
     private static ListaVisite listaVisite = new ListaVisite();
     private static VisitaDAO VisitaDAO = new VisitaDAO();
 	private static ListaIscrizioni listaIscrizioniFruitore = new ListaIscrizioni();
+	private static IscrizioneDAO listaIscrizioniFruitoreDAO = new IscrizioneDAO();
     private static int nMaxPersone = 5;
-    private static String[] voci = {"Login"};
+    private static String[] voci = {"Login come Configuratore/Volontario", "Login come Fruitore"};
     
-    public static void login() throws Exception {
-		String username;
+    public static void login(boolean isFruitore) throws Exception {
+    	String username;
 		String password;
 		String utenza = "";
-			
-		System.out.println("Inserisci lo username che ti è stato fornito dall'amministrazione:");
+		if(!isFruitore) {
+		System.out.println("Inserisci lo username :");
 		username = InputDati.leggiStringaNonVuota("Username: ").trim();
 		
 		while (UtenteDao.leggiSingolaCredenziale(username) == null) {
@@ -58,7 +59,10 @@ public class Menu{
 			okCred = credenziali.controllaCredenziali(username, password);
 		}
 		utenza = credenziali.getUtenza();
-		
+		if(utenza == "FRUITORE") {
+			System.out.println("Attenzione stai cercando di accedere come fruitore!");
+			return;
+		}
 		switch (utenza) {
 		case "CONFIGURATORE":
 			configuratore(okCred);
@@ -66,14 +70,46 @@ public class Menu{
 		case "VOLONTARIO":
 			volontario(okCred, credenziali.getUsername());
 			break;
-		case "FRUITORE":
-			fruitore(okCred, credenziali.getUsername());
-			break;
 		default:						
 			break;			
 		}
+		} else {
+		        System.out.println("Inserisci lo username :");
+		        username = InputDati.leggiStringaNonVuota("Username: ").trim();
+
+		        // Controllo se username esistente tra i fruitori (puoi usare UtenteDAO o listaFruitori)
+		        Credenziali credenziali = UtenteDAO.leggiSingolaCredenziale(username);
+
+		        if (credenziali == null) {
+		            // Username NON esiste → creazione nuovo fruitore
+		            password = InputDati.leggiStringaNonVuota("Password: ");
+		            Credenziali nuoveCredenziali = new Credenziali("FRUITORE", username, password);
+		            Fruitore nuovoFruitore = new Fruitore(nuoveCredenziali);
+
+		            listaFruitori.add(nuovoFruitore); // aggiungi a lista in memoria
+		            UtenteDAO.aggiungiNuovoFruitore(nuovoFruitore); // aggiungi a DB
+
+		            System.out.println("Nuovo fruitore creato con successo! Effettuato accesso.");
+		            fruitore(username); // login diretto
+		        } else if (credenziali.getUtenza().equals("FRUITORE")) {
+		            // Username esiste ed è di tipo FRUITORE → login classico
+		            password = InputDati.leggiStringaNonVuota("Password: ");
+		            int okCred = credenziali.controllaCredenziali(username, password);
+
+		            while (okCred == -1) {
+		                password = InputDati.leggiStringaNonVuota("Password errata, riprovare: ");
+		                okCred = credenziali.controllaCredenziali(username, password);
+		            }
+
+		            System.out.println("Accesso effettuato!");
+		            fruitore(username); // login classico
+		        } else {
+		            // Username esistente MA non fruitore (caso teorico: collisione con admin/volontario)
+		            System.out.println("Username già assegnato a un'altra tipologia di utenza. Impossibile accedere/creare fruitore.");
+		        }
+		    }
 	}
-  
+		
   	public static boolean menuPrincipale() throws Exception{
   		
   		int sceltaMenu;
@@ -86,8 +122,10 @@ public class Menu{
   		case 0:
   			return InputDati.yesOrNo("Vuoi veramente uscire?");			
   		case 1:
-  			login();
+  			login(false);
   			break;
+  		case 2:
+  			login(true);
   		}
   		return false;		
   	}
@@ -96,7 +134,7 @@ public class Menu{
     int sceltaMenuConfig = 0;
     String[] vociConfig = {
         "Creazione Corpo Dati",
-        "Inserimento date precluse e raccolta disponibilità volontari",
+        "Inserimento date precluse e apertura raccolta disponibilita' dei volontari",
         "Chiusura raccolta disponibilità volontari/date precluse",
         "Modifica num max per fruitore",
         "Visualizza volontari",
@@ -269,7 +307,7 @@ public class Menu{
 
   	        case 1: // Visualizza tipi visita associati
   	            System.out.println("Elenco tipi visita associati al volontario: " + nickname);
-  	            System.out.println(tipoVisitaPerVolontario.toString().replace("===== ELENCO TIPI DI VISITA =====\n", ""));
+  	            System.out.println(tipoVisitaPerVolontario.toString().replace("----- ELENCO TIPI DI VISITA -----\n", ""));
   	            break;
 
   	        case 2: // Esprimi disponibilità per mese
@@ -286,7 +324,8 @@ public class Menu{
   	}
 
     
-  	public static void fruitore(int okCred, String nickname) throws Exception {
+  	public static void fruitore(String nickname) throws Exception {
+  		IscrizioneDAO.leggiIscrizioniDaDB(listaIscrizioniFruitore, listaFruitori, listaVisite);
   	    String[] vociFruitore = {
   	        "Visualizzare le visite attualmente nello stato di visita proposta/confermata/cancellata",
   	        "Effettuare l’iscrizione a una visita proposta",
@@ -313,6 +352,7 @@ public class Menu{
   	                    + statoSistema.stampaStatoSistema());
   	            } else {
   	                aggiungiIscrizioneFruitore(nickname);
+  	                
   	            }
   	            break;
   	        case 3: 
@@ -359,7 +399,7 @@ public class Menu{
 		boolean continuoTipoVisita;
 		do {
 			System.out.println();
-			aggiungiTipoVisita(false); //false perche' nella V1 non si possono creare nuovi volontari
+			aggiungiTipoVisita(); //false perche' nella V1 non si possono creare nuovi volontari
 			continuoTipoVisita = InputDati.yesOrNo("Vuoi inserire un altro Tipo Visita?");
 		} while (continuoTipoVisita);
 		
@@ -391,7 +431,6 @@ public class Menu{
 		listaLuoghi.stampaLuoghiConTipoVisita();
 		
 		CalendarioDAO.leggiCalendarioDaDB(cal);
-		
 		
 		
 	}
@@ -434,7 +473,6 @@ public class Menu{
 			System.out.println("\n----- Generazione del piano delle visite per il mese " + cal.getMeseI1() + " -----\n");
 			
 				for(Volontario v : listaVolontari.getVolontari()) {
-					
 						ArrayList<Disponibilita> disponibilitaVolontario = DisponibilitaDAO.leggiDisponibilitaVolontario(v.getNickname());
 						for(Disponibilita d : disponibilitaVolontario) {
 							
@@ -442,14 +480,15 @@ public class Menu{
 								if (cal.isGiornoEscluso(d.getGiorno(), 1)) {
 									continue;
 								}
-								
 							ListaTipoVisita tipiVolontario = listaTipoVisita.getTipiPerVolontario(v.getNickname());
 							for(TipoVisita tipo : tipiVolontario.getTipi()) {
 								
 								if(cal.isGiornoProgrammabilePerTipoVisita(d.getGiorno(), tipo)) {
 							        int numero_mese = cal.getMeseNumero(cal.getMeseI1());
 							        Data dataVisita = new Data(d.getGiorno(), numero_mese);
-							        // cerca visita già esistente stesso giorno/stesso tipo (puoi aggiungere anche stato e luogo se vuoi)
+							        if (listaVisite.visitaSovrapposta(tipo, dataVisita, listaLuoghi)) {
+							            continue; 
+							        }							       
 							        Visita visitaEsistente = null;
 					                System.out.println("Livello 3.1 ");
 							        for (Visita vExist : listaVisite.getListaVisite()) {
@@ -525,6 +564,7 @@ public class Menu{
 	    	}
 	}
 
+	@SuppressWarnings({ "static-access", "static-access" })
 	private static void aggiungiIscrizioneFruitore(String nickname) throws SQLException {
 	    Fruitore fruitore = cercaFruitoreNellaLista(nickname);
 	    Visita visitaEffettiva = listaVisite.selezionaVisitaProposta(cal.getMeseI1(),fruitore,listaIscrizioniFruitore);
@@ -559,7 +599,7 @@ public class Menu{
 	    // Registra l'iscrizione
 	    Iscrizione nuovaIscrizione = new Iscrizione(visitaEffettiva, fruitore, quotaTotale);
 	    listaIscrizioniFruitore.aggiungi(nuovaIscrizione);
-
+	    listaIscrizioniFruitoreDAO.inserisciIscrizione(nuovaIscrizione);
 	    // Aggiorna lo stato della visita se si raggiunge la capienza
 	    int nuovoTotale = listaIscrizioniFruitore.getTotaleIscrittiPerVisita(visitaEffettiva);
 	    if (nuovoTotale == capienzaMassima) {
@@ -568,8 +608,6 @@ public class Menu{
 	    }
 	    System.out.println("Iscrizione registrata. Codice prenotazione: " 
 	        + nuovaIscrizione.getCodicePrenotazione());
-	    System.out.println("Numero totale partecipanti per te: " + quotaTotale + 
-	        ". Posti occupati ora: " + nuovoTotale + "/" + capienzaMassima);
 	}
 	
 	private static Fruitore cercaFruitoreNellaLista(String nickname) {
@@ -581,7 +619,7 @@ public class Menu{
 	    return null; // Non trovato
 	}
 
-	public static void disdiciIscrizione(String usernameFruitore) {
+	public static void disdiciIscrizione(String usernameFruitore) throws SQLException {
 	    // 1. Visualizza all'utente tutte le sue iscrizioni valide (con codici prenotazione)
 	    System.out.println("\nLe tue iscrizioni:");
 	    listaIscrizioniFruitore.visualizzaIscrizioniFruitore(usernameFruitore);
@@ -594,8 +632,9 @@ public class Menu{
 	    }
 
 	    // 3. Chiamata al metodo di disdetta vera e propria
+	    listaIscrizioniFruitoreDAO.disdiciIscrizione(codicePrenotazione);
 	    boolean successo = listaIscrizioniFruitore.disdiciIscrizione(codicePrenotazione, usernameFruitore);
-
+	    
 	    // 4. Esito
 	    if (successo) {
 	        System.out.println("Disdetta eseguita con successo!");
@@ -898,14 +937,15 @@ public class Menu{
 	            System.out.println("Visita aggiunta correttamente.");
 	        }
 	        if(consentiNuoviVol) {
-	        ListaVolontari volontariDisponibili = new ListaVolontari();
-	        for (Volontario vol : listaVolontari.getVolontari()) {
-	        	if (vol.isAttivo() && !tipoScelto.getListaVolontari().getVolontari().contains(vol)) {
-	        		volontariDisponibili.aggiungiVolontario(vol);
-	        	}
-	        }
+	        
 	        boolean continua = true;
 	        do {
+	        	ListaVolontari volontariDisponibili = new ListaVolontari();
+		        for (Volontario vol : listaVolontari.getVolontari()) {
+		        	if (vol.isAttivo() && !tipoScelto.getListaVolontari().getVolontari().contains(vol)) {
+		        		volontariDisponibili.aggiungiVolontario(vol);
+		        	}
+		        }
 	        	boolean nuovo = InputDati.yesOrNo("Vuoi aggiungere un volontario non ancora registrato al Tipo Visita?");
 	        	Volontario v;
 
@@ -965,7 +1005,7 @@ public class Menu{
 	    }
 	}
 
-	public static void aggiungiTipoVisita(boolean consentiNuoviVolontari) throws SQLException {
+	public static void aggiungiTipoVisita() throws SQLException {
 		String titolo = InputDati.leggiStringaNonVuota("Inserisci il titolo del tipo visita: ").trim();
 		// Descrizione: non vuota
 		String descrizione = InputDati.leggiStringaNonVuota("Inserisci una breve descrizione del tipo visita: ").trim();
@@ -983,7 +1023,7 @@ public class Menu{
 	    ListaVolontari volontariToAdd = new ListaVolontari();
 	    boolean continuaVolontario;
 
-	    do {
+	    /*do {
 	        // Se consenti aggiunta nuovi volontari, chiedi se vogliono crearne uno nuovo
 	        if (consentiNuoviVolontari) {
 	            boolean aggiungiNuovo = InputDati.yesOrNo("Vuoi aggiungere un nuovo volontario non presente nei registri? ");
@@ -1026,7 +1066,7 @@ public class Menu{
 	        volontariToAdd.aggiungiVolontario(scelto);
 	        // Chiede se associare un altro volontario, sempre nel contesto di questo tipo visita
 	        continuaVolontario = InputDati.yesOrNo("Vuoi associare un altro volontario a questo Tipo Visita? ");
-	    } while (continuaVolontario);
+	    } while (continuaVolontario);*/
 	    // Crea il nuovo oggetto TipoVisita con i volontari selezionati
 	    TipoVisita tipoVisita = new TipoVisita(titolo, descrizione, puntoDiIncontro,
 	            giorniProgrammabiliSettimana, oraInizio, durataVisita,
@@ -1074,14 +1114,15 @@ public class Menu{
 	    int sceltaTipo = InputDati.leggiIntero("Scegli il tipo di visita da aggiungere: ",
 	                                               1, tipiDisponibili.getTipi().size());
 	    TipoVisita tipoScelto = tipiDisponibili.getTipo(sceltaTipo - 1);
-	    ListaVolontari volontariDisponibili = new ListaVolontari();
-	        for (Volontario vol : listaVolontari.getVolontari()) {
-	        	if (vol.isAttivo() && !tipoScelto.getListaVolontari().getVolontari().contains(vol)) {
-	        		volontariDisponibili.aggiungiVolontario(vol);
-	        	}
-	        }
+	    
 	    boolean continua = true;
 	        do {
+	        	ListaVolontari volontariDisponibili = new ListaVolontari();
+		        for (Volontario vol : listaVolontari.getVolontari()) {
+		        	if (vol.isAttivo() && !tipoScelto.getListaVolontari().getVolontari().contains(vol)) {
+		        		volontariDisponibili.aggiungiVolontario(vol);
+		        	}
+		        }
 	        	boolean nuovo = InputDati.yesOrNo("Vuoi aggiungere un volontario non ancora registrato?");
 	        	Volontario v;
 

@@ -4,10 +4,10 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class Iscrizione {
-    private final String codicePrenotazione;
+    private String codicePrenotazione;
     private final Visita visitaEffettiva;
     private final Fruitore fruitore;              // Unico fruitore per questa iscrizione
-    private final int totalePartecipanti;        // Numero accompagnatori (escluso il fruitore principale)
+    private int totalePartecipanti;        // Numero accompagnatori (escluso il fruitore principale)
 
     /**
      * Crea una iscrizione: fruitore singolo, visita e numero accompagnatori.
@@ -37,6 +37,10 @@ public class Iscrizione {
 
     public int getTotalePartecipanti() {
         return totalePartecipanti;
+    }
+    
+    public void setCodicePrenotazione(String codice_prenotazione) {
+    	this.codicePrenotazione = codice_prenotazione;
     }
 
     @Override

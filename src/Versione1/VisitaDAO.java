@@ -99,8 +99,37 @@ public class VisitaDAO {
 	            }
 	        }
 	    }
-	    return null; // non trovato
+	    return 0; // non trovato
 	}
+	
+	public static Visita trovaVisitaDaId(int id, ListaVisite listaVisite) throws SQLException {
+	    String query = "SELECT DATA_GIORNO, DATA_MESE, TITOLO_TIPO_VISITA FROM visita WHERE id = ?";
+	    int giorno = -1, mese = -1;
+	    String titoloTipo = null;
+	    // 1. Recupera info dal DB
+	    try (Connection conn = ConnessioneDB.startConnection();
+	         PreparedStatement ps = conn.prepareStatement(query)) {
+	        ps.setInt(1, id);
+	        try (ResultSet rs = ps.executeQuery()) {
+	            if (rs.next()) {
+	                giorno = rs.getInt("DATA_GIORNO");
+	                mese = rs.getInt("DATA_MESE");
+	                titoloTipo = rs.getString("TITOLO_TIPO_VISITA");
+	            } else {
+	                throw new SQLException("Nessuna visita trovata con id=" + id);
+	            }
+	        }
+	    }
+	    for (Visita v : listaVisite.getListaVisite()) {
+	        if (v.getDataVisita().getGiorno() == giorno &&
+	            v.getDataVisita().getMese() == mese &&
+	            v.getTipoVisita().getTitolo().equals(titoloTipo)) {
+	            return v;
+	        }
+	    }
+	    return null; // Visita non trovata nella lista globale
+	}
+
 
 	
 	public static void aggiornaStatoVisitaDB(Visita visita, StatoVisita nuovoStato) throws SQLException {

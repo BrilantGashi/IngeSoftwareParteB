@@ -1,5 +1,6 @@
 package Versione1;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -198,6 +199,28 @@ public class ListaVisite {
         }
         return true;
     }
+    
+    public boolean visitaSovrapposta(TipoVisita tipoDaAggiungere, Data giorno, ListaLuogo listaLuogo) {
+        Luogo luogoCorrente = listaLuogo.trovaLuogoPerTipoVisita(tipoDaAggiungere);
+        if (luogoCorrente == null) return false;
+
+        LocalTime inizioA = tipoDaAggiungere.getOraInizio();
+        LocalTime fineA = inizioA.plusMinutes(tipoDaAggiungere.getDurataVisita());
+
+        for (Visita v : this.getListaVisite()) { // usa l'array della classe
+            Luogo luogoVisitaEsistente = listaLuogo.trovaLuogoPerTipoVisita(v.getTipoVisita());
+            if (luogoCorrente.equals(luogoVisitaEsistente) && v.getDataVisita().equals(giorno)) {
+                LocalTime inizioB = v.getTipoVisita().getOraInizio();
+                LocalTime fineB = inizioB.plusMinutes(v.getTipoVisita().getDurataVisita());
+                if (!(fineA.isBefore(inizioB) || inizioA.isAfter(fineB))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
       
     public void stampaTitoloEStato() {
         if (listaVisite == null || listaVisite.isEmpty()) {

@@ -121,6 +121,16 @@ public class ListaLuogo {
         }
         return orfani;
     }
+    
+    public Luogo trovaLuogoPerTipoVisita(TipoVisita tipo) {
+        for (Luogo luogo : listaLuoghi) {
+            if (luogo.getListaTipoVisita().getTipi().contains(tipo)) {
+                return luogo;
+            }
+        }
+        return null;
+    }
+
 
     /**
      * Stampa i luoghi con i tipi di visita associati.
